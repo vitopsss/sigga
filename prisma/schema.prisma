@@ -1,0 +1,255 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// ENUMS DE DOMÍNIO
+// ============================================================================
+
+enum TipoPessoa {
+  PF 
+  PJ 
+}
+
+enum Role {
+  ADMIN
+  GERENTE
+  COORDENADOR_PROJETO
+  OPERADOR
+}
+
+enum StatusProjeto {
+  EM_ELABORACAO
+  ATIVO
+  PAUSADO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum StatusGeral {
+  ATIVO
+  INATIVO
+}
+
+// ============================================================================
+// 1. NÚCLEO / CADASTRO ÚNICO
+// ============================================================================
+
+model CadastroUnico {
+  id             String      @id @default(uuid())
+  tipoPessoa     TipoPessoa
+  nome           String      
+  nomeFantasia   String?     
+  documento      String      @unique 
+  emailContato   String?
+  telefone       String?
+  endereco       String?     
+  status         StatusGeral @default(ATIVO)
+
+  usuario        User?
+  colaborador    Colaborador?
+  borderos       Bordero[]
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@map("cadastros_unicos")
+}
+
+// ============================================================================
+// 2. RBAC & AUTENTICAÇÃO
+// ============================================================================
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  
+  role          Role      @default(OPERADOR)
+  
+  cadastroId    String?   @unique
+  cadastro      CadastroUnico? @relation(fields: [cadastroId], references: [id])
+
+  projetosPermitidos AcessoProjeto[]
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model AcessoProjeto {
+  userId    String
+  projetoId String
+
+  user      User    @relation(fields: [userId], references:[id], onDelete: Cascade)
+  projeto   Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  @@id([userId, projetoId])
+  @@map("acessos_projetos")
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references:[id], onDelete: Cascade)
+  @@map("sessions")
+}
+
+// ============================================================================
+// 3. GESTÃO DE PROJETOS
+// ============================================================================
+
+model Projeto {
+  id            String        @id @default(uuid())
+  nome          String
+  codigo        String        @unique 
+  descricao     String?       @db.Text
+  dataInicio    DateTime
+  dataFim       DateTime?
+  status        StatusProjeto @default(EM_ELABORACAO)
+
+  acessos             AcessoProjeto[]     
+  planosTrabalho      PlanoTrabalho[]
+  alocacoesColab      AlocacaoProjeto[]   
+  borderos            Bordero[]           
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("projetos")
+}
+
+model PlanoTrabalho {
+  id          String   @id @default(uuid())
+  titulo      String
+  descricao   String?  @db.Text
+  
+  projetoId   String
+  projeto     Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  atividades  Atividade[]
+
+  @@map("planos_trabalho")
+}
+
+model Atividade {
+  id              String        @id @default(uuid())
+  nome            String
+  descricao       String?
+  dataPrevista    DateTime?
+  status          String        
+  
+  planoTrabalhoId String
+  planoTrabalho   PlanoTrabalho @relation(fields: [planoTrabalhoId], references: [id], onDelete: Cascade)
+
+  @@map("atividades")
+}
+
+// ============================================================================
+// 4. RECURSOS HUMANOS (RH)
+// ============================================================================
+
+model Colaborador {
+  id              String   @id @default(uuid())
+  cargo           String
+  dataAdmissao    DateTime
+  dataDesligamento DateTime?
+  salarioBase     Decimal  @db.Decimal(10, 2) 
+  status          StatusGeral @default(ATIVO)
+
+  cadastroId      String   @unique
+  cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
+
+  alocacoes       AlocacaoProjeto[]
+  lancamentosFolha LancamentoFolha[]
+
+  @@map("colaboradores")
+}
+
+model AlocacaoProjeto {
+  id              String      @id @default(uuid())
+  
+  colaboradorId   String
+  colaborador     Colaborador @relation(fields:[colaboradorId], references: [id], onDelete: Cascade)
+  
+  projetoId       String
+  projeto         Projeto     @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+
+  porcentagem     Decimal     @db.Decimal(5, 2) 
+  
+  dataInicio      DateTime
+  dataFim         DateTime?
+
+  @@map("alocacoes_projetos")
+}
+
+model LancamentoFolha {
+  id              String      @id @default(uuid())
+  competencia     DateTime    
+  valorTotal      Decimal     @db.Decimal(10, 2)
+  tipo            String      
+  
+  colaboradorId   String
+  colaborador     Colaborador @relation(fields: [colaboradorId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime    @default(now())
+
+  @@map("lancamentos_folhas")
+}
+
+// ============================================================================
+// 5. FINANCEIRO / BORDERÔS 
+// ============================================================================
+
+model Bordero {
+  id              String      @id @default(uuid())
+  descricao       String
+  valorTotal      Decimal     @db.Decimal(10, 2)
+  dataVencimento  DateTime
+  dataPagamento   DateTime?
+  status          String      
+
+  projetoId       String
+  projeto         Projeto     @relation(fields: [projetoId], references: [id])
+
+  favorecidoId    String
+  favorecido      CadastroUnico @relation(fields: [favorecidoId], references: [id])
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("borderos")
+}
