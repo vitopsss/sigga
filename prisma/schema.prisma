@@ -14,242 +14,348 @@ datasource db {
 }
 
 // ============================================================================
-// ENUMS DE DOMÍNIO
+// ENUMS DE DOMÍNIO (Atualizado conf. Relatório Beto)
 // ============================================================================
-
-enum TipoPessoa {
-  PF 
-  PJ 
-}
-
 enum Role {
-  ADMIN
-  GERENTE
-  COORDENADOR_PROJETO
-  OPERADOR
+  ADMINISTRADOR_DIRETOR // Acesso a parametrização e dados sensíveis
+  GERENTE               // Visão tática ampla sobre todos os módulos
+  COORDENADOR_PROJETO   // Visão operacional, relatórios e filtros específicos
+  OPERADOR              // Trabalho de campo, inserção de dados, antigo 'extensionista'
 }
 
-enum StatusProjeto {
-  EM_ELABORACAO
-  ATIVO
-  PAUSADO
-  CONCLUIDO
-  CANCELADO
-}
-
-enum StatusGeral {
-  ATIVO
-  INATIVO
+enum TipoCadastro {
+  PF        // Pessoa Física
+  PJ        // Pessoa Jurídica
+  PUBLICO   // Público
+  PRIVADO   // Privado
 }
 
 // ============================================================================
-// 1. NÚCLEO / CADASTRO ÚNICO
+// 1. NÚCLEO E ACESSO (O "Cadastro Único")
 // ============================================================================
 
 model CadastroUnico {
-  id             String      @id @default(uuid())
-  tipoPessoa     TipoPessoa
-  nome           String      
-  nomeFantasia   String?     
-  documento      String      @unique 
-  emailContato   String?
-  telefone       String?
-  endereco       String?     
-  status         StatusGeral @default(ATIVO)
+  id               String   @id @default(uuid())
+  tipo             TipoCadastro
+  documento        String   @unique // CPF / CNPJ
+  nome             String   // NOME / RAZÃO SOCIAL
+  
+  // Dados exigidos pelo Beto para entrada externa
+  email            String?
+  telefone         String?
+  endereco         String?
+  documentosAnexos Boolean  @default(false) // Flag indicando se a pessoa fez upload de CNH/Contrato
+  origemCadastro   String   @default("INTERNO") // Pode ser "LINK_EXTERNO", "INTERNO"
+  
+  // Dados Bancários
+  banco            String?
+  agencia          String?
+  conta            String?
+  pix              String?
 
-  usuario        User?
-  colaborador    Colaborador?
-  borderos       Bordero[]
+  usuario          User?
+  colaborador      Colaborador?
+  beneficiaria     Beneficiaria?
+  empreendimento   Empreendimento?
+  borderos         LancamentoFinanceiro[]
+  contratos        ContratoFornecedor[]
 
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@map("cadastros_unicos")
 }
-
-// ============================================================================
-// 2. RBAC & AUTENTICAÇÃO
-// ============================================================================
 
 model User {
   id            String    @id @default(uuid())
   name          String?
   email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  
-  role          Role      @default(OPERADOR)
+  passwordHash  String?   // Para login seguro
+  role          Role      @default(OPERADOR) // A hierarquia exigida pelo Beto
+  status        String    @default("ATIVO")
   
   cadastroId    String?   @unique
   cadastro      CadastroUnico? @relation(fields: [cadastroId], references: [id])
 
-  projetosPermitidos AcessoProjeto[]
-  accounts      Account[]
-  sessions      Session[]
-
   @@map("users")
 }
 
-model AcessoProjeto {
-  userId    String
-  projetoId String
-
-  user      User    @relation(fields: [userId], references:[id], onDelete: Cascade)
-  projeto   Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade)
-
-  @@id([userId, projetoId])
-  @@map("acessos_projetos")
-}
-
-model Account {
-  id                String  @id @default(uuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model Session {
-  id           String   @id @default(uuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references:[id], onDelete: Cascade)
-  @@map("sessions")
-}
+// ... (O RESTO DO SEU SCHEMA CONTINUA EXATAMENTE IGUAL: PROJETOS, FINANCEIRO, ETC)
 
 // ============================================================================
-// 3. GESTÃO DE PROJETOS
+// 2. GESTÃO DE PROJETOS E ORÇAMENTO (Abas B1, B2, B3, B4)
 // ============================================================================
 
 model Projeto {
-  id            String        @id @default(uuid())
-  nome          String
-  codigo        String        @unique 
-  descricao     String?       @db.Text
-  dataInicio    DateTime
-  dataFim       DateTime?
-  status        StatusProjeto @default(EM_ELABORACAO)
+  id                 String   @id @default(uuid())
+  centroCusto        String   @unique // ID C. DE CUSTO (Ex: 1084)
+  ano                Int?     
+  status             String   
+  portfolio          String?  
+  titulo             String   
+  abreviacao         String?  
+  financiador        String?  
+  numContrato        String?  // Nº DO CONTRATO/CONVÊNIO
+  valorTotal         Decimal  @db.Decimal(15, 2)
+  vigenciaInicial    DateTime 
+  vigenciaFinal      DateTime?
 
-  acessos             AcessoProjeto[]     
-  planosTrabalho      PlanoTrabalho[]
-  alocacoesColab      AlocacaoProjeto[]   
-  borderos            Bordero[]           
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // Relações
+  orcamentos         OrcamentoItem[]
+  faturamentos       FaturamentoProjeto[]
+  borderos           Bordero[]
+  alocacoesRH        ColaboradorProjeto[]
+  atividadesATER     PlanejamentoAtividade[]
+  projetosProdutivos ProjetoProdutivo[]
 
   @@map("projetos")
 }
 
-model PlanoTrabalho {
-  id          String   @id @default(uuid())
-  titulo      String
-  descricao   String?  @db.Text
-  
-  projetoId   String
-  projeto     Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
-
-  atividades  Atividade[]
-
-  @@map("planos_trabalho")
-}
-
-model Atividade {
-  id              String        @id @default(uuid())
-  nome            String
+model OrcamentoItem {
+  id              String   @id @default(uuid())
+  idOrc           String   @unique // IDORC
+  planoGerencial  String?  // PLANO GERENCIAL
   descricao       String?
-  dataPrevista    DateTime?
-  status          String        
-  
-  planoTrabalhoId String
-  planoTrabalho   PlanoTrabalho @relation(fields: [planoTrabalhoId], references: [id], onDelete: Cascade)
+  unidade         String?
+  quantidade      Int?
+  valorReferencia Decimal  @db.Decimal(15, 2)
+  valorTotal      Decimal  @db.Decimal(15, 2)
 
-  @@map("atividades")
+  projetoId       String
+  projeto         Projeto  @relation(fields: [projetoId], references: [id])
+
+  @@map("orcamentos_itens")
 }
 
 // ============================================================================
-// 4. RECURSOS HUMANOS (RH)
+// 3. FINANCEIRO E FATURAMENTO (Abas F1, F2, F3)
+// ============================================================================
+
+model FaturamentoProjeto {
+  id                String    @id @default(uuid())
+  parcela           Int?
+  vencimento        DateTime?
+  valorTotal        Decimal   @db.Decimal(15, 2)
+  dataLiquidacao    DateTime?
+  numNotaFiscal     String?   // Nº DE CONTROLE NF
+
+  projetoId         String
+  projeto           Projeto   @relation(fields: [projetoId], references: [id])
+
+  @@map("faturamentos_projetos")
+}
+
+model Bordero {
+  id              String    @id @default(uuid())
+  idBordero       String    @unique // IDBOR (Ex: BOR100546)
+  data            DateTime? @default(now())
+  cadastrador     String?
+  tipoBordero     String?   // Pagar ou Receber
+  status          String    @default("Pendente")
+
+  projetoId       String
+  projeto         Projeto   @relation(fields: [projetoId], references: [id])
+  lancamentos     LancamentoFinanceiro[]
+
+  @@map("borderos")
+}
+
+model LancamentoFinanceiro {
+  id                String    @id @default(uuid())
+  nsu               String    @unique // NSU
+  fase              String?
+  etapa             String?
+  atividade         String?
+  valor             Decimal   @db.Decimal(15, 2)
+  dataVencimento    DateTime
+  
+  // Fluxo de Caixa / Tesouraria
+  autorizado        Boolean   @default(false)
+  conciliado        Boolean   @default(false)
+  dataPagamento     DateTime?
+  formaPagamento    String?
+
+  borderoId         String
+  bordero           Bordero   @relation(fields: [borderoId], references: [id], onDelete: Cascade)
+
+  favorecidoId      String
+  favorecido        CadastroUnico @relation(fields: [favorecidoId], references: [id])
+
+  @@map("lancamentos_financeiros")
+}
+
+// ============================================================================
+// 4. RECURSOS HUMANOS (Abas D1, D2)
 // ============================================================================
 
 model Colaborador {
   id              String   @id @default(uuid())
-  cargo           String
-  dataAdmissao    DateTime
-  dataDesligamento DateTime?
-  salarioBase     Decimal  @db.Decimal(10, 2) 
-  status          StatusGeral @default(ATIVO)
+  idRH            String   @unique // IDRH
+  cargo           String?
+  vinculo         String?  // Celetista, Bolsista
+  salarioBase     Decimal  @db.Decimal(15, 2)
+  status          String?
 
   cadastroId      String   @unique
   cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
-
-  alocacoes       AlocacaoProjeto[]
-  lancamentosFolha LancamentoFolha[]
+  alocacoes       ColaboradorProjeto[]
 
   @@map("colaboradores")
 }
 
-model AlocacaoProjeto {
-  id              String      @id @default(uuid())
+model ColaboradorProjeto {
+  id            String      @id @default(uuid())
+  porcentagem   Decimal     @db.Decimal(5, 2) @default(100.00)
+  colaboradorId String
+  projetoId     String
+  colaborador   Colaborador @relation(fields: [colaboradorId], references: [id])
+  projeto       Projeto     @relation(fields: [projetoId], references: [id])
   
-  colaboradorId   String
-  colaborador     Colaborador @relation(fields:[colaboradorId], references: [id], onDelete: Cascade)
-  
-  projetoId       String
-  projeto         Projeto     @relation(fields: [projetoId], references: [id], onDelete: Cascade)
-
-  porcentagem     Decimal     @db.Decimal(5, 2) 
-  
-  dataInicio      DateTime
-  dataFim         DateTime?
-
-  @@map("alocacoes_projetos")
-}
-
-model LancamentoFolha {
-  id              String      @id @default(uuid())
-  competencia     DateTime    
-  valorTotal      Decimal     @db.Decimal(10, 2)
-  tipo            String      
-  
-  colaboradorId   String
-  colaborador     Colaborador @relation(fields: [colaboradorId], references: [id], onDelete: Cascade)
-
-  createdAt       DateTime    @default(now())
-
-  @@map("lancamentos_folhas")
+  @@map("colaboradores_projetos")
 }
 
 // ============================================================================
-// 5. FINANCEIRO / BORDERÔS 
+// 5. MÓDULO TÉCNICO ATER E SGA (Abas AT, RELATAT, TEC 2026)
 // ============================================================================
 
-model Bordero {
-  id              String      @id @default(uuid())
-  descricao       String
-  valorTotal      Decimal     @db.Decimal(10, 2)
-  dataVencimento  DateTime
+model Beneficiaria {
+  id              String   @id @default(uuid())
+  codigoSGA       String?  @unique // ID SGA
+  nis             String?  @unique
+  municipio       String?
+  comunidade      String?
+  ufpa            String?  // Unidade Familiar de Produção Agrária
+
+  cadastroId      String   @unique
+  cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
+
+  atendimentos    AtendimentoTecnico[]
+  controleSGA     ControleProcessoSGA?
+
+  @@map("beneficiarias")
+}
+
+model AtendimentoTecnico {
+  id                String   @id @default(uuid())
+  idTec             String   @unique // ID TEC (Ex: AT7OR241)
+  data              DateTime @default(now())
+  tecnico           String
+  
+  // Eixo Produtivo
+  produtivoAcao     String?
+  produtivoImpacto  String? @db.Text
+  
+  // Eixo Social
+  socialAcao        String?
+  socialImpacto     String? @db.Text
+
+  // Eixo Ambiental
+  ambientalAcao     String?
+  ambientalImpacto  String? @db.Text
+
+  beneficiariaId    String
+  beneficiaria      Beneficiaria @relation(fields: [beneficiariaId], references: [id])
+
+  @@map("atendimentos_tecnicos")
+}
+
+model ControleProcessoSGA {
+  id                String   @id @default(uuid())
+  statusAnalise     String?  // Situação da Analise
+  parcela1          String?  // Parcela nº 1
+  parcela2          String?  // Parcela nº 2
+  projetoEnviado    Boolean  @default(false)
+
+  beneficiariaId    String   @unique
+  beneficiaria      Beneficiaria @relation(fields: [beneficiariaId], references: [id])
+
+  @@map("controle_sga")
+}
+
+model PlanejamentoAtividade {
+  id                String   @id @default(uuid())
+  numMeta           Int
+  descricao         String
+  status            String   // Em execução, Não iniciado
+  valorUnitario     Decimal  @db.Decimal(15, 2)
+
+  projetoId         String
+  projeto           Projeto  @relation(fields: [projetoId], references: [id])
+
+  @@map("planejamento_ater")
+}
+
+model ProjetoProdutivo {
+  id                String   @id @default(uuid())
+  atividade         String   // SAF, Avicultura, etc.
+  situacao          String?  // Ativo, Inativo
+  
+  projetoId         String
+  projeto           Projeto @relation(fields: [projetoId], references: [id])
+
+  @@map("projetos_produtivos")
+}
+
+// ============================================================================
+// 6. COMPRAS E PATRIMÓNIO (Abas C1, C3, E1)
+// ============================================================================
+
+model ContratoFornecedor {
+  id              String   @id @default(uuid())
+  idContrato      String   @unique // ID CONTRATO
+  objeto          String?  @db.Text
+  valorTotal      Decimal  @db.Decimal(15, 2)
+  status          String?
+
+  fornecedorId    String
+  fornecedor      CadastroUnico @relation(fields: [fornecedorId], references: [id])
+
+  @@map("contratos_fornecedores")
+}
+
+model Patrimonio {
+  id              String   @id @default(uuid())
+  tombamento      String?  @unique // N. Tombamento
+  descricao       String   
+  status          String?  // Baixado, Em uso
+  valorAquisicao  Decimal? @db.Decimal(15, 2)
+
+  @@map("patrimonio")
+}
+
+// ============================================================================
+// 7. GESTÃO DE FUNDOS E EMPREENDIMENTOS (Antigo SISREDE)
+// ============================================================================
+
+model Empreendimento {
+  id              String   @id @default(uuid())
+  matricula       String?  @unique // MATRÍCULA SISREDE (Ex: 20002)
+  nome            String   // Nome do Empreendimento (Magia Amazônica, etc)
+  segmento        String?  // Agroecológico, Artesanato, Processados...
+  status          String?  @default("ATIVO")
+  
+  // O Dono do Empreendimento vem do Cadastro Único
+  cadastroId      String   @unique
+  cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
+
+  contribuicoes   ContribuicaoFundo[]
+
+  @@map("empreendimentos")
+}
+
+model ContribuicaoFundo {
+  id              String   @id @default(uuid())
+  parcela         String?  // Ex: "1/10", "2/10" (Aba Carnê)
+  mesReferencia   Int?
+  anoReferencia   Int?
+  valorGerado     Decimal  @db.Decimal(15, 2) // Valor calculado/orçado
+  valorPago       Decimal? @db.Decimal(15, 2) // Valor real pago
+  dataVencimento  DateTime?
   dataPagamento   DateTime?
-  status          String      
+  status          String   @default("PENDENTE") // PAGO, PENDENTE, ATRASADO
 
-  projetoId       String
-  projeto         Projeto     @relation(fields: [projetoId], references: [id])
+  empreendimentoId String
+  empreendimento  Empreendimento @relation(fields: [empreendimentoId], references: [id])
 
-  favorecidoId    String
-  favorecido      CadastroUnico @relation(fields: [favorecidoId], references: [id])
-
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  @@map("borderos")
+  @@map("contribuicoes_fundo")
 }
