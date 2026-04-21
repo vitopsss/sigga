@@ -6,7 +6,7 @@ async function main() {
   console.log('🌱 Iniciando o seed do banco de dados (Modelo Beto)...')
 
   // 1. Cria o Cadastro Único do Administrador
-  const adminCadastro = await prisma.cadastroUnico.upsert({
+  const adminCadastro = await prisma.pessoa.upsert({
     where: { documento: '00000000000' },
     update: {},
     create: {

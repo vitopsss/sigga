@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-type ProjetoActionState = {
+export type ProjetoActionState = {
   errors?: Record<string, string>;
   values?: Record<string, string>;
 };
@@ -60,10 +60,10 @@ export async function salvarProjeto(
   const errors: Record<string, string> = {};
 
   if (!centroCusto) errors.centroCusto = "Informe o centro de custo.";
-  if (!titulo) errors.titulo = "Informe o titulo do projeto.";
+  if (!titulo) errors.titulo = "Informe o título do projeto.";
   if (!status) errors.status = "Selecione um status.";
-  if (!vigenciaInicial) errors.vigenciaInicial = "Informe a vigencia inicial.";
-  if (valorTotal === undefined) errors.valorTotal = "Informe um valor total valido.";
+  if (!vigenciaInicial) errors.vigenciaInicial = "Informe a vigência inicial.";
+  if (valorTotal === undefined) errors.valorTotal = "Informe um valor total válido.";
 
   if (Object.keys(errors).length > 0) {
     return { errors, values };
@@ -79,7 +79,7 @@ export async function salvarProjeto(
 
   if (centroCustoExistente) {
     return {
-      errors: { centroCusto: "Ja existe um projeto com esse centro de custo." },
+      errors: { centroCusto: "Já existe um projeto com esse centro de custo." },
       values,
     };
   }
@@ -94,8 +94,8 @@ export async function salvarProjeto(
     ano,
     valorTotal: Number(valorTotal),
     status,
-    vigenciaInicial,
-    vigenciaFinal,
+    vigenciaInicial: vigenciaInicial || new Date(),
+    vigenciaFinal: vigenciaFinal || null,
   };
 
   try {
@@ -106,7 +106,7 @@ export async function salvarProjeto(
     }
   } catch {
     return {
-      errors: { form: "Nao foi possivel salvar o projeto. Tente novamente." },
+      errors: { form: "Não foi possível salvar o projeto. Tente novamente." },
       values,
     };
   }

@@ -24,7 +24,7 @@ export default async function CadastroDetalhePage({
 }) {
   const { id } = await params;
 
-  const cadastro = await prisma.cadastroUnico.findUnique({
+  const cadastro = await prisma.pessoa.findUnique({
     where: { id },
     select: {
       id: true,
@@ -89,28 +89,28 @@ export default async function CadastroDetalhePage({
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.25)] backdrop-blur sm:p-8">
             <h2 className="text-lg font-semibold tracking-tight text-zinc-950">
-              Informacoes de contato
+              Informações de contato
             </h2>
             <div className="mt-6 grid gap-4">
               <div className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4">
                 <Mail className="mt-0.5 h-4 w-4 text-zinc-400" />
                 <div>
                   <p className="text-sm font-medium text-zinc-700">Email</p>
-                  <p className="mt-1 text-sm text-zinc-600">{cadastro.email ?? "Nao informado"}</p>
+                  <p className="mt-1 text-sm text-zinc-600">{cadastro.email ?? "Não informado"}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4">
                 <Phone className="mt-0.5 h-4 w-4 text-zinc-400" />
                 <div>
                   <p className="text-sm font-medium text-zinc-700">Telefone</p>
-                  <p className="mt-1 text-sm text-zinc-600">{cadastro.telefone ?? "Nao informado"}</p>
+                  <p className="mt-1 text-sm text-zinc-600">{cadastro.telefone ?? "Não informado"}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4">
                 <MapPin className="mt-0.5 h-4 w-4 text-zinc-400" />
                 <div>
-                  <p className="text-sm font-medium text-zinc-700">Endereco</p>
-                  <p className="mt-1 text-sm text-zinc-600">{cadastro.endereco ?? "Nao informado"}</p>
+                  <p className="text-sm font-medium text-zinc-700">Endereço</p>
+                  <p className="mt-1 text-sm text-zinc-600">{cadastro.endereco ?? "Não informado"}</p>
                 </div>
               </div>
             </div>
@@ -118,29 +118,29 @@ export default async function CadastroDetalhePage({
 
           <div className="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.25)] backdrop-blur sm:p-8">
             <h2 className="text-lg font-semibold tracking-tight text-zinc-950">
-              Dados bancarios
+              Dados bancários
             </h2>
             <div className="mt-6 grid gap-4">
               <div className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4">
                 <WalletCards className="mt-0.5 h-4 w-4 text-zinc-400" />
                 <div>
                   <p className="text-sm font-medium text-zinc-700">Banco</p>
-                  <p className="mt-1 text-sm text-zinc-600">{cadastro.banco ?? "Nao informado"}</p>
+                  <p className="mt-1 text-sm text-zinc-600">{cadastro.banco ?? "Não informado"}</p>
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl bg-zinc-50 p-4">
-                  <p className="text-sm font-medium text-zinc-700">Agencia</p>
-                  <p className="mt-1 text-sm text-zinc-600">{cadastro.agencia ?? "Nao informado"}</p>
+                  <p className="text-sm font-medium text-zinc-700">Agência</p>
+                  <p className="mt-1 text-sm text-zinc-600">{cadastro.agencia ?? "Não informado"}</p>
                 </div>
                 <div className="rounded-2xl bg-zinc-50 p-4">
                   <p className="text-sm font-medium text-zinc-700">Conta</p>
-                  <p className="mt-1 text-sm text-zinc-600">{cadastro.conta ?? "Nao informado"}</p>
+                  <p className="mt-1 text-sm text-zinc-600">{cadastro.conta ?? "Não informado"}</p>
                 </div>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
                 <p className="text-sm font-medium text-zinc-700">PIX</p>
-                <p className="mt-1 text-sm text-zinc-600">{cadastro.pix ?? "Nao informado"}</p>
+                <p className="mt-1 text-sm text-zinc-600">{cadastro.pix ?? "Não informado"}</p>
               </div>
             </div>
           </div>

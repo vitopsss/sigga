@@ -77,7 +77,7 @@ export default function NovoCadastroPage() {
     const errors: NonNullable<FormState["errors"]> = {};
 
     if (!tipoOptions.some((option) => option.value === tipo)) {
-      errors.tipo = "Selecione um tipo de cadastro valido.";
+      errors.tipo = "Selecione um tipo de cadastro válido.";
     }
 
     if (!documento) {
@@ -85,22 +85,22 @@ export default function NovoCadastroPage() {
     }
 
     if (!nome) {
-      errors.nome = "Informe o nome ou razao social.";
+      errors.nome = "Informe o nome ou razão social.";
     }
 
     if (!bancoOptions.includes(banco as (typeof bancoOptions)[number])) {
-      errors.banco = "Selecione um banco valido.";
+      errors.banco = "Selecione um banco válido.";
     }
 
     if (!estadoOptions.includes(estado as (typeof estadoOptions)[number])) {
-      errors.estado = "Selecione um estado valido.";
+      errors.estado = "Selecione um estado válido.";
     }
 
     if (Object.keys(errors).length > 0) {
       return { errors, values };
     }
 
-    const documentoExistente = await prisma.cadastroUnico.findFirst({
+    const documentoExistente = await prisma.pessoa.findFirst({
       where: {
         documento,
         ...(id
@@ -117,7 +117,7 @@ export default function NovoCadastroPage() {
     if (documentoExistente) {
       return {
         errors: {
-          documento: "Ja existe um cadastro com este documento.",
+          documento: "Já existe um cadastro com este documento.",
         },
         values,
       };
@@ -138,19 +138,19 @@ export default function NovoCadastroPage() {
 
     try {
       if (id) {
-        await prisma.cadastroUnico.update({
+        await prisma.pessoa.update({
           where: { id },
           data,
         });
       } else {
-        await prisma.cadastroUnico.create({
+        await prisma.pessoa.create({
           data,
         });
       }
     } catch {
       return {
         errors: {
-          form: "Nao foi possivel salvar o registro. Tente novamente.",
+          form: "Não foi possível salvar o registro. Tente novamente.",
         },
         values,
       };
@@ -171,7 +171,7 @@ export default function NovoCadastroPage() {
               Tela de cadastro unificado
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg">
-              Preencha os dados basicos e bancarios para criar um novo registro no sistema.
+              Preencha os dados básicos e bancários para criar um novo registro no sistema.
             </p>
           </div>
         </section>

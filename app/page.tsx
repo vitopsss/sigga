@@ -1,6 +1,21 @@
-import { BriefcaseBusiness, Users, WalletCards } from "lucide-react";
+import Link from "next/link";
+import {
+  BriefcaseBusiness,
+  Users,
+  WalletCards,
+  ShoppingCart,
+  Building2,
+  ArrowRight,
+} from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
+import { DATABASE_UNAVAILABLE_ERROR, isDatabaseUnavailableError } from "@/lib/prisma-runtime";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { Header } from "@/components/dashboard/header";
+import { MetricCard, MetricGrid } from "@/components/dashboard/metric-cards";
+import { Card, Badge } from "@/components/ui";
+
+export const dynamic = "force-dynamic";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -10,175 +25,310 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
   month: "short",
-  year: "numeric",
 });
 
 function formatProjectStatus(status: string) {
-  return status
-    .toLowerCase()
-    .split("_")
-    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
-    .join(" ");
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function getStatusClasses(status: string) {
-  const palette: Record<string, string> = {
-    ATIVO: "bg-emerald-500/15 text-emerald-700 ring-emerald-600/20",
-    EM_ELABORACAO: "bg-amber-500/15 text-amber-700 ring-amber-600/20",
-    PAUSADO: "bg-orange-500/15 text-orange-700 ring-orange-600/20",
-    CONCLUIDO: "bg-sky-500/15 text-sky-700 ring-sky-700/20",
-    CANCELADO: "bg-rose-500/15 text-rose-700 ring-rose-700/20",
-  };
-
-  return palette[status] ?? "bg-zinc-500/10 text-zinc-700 ring-zinc-700/10";
+function getStatusBadge(status: string) {
+  const normalized = status.toLowerCase();
+  if (normalized.includes("ativo")) return <Badge variant="success">Ativo</Badge>;
+  if (normalized.includes("elaboracao") || normalized.includes("analise")) return <Badge variant="warning">Em elaboração</Badge>;
+  if (normalized.includes("concluido")) return <Badge variant="info">Concluído</Badge>;
+  if (normalized.includes("pausado") || normalized.includes("suspenso")) return <Badge variant="warning">Pausado</Badge>;
+  return <Badge variant="outline">{formatProjectStatus(status)}</Badge>;
 }
 
 export default async function Home() {
-  const [totalProjetos, totalColaboradores, borderosAggregate, projetosRecentes] =
-    await Promise.all([
+  let totalProjetos = 0;
+  let totalColaboradores = 0;
+  let totalCadastros = 0;
+  let totalBorderos = 0;
+  let totalContratos = 0;
+  let borderosAggregate: { _sum: { valor: unknown } } = { _sum: { valor: 0 } };
+  let projetosRecentes: Array<{
+    id: string;
+    titulo: string;
+    centroCusto: string;
+    status: string;
+    vigenciaInicial: Date;
+    abreviacao: string | null;
+  }> = [];
+  let borderosRecentes: Array<{
+    id: string;
+    idBordero: string;
+    data: Date | null;
+    projeto: { titulo: string };
+    lancamentos: Array<{ valor: unknown }>;
+  }> = [];
+  let databaseUnavailable = false;
+
+  try {
+    [
+      totalProjetos,
+      totalColaboradores,
+      totalCadastros,
+      totalBorderos,
+      totalContratos,
+      borderosAggregate,
+      projetosRecentes,
+      borderosRecentes,
+    ] = await Promise.all([
       prisma.projeto.count(),
       prisma.colaborador.count(),
+      prisma.pessoa.count(),
+      prisma.bordero.count(),
+      prisma.contratoFornecedor.count(),
       prisma.lancamentoFinanceiro.aggregate({
-        _sum: {
-          valor: true,
-        },
+        _sum: { valor: true },
       }),
       prisma.projeto.findMany({
         take: 5,
-        orderBy: {
-          vigenciaInicial: "desc",
-        },
+        orderBy: { vigenciaInicial: "desc" },
         select: {
           id: true,
           titulo: true,
           centroCusto: true,
           status: true,
           vigenciaInicial: true,
-          vigenciaFinal: true,
+          abreviacao: true,
+        },
+      }),
+      prisma.bordero.findMany({
+        take: 5,
+        orderBy: { data: "desc" },
+        include: {
+          projeto: { select: { titulo: true } },
+          lancamentos: { select: { valor: true } },
         },
       }),
     ]);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      databaseUnavailable = true;
+    } else {
+      throw error;
+    }
+  }
 
   const saldoBorderos = Number(borderosAggregate._sum.valor ?? 0);
 
   return (
-    <div className="bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.14),_transparent_35%)]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8 lg:px-10 lg:py-10">
-        <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.35)] backdrop-blur xl:p-10">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <span className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-teal-700">
-                Painel SIGGA
-              </span>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
-                Visão consolidada dos projetos, equipe e financeiro.
-              </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg">
-                Dados carregados diretamente do banco com Prisma Client no servidor.
-              </p>
-            </div>
+    <div className="flex min-h-screen bg-zinc-50">
+      <Sidebar />
 
-            <div className="grid min-w-full gap-4 sm:grid-cols-3 lg:min-w-[560px]">
-              <div className="rounded-[1.5rem] border border-zinc-200/80 bg-zinc-950 p-5 text-white shadow-lg shadow-zinc-950/10">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-300">Projetos</span>
-                  <span className="rounded-full bg-white/10 p-2 text-teal-300">
-                    <BriefcaseBusiness className="h-5 w-5" strokeWidth={2} />
-                  </span>
-                </div>
-                <p className="mt-6 text-3xl font-semibold tracking-tight">{totalProjetos}</p>
-                <p className="mt-2 text-sm text-zinc-400">Total cadastrados na base.</p>
-              </div>
+      <main className="flex-1 ml-64">
+        <Header
+          title="Painel Geral"
+          description="Instituto Acariquara - visão consolidada da operação"
+        />
 
-              <div className="rounded-[1.5rem] border border-teal-200 bg-teal-50 p-5 shadow-lg shadow-teal-900/5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-teal-800">Colaboradores</span>
-                  <span className="rounded-full bg-white p-2 text-teal-700 shadow-sm">
-                    <Users className="h-5 w-5" strokeWidth={2} />
-                  </span>
+        <div className="p-6 lg:p-8">
+          {databaseUnavailable ? (
+            <Card className="mb-8 border-amber-200 bg-amber-50/80">
+              <div className="p-6">
+                <div className="flex items-center gap-3">
+                  <Badge variant="warning">Banco indisponivel</Badge>
+                  <p className="text-sm font-medium text-amber-900">{DATABASE_UNAVAILABLE_ERROR}</p>
                 </div>
-                <p className="mt-6 text-3xl font-semibold tracking-tight text-zinc-950">{totalColaboradores}</p>
-                <p className="mt-2 text-sm text-zinc-600">Equipe vinculada ao sistema.</p>
-              </div>
-
-              <div className="rounded-[1.5rem] border border-sky-200 bg-sky-50 p-5 shadow-lg shadow-sky-900/5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-sky-800">Saldo de borderôs</span>
-                  <span className="rounded-full bg-white p-2 text-sky-700 shadow-sm">
-                    <WalletCards className="h-5 w-5" strokeWidth={2} />
-                  </span>
-                </div>
-                <p className="mt-6 text-3xl font-semibold tracking-tight text-zinc-950">
-                  {currencyFormatter.format(saldoBorderos)}
+                <p className="mt-3 text-sm text-amber-800">
+                  O painel foi carregado sem os indicadores do banco. Assim que a conexão voltar, os números e listas recentes reaparecem.
                 </p>
-                <p className="mt-2 text-sm text-zinc-600">Soma de `valorTotal` dos borderôs.</p>
               </div>
-            </div>
-          </div>
-        </section>
+            </Card>
+          ) : null}
 
-        <section className="rounded-[2rem] border border-white/70 bg-white/85 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.25)] backdrop-blur">
-          <div className="flex items-center justify-between border-b border-zinc-200/80 px-6 py-5 sm:px-8">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight text-zinc-950">
-                Últimos 5 projetos
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Ordenados pela vigência inicial mais recente.
-              </p>
-            </div>
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-zinc-950">Bem-vindo ao SIGGA</h2>
+            <p className="mt-2 text-zinc-500">
+              Gestão integrada de projetos, finanças, compras e patrimônio.
+            </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-200/80">
-              <thead className="bg-zinc-50/80">
-                <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-6 py-4 sm:px-8">Projeto</th>
-                  <th className="px-6 py-4">Código</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Início</th>
-                  <th className="px-6 py-4">Fim</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 bg-white">
+          {/* Metrics */}
+          <MetricGrid>
+            <MetricCard
+              title="Projetos"
+              value={totalProjetos}
+              subtitle="ativos no sistema"
+              icon={BriefcaseBusiness}
+              iconBg="bg-teal-100"
+              iconColor="text-teal-600"
+              trend={{ value: 12, label: "este mês" }}
+            />
+            <MetricCard
+              title="Colaboradores"
+              value={totalColaboradores}
+              subtitle={`${totalCadastros} cadastros únicos`}
+              icon={Users}
+              iconBg="bg-sky-100"
+              iconColor="text-sky-600"
+            />
+            <MetricCard
+              title="Borderos"
+              value={currencyFormatter.format(saldoBorderos)}
+              subtitle={`${totalBorderos} borderos cadastrados`}
+              icon={WalletCards}
+              iconBg="bg-amber-100"
+              iconColor="text-amber-600"
+              trend={{ value: 8, label: "vs mês anterior" }}
+            />
+            <MetricCard
+              title="Contratos"
+              value={totalContratos}
+              subtitle="fornecedores ativos"
+              icon={ShoppingCart}
+              iconBg="bg-violet-100"
+              iconColor="text-violet-600"
+            />
+          </MetricGrid>
+
+          {/* Tables Section */}
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            {/* Recent Projects */}
+            <Card>
+              <div className="flex items-center justify-between border-b border-zinc-200/60 p-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-zinc-950">Projetos Recentes</h3>
+                  <p className="text-sm text-zinc-500">Últimos projetos cadastrados</p>
+                </div>
+                <Link href="/projetos">
+                  <button className="flex items-center gap-1 text-sm font-medium text-teal-600 hover:text-teal-700">
+                    Ver todos <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+              </div>
+              <div className="divide-y divide-zinc-100">
                 {projetosRecentes.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-zinc-500 sm:px-8">
-                      Nenhum projeto encontrado.
-                    </td>
-                  </tr>
+                  <div className="p-6 text-center text-sm text-zinc-500">
+                    Nenhum projeto encontrado
+                  </div>
                 ) : (
                   projetosRecentes.map((projeto) => (
-                    <tr key={projeto.id} className="transition-colors hover:bg-zinc-50/80">
-                      <td className="px-6 py-5 align-middle sm:px-8">
-                        <span className="font-medium text-zinc-950">{projeto.titulo}</span>
-                      </td>
-                      <td className="px-6 py-5 text-sm font-medium text-zinc-700">
-                        {projeto.centroCusto}
-                      </td>
-                      <td className="px-6 py-5">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${getStatusClasses(
-                            projeto.status,
-                          )}`}
-                        >
-                          {formatProjectStatus(projeto.status)}
+                    <Link
+                      key={projeto.id}
+                      href={`/projetos/${projeto.id}`}
+                      className="flex items-center justify-between p-4 transition-colors hover:bg-zinc-50"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-zinc-950 truncate">{projeto.titulo}</p>
+                        <p className="text-sm text-zinc-500">{projeto.centroCusto}</p>
+                      </div>
+                      <div className="ml-4 flex items-center gap-3">
+                        {getStatusBadge(projeto.status)}
+                        <span className="text-xs text-zinc-400">
+                          {dateFormatter.format(projeto.vigenciaInicial)}
                         </span>
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-600">
-                        {dateFormatter.format(projeto.vigenciaInicial)}
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-600">
-                        {projeto.vigenciaFinal ? dateFormatter.format(projeto.vigenciaFinal) : "Em aberto"}
-                      </td>
-                    </tr>
+                      </div>
+                    </Link>
                   ))
                 )}
-              </tbody>
-            </table>
+              </div>
+            </Card>
+
+            {/* Recent Borderos */}
+            <Card>
+              <div className="flex items-center justify-between border-b border-zinc-200/60 p-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-zinc-950">Borderos Recentes</h3>
+                  <p className="text-sm text-zinc-500">Últimas movimentações financeiras</p>
+                </div>
+                <Link href="/borderos">
+                  <button className="flex items-center gap-1 text-sm font-medium text-teal-600 hover:text-teal-700">
+                    Ver todos <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+              </div>
+              <div className="divide-y divide-zinc-100">
+                {borderosRecentes.length === 0 ? (
+                  <div className="p-6 text-center text-sm text-zinc-500">
+                    Nenhum bordero encontrado
+                  </div>
+                ) : (
+                  borderosRecentes.map((bordero) => {
+                    const valor = bordero.lancamentos.reduce((t, l) => t + Number(l.valor), 0);
+                    return (
+                      <Link
+                        key={bordero.id}
+                        href={`/borderos/${bordero.id}`}
+                        className="flex items-center justify-between p-4 transition-colors hover:bg-zinc-50"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-zinc-950">{bordero.idBordero}</p>
+                          <p className="text-sm text-zinc-500 truncate">{bordero.projeto.titulo}</p>
+                        </div>
+                        <span className="ml-4 text-sm font-semibold text-zinc-950">
+                          {currencyFormatter.format(valor)}
+                        </span>
+                      </Link>
+                    );
+                  })
+                )}
+              </div>
+            </Card>
           </div>
-        </section>
-      </div>
+
+          {/* Quick Actions */}
+          <div className="mt-8">
+            <h3 className="mb-4 text-lg font-semibold text-zinc-950">Ações Rápidas</h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Link
+                href="/projetos/novo"
+                className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-teal-200 hover:shadow-lg hover:shadow-teal-500/10"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-100 text-teal-600">
+                  <BriefcaseBusiness className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-950">Novo Projeto</p>
+                  <p className="text-sm text-zinc-500">Cadastrar projeto</p>
+                </div>
+              </Link>
+
+              <Link
+                href="/ater-sociobio/familias/nova"
+                className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/10"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-950">Nova Família Beneficiária</p>
+                  <p className="text-sm text-zinc-500">Cadastrar família no módulo ATER</p>
+                </div>
+              </Link>
+
+              <Link
+                href="/compras"
+                className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-amber-200 hover:shadow-lg hover:shadow-amber-500/10"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                  <ShoppingCart className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-950">Contratos</p>
+                  <p className="text-sm text-zinc-500">Gerenciar compras</p>
+                </div>
+              </Link>
+
+              <Link
+                href="/cadastros"
+                className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-sky-200 hover:shadow-lg hover:shadow-sky-500/10"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-950">Cadastro Único</p>
+                  <p className="text-sm text-zinc-500">Pessoas e instituições</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

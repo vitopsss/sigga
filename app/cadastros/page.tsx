@@ -1,44 +1,34 @@
 import Link from "next/link";
-import {
-  Building2,
-  ContactRound,
-  Eye,
-  Mail,
-  Pencil,
-  Phone,
-  Plus,
-  Search,
-  UserRound,
-} from "lucide-react";
+import { Eye, Mail, Pencil, Phone, Plus, Search, UserRound, Building2 } from "lucide-react";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { isDatabaseUnavailableError } from "@/lib/prisma-runtime";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { Header } from "@/components/dashboard/header";
+import { MetricCard, MetricGrid } from "@/components/dashboard/metric-cards";
+import { Card, Badge, Button } from "@/components/ui";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { DatabaseWarning } from "@/components/system/database-warning";
 
-import { DeleteButton } from "./delete-button";
-
-type SearchParams = Promise<{
-  busca?: string;
+type SearchParams = Promise<{ busca?: string }>;
+type CadastroListItem = Prisma.PessoaGetPayload<{
+  select: {
+    id: true;
+    nome: true;
+    documento: true;
+    tipo: true;
+    email: true;
+    telefone: true;
+  };
 }>;
 
-function getTypeClasses(tipo: string) {
-  const palette: Record<string, string> = {
-    PF: "bg-emerald-500/15 text-emerald-700 ring-emerald-600/20",
-    PJ: "bg-sky-500/15 text-sky-700 ring-sky-700/20",
-    PUBLICO: "bg-amber-500/15 text-amber-700 ring-amber-600/20",
-    PRIVADO: "bg-violet-500/15 text-violet-700 ring-violet-700/20",
-  };
-
-  return palette[tipo] ?? "bg-zinc-500/10 text-zinc-700 ring-zinc-700/10";
-}
-
-function getTypeLabel(tipo: string) {
-  const labels: Record<string, string> = {
-    PF: "PF",
-    PJ: "PJ",
-    PUBLICO: "Publico",
-    PRIVADO: "Privado",
-  };
-
-  return labels[tipo] ?? tipo;
+function getTipoBadge(tipo: string) {
+  if (tipo === "PF") return <Badge variant="success">Pessoa Física</Badge>;
+  if (tipo === "PJ") return <Badge variant="info">Pessoa Jurídica</Badge>;
+  if (tipo === "PUBLICO") return <Badge variant="warning">Público</Badge>;
+  if (tipo === "PRIVADO") return <Badge variant="outline">Privado</Badge>;
+  return <Badge variant="outline">{tipo}</Badge>;
 }
 
 export default async function CadastrosPage({
@@ -49,194 +39,190 @@ export default async function CadastrosPage({
   const { busca = "" } = await searchParams;
   const buscaNormalizada = busca.trim();
 
-  const cadastros = await prisma.cadastroUnico.findMany({
-    where: buscaNormalizada
-      ? {
-          OR: [
-            {
-              nome: {
-                contains: buscaNormalizada,
-                mode: "insensitive",
-              },
-            },
-            {
-              documento: {
-                contains: buscaNormalizada,
-                mode: "insensitive",
-              },
-            },
-          ],
-        }
-      : undefined,
-    orderBy: {
-      createdAt: "desc",
-    },
-    select: {
-      id: true,
-      nome: true,
-      documento: true,
-      tipo: true,
-      email: true,
-      telefone: true,
-    },
-  });
+  let cadastros: CadastroListItem[] = [];
+  let databaseUnavailable = false;
+
+  try {
+    cadastros = await prisma.pessoa.findMany({
+      where: buscaNormalizada
+        ? {
+            OR: [
+              { nome: { contains: buscaNormalizada, mode: "insensitive" } },
+              { documento: { contains: buscaNormalizada, mode: "insensitive" } },
+            ],
+          }
+        : undefined,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        nome: true,
+        documento: true,
+        tipo: true,
+        email: true,
+        telefone: true,
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      databaseUnavailable = true;
+    } else {
+      throw error;
+    }
+  }
+
+  const pfs = cadastros.filter((c) => c.tipo === "PF").length;
+  const pjs = cadastros.filter((c) => c.tipo === "PJ").length;
 
   return (
-    <div className="bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.14),_transparent_32%)]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8 lg:px-10 lg:py-10">
-        <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-8 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.35)] backdrop-blur xl:p-10">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <span className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-teal-700">
-                Cadastro Unico
-              </span>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
-                Registros centralizados de pessoas e instituicoes.
-              </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg">
-                Busque por nome ou documento e mantenha a base cadastral organizada para todo o sistema.
-              </p>
-            </div>
+    <div className="flex min-h-screen bg-zinc-50">
+      <Sidebar />
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="rounded-[1.5rem] border border-zinc-200/80 bg-zinc-950 px-5 py-4 text-white shadow-lg shadow-zinc-950/10">
-                <p className="text-sm text-zinc-400">Total de registros</p>
-                <p className="mt-2 text-3xl font-semibold tracking-tight">{cadastros.length}</p>
+      <main className="flex-1 ml-64">
+        <Header
+          title="Cadastro Único"
+          description="Pessoas e instituições"
+          actions={
+            <Link href="/cadastros/novo">
+              <Button variant="primary">
+                <Plus className="h-4 w-4" /> Novo Registro
+              </Button>
+            </Link>
+          }
+        />
+
+        <div className="p-6 lg:p-8 space-y-6">
+          {databaseUnavailable ? (
+            <DatabaseWarning
+              title="Cadastros carregados em modo reduzido"
+              description="A lista de pessoas e instituições ficou indisponível agora porque a conexão com o banco falhou temporariamente."
+              actionHref="/"
+              actionLabel="Voltar ao painel"
+            />
+          ) : null}
+
+          <MetricGrid>
+            <MetricCard
+              title="Total"
+              value={cadastros.length}
+              subtitle="registros"
+              icon={Building2}
+              iconBg="bg-teal-100"
+              iconColor="text-teal-600"
+            />
+            <MetricCard
+              title="Pessoas Físicas"
+              value={pfs}
+              icon={UserRound}
+              iconBg="bg-emerald-100"
+              iconColor="text-emerald-600"
+            />
+            <MetricCard
+              title="Pessoas Jurídicas"
+              value={pjs}
+              icon={Building2}
+              iconBg="bg-sky-100"
+              iconColor="text-sky-600"
+            />
+          </MetricGrid>
+
+          <Card>
+            <div className="flex flex-col gap-4 border-b border-zinc-200/60 p-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-950">Lista de Cadastros</h2>
+                <p className="text-sm text-zinc-500">Busca por nome e documento</p>
               </div>
 
-              <Link
-                href="/cadastros/novo"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-teal-600 px-5 text-sm font-semibold text-white transition hover:bg-teal-500"
-              >
-                <Plus className="h-4 w-4" />
-                Novo Registro
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-[2rem] border border-white/70 bg-white/90 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.25)] backdrop-blur">
-          <div className="flex flex-col gap-4 border-b border-zinc-200/80 px-6 py-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight text-zinc-950">
-                Lista de cadastros
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Nome, documento, tipo de cadastro, contatos e acoes.
-              </p>
-            </div>
-
-            <form action="/cadastros" method="GET" className="w-full max-w-md">
-              <label className="relative block">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <form action="/cadastros" method="GET" className="relative">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <input
                   type="search"
                   name="busca"
                   defaultValue={buscaNormalizada}
-                  placeholder="Buscar por nome ou documento"
-                  className="h-12 w-full rounded-full border border-zinc-200 bg-zinc-50 pl-11 pr-4 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
+                  placeholder="Buscar cadastro..."
+                  className="h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 pl-11 pr-4 text-sm placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/15 lg:w-72"
                 />
-              </label>
-            </form>
-          </div>
+              </form>
+            </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-200/80">
-              <thead className="bg-zinc-50/80">
-                <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-6 py-4 sm:px-8">Nome</th>
-                  <th className="px-6 py-4">Documento</th>
-                  <th className="px-6 py-4">Tipo</th>
-                  <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Telefone</th>
-                  <th className="px-6 py-4 text-right">Acoes</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 bg-white">
-                {cadastros.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-14 sm:px-8">
-                      <div className="flex flex-col items-center justify-center gap-3 text-center">
-                        <div className="rounded-full bg-zinc-100 p-4 text-zinc-500">
-                          <ContactRound className="h-6 w-6" />
-                        </div>
-                        <p className="text-base font-medium text-zinc-700">
-                          Nenhum cadastro encontrado.
-                        </p>
-                        <p className="max-w-md text-sm text-zinc-500">
-                          Ajuste a busca ou crie um novo registro para centralizar fornecedores, beneficiarios e colaboradores.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  cadastros.map((cadastro) => (
-                    <tr key={cadastro.id} className="transition-colors hover:bg-zinc-50/80">
-                      <td className="px-6 py-5 align-middle sm:px-8">
+            {cadastros.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
+                  <UserRound className="h-8 w-8" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-zinc-900">Nenhum cadastro encontrado</h3>
+                <p className="mt-1 max-w-sm text-sm text-zinc-500">
+                  {buscaNormalizada
+                    ? "Ajuste a busca ou cadastre um novo registro."
+                    : "Cadastre o primeiro cadastro para iniciar."}
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Documento</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Telefone</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {cadastros.map((cadastro) => (
+                    <TableRow key={cadastro.id}>
+                      <TableCell>
                         <div className="flex items-center gap-3">
-                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600">
                             {cadastro.tipo === "PF" ? (
-                              <UserRound className="h-5 w-5" strokeWidth={2} />
+                              <UserRound className="h-5 w-5" />
                             ) : (
-                              <Building2 className="h-5 w-5" strokeWidth={2} />
+                              <Building2 className="h-5 w-5" />
                             )}
-                          </span>
+                          </div>
                           <span className="font-medium text-zinc-950">{cadastro.nome}</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-5 text-sm font-medium text-zinc-700">
-                        {cadastro.documento}
-                      </td>
-                      <td className="px-6 py-5">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${getTypeClasses(
-                            cadastro.tipo,
-                          )}`}
-                        >
-                          {getTypeLabel(cadastro.tipo)}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{cadastro.documento}</TableCell>
+                      <TableCell>{getTipoBadge(cadastro.tipo)}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center gap-1 text-zinc-600">
+                          <Mail className="h-4 w-4 text-zinc-400" />
+                          {cadastro.email ?? "—"}
                         </span>
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-600">
-                        <span className="inline-flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-zinc-400" strokeWidth={2} />
-                          {cadastro.email ?? "Nao informado"}
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center gap-1 text-zinc-600">
+                          <Phone className="h-4 w-4 text-zinc-400" />
+                          {cadastro.telefone ?? "—"}
                         </span>
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-600">
-                        <span className="inline-flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-zinc-400" strokeWidth={2} />
-                          {cadastro.telefone ?? "Nao informado"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-5">
-                        <div className="flex justify-end gap-2">
-                          <Link
-                            href={`/cadastros/${cadastro.id}`}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 transition hover:bg-zinc-50"
-                            aria-label="Visualizar registro"
-                            title="Visualizar registro"
-                          >
-                            <Eye className="h-4 w-4" strokeWidth={2} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Link href={`/cadastros/${cadastro.id}`}>
+                            <Button variant="ghost" size="icon">
+                              <Eye className="h-4 w-4" />
+                            </Button>
                           </Link>
-                          <Link
-                            href={`/cadastros/${cadastro.id}/editar`}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-700 transition hover:bg-amber-100"
-                            aria-label="Editar registro"
-                            title="Editar registro"
-                          >
-                            <Pencil className="h-4 w-4" strokeWidth={2} />
+                          <Link href={`/cadastros/${cadastro.id}/editar`}>
+                            <Button variant="ghost" size="icon">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                           </Link>
-                          <DeleteButton id={cadastro.id} />
                         </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+
+            <div className="border-t border-zinc-200/60 px-6 py-4">
+              <p className="text-sm text-zinc-500">{cadastros.length} cadastros na listagem</p>
+            </div>
+          </Card>
+        </div>
+      </main>
     </div>
   );
 }

@@ -59,14 +59,15 @@ export default async function EditarProjetoPage({
                 Atualize os dados do projeto
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg">
-                Revise os campos abaixo e salve as alteracoes deste projeto.
+                Revise os campos abaixo e salve as alterações deste projeto.
               </p>
             </div>
           </div>
         </section>
 
         <FormProjeto
-          action={salvarProjeto}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          action={salvarProjeto as any}
           projeto={{
             ...projeto,
             valorTotal: String(projeto.valorTotal),

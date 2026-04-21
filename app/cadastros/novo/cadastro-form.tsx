@@ -64,7 +64,7 @@ function SubmitButton({
       disabled={pending}
       className="inline-flex h-12 items-center justify-center rounded-full bg-zinc-950 px-6 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-400"
     >
-      {pending ? "Salvando..." : isEditing ? "Salvar Alteracoes" : "Salvar"}
+      {pending ? "Salvando..." : isEditing ? "Salvar Alterações" : "Salvar"}
     </button>
   );
 }
@@ -100,10 +100,10 @@ export function CadastroForm({
         <div className="grid gap-4">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-zinc-950">
-              Dados Basicos
+              Dados Básicos
             </h2>
             <p className="mt-1 text-sm text-zinc-500">
-              Preencha a identificacao principal e os meios de contato do cadastro.
+              Preencha a identificação principal e os meios de contato do cadastro.
             </p>
           </div>
 
@@ -138,14 +138,14 @@ export function CadastroForm({
             </label>
 
             <label className="block">
-              <span className="text-sm font-medium text-zinc-700">Nome / Razao Social</span>
+              <span className="text-sm font-medium text-zinc-700">Nome / Razão Social</span>
               <input
                 type="text"
                 name="nome"
                 required
                 defaultValue={state.values?.nome ?? cadastro?.nome ?? ""}
                 className="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
-                placeholder="Ex.: Maria Silva ou Cooperativa Amazonica"
+                placeholder="Ex.: Maria Silva ou Cooperativa Amazônica"
               />
               <FieldError message={state.errors?.nome} />
             </label>
@@ -189,13 +189,13 @@ export function CadastroForm({
             </label>
 
             <label className="block md:col-span-2 xl:col-span-3">
-              <span className="text-sm font-medium text-zinc-700">Endereco</span>
+              <span className="text-sm font-medium text-zinc-700">Endereço</span>
               <input
                 type="text"
                 name="endereco"
                 defaultValue={state.values?.endereco ?? cadastro?.endereco ?? ""}
                 className="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
-                placeholder="Rua, numero, bairro, cidade e UF"
+                placeholder="Rua, número, bairro, cidade e UF"
               />
             </label>
           </div>
@@ -204,10 +204,10 @@ export function CadastroForm({
         <div className="grid gap-4 border-t border-zinc-200 pt-8">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-zinc-950">
-              Dados Bancarios
+              Dados Bancários
             </h2>
             <p className="mt-1 text-sm text-zinc-500">
-              Preencha as informacoes financeiras quando o cadastro participar do fluxo de pagamentos.
+              Preencha as informações financeiras quando o cadastro participar do fluxo de pagamentos.
             </p>
           </div>
 
@@ -233,7 +233,7 @@ export function CadastroForm({
             </label>
 
             <label className="block">
-              <span className="text-sm font-medium text-zinc-700">Agencia</span>
+              <span className="text-sm font-medium text-zinc-700">Agência</span>
               <input
                 type="text"
                 name="agencia"
@@ -275,7 +275,7 @@ export function CadastroForm({
 
         <div className="flex flex-col gap-3 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-zinc-500">
-            Apos salvar, voce sera redirecionado para a listagem de cadastros.
+            Após salvar, você será redirecionado para a listagem de cadastros.
           </p>
           <SubmitButton pending={pending} isEditing={isEditing} />
         </div>

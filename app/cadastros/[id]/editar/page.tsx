@@ -46,7 +46,7 @@ export default async function EditarCadastroPage({
 }) {
   const { id } = await params;
 
-  const cadastro = await prisma.cadastroUnico.findUnique({
+  const cadastro = await prisma.pessoa.findUnique({
     where: { id },
     select: {
       id: true,
@@ -104,7 +104,7 @@ export default async function EditarCadastroPage({
     const errors: NonNullable<FormState["errors"]> = {};
 
     if (!tipoOptions.some((option) => option.value === tipo)) {
-      errors.tipo = "Selecione um tipo de cadastro valido.";
+      errors.tipo = "Selecione um tipo de cadastro válido.";
     }
 
     if (!documento) {
@@ -112,22 +112,22 @@ export default async function EditarCadastroPage({
     }
 
     if (!nome) {
-      errors.nome = "Informe o nome ou razao social.";
+      errors.nome = "Informe o nome ou razão social.";
     }
 
     if (!bancoOptions.includes(banco as (typeof bancoOptions)[number])) {
-      errors.banco = "Selecione um banco valido.";
+      errors.banco = "Selecione um banco válido.";
     }
 
     if (!estadoOptions.includes(estado as (typeof estadoOptions)[number])) {
-      errors.estado = "Selecione um estado valido.";
+      errors.estado = "Selecione um estado válido.";
     }
 
     if (Object.keys(errors).length > 0) {
       return { errors, values };
     }
 
-    const documentoExistente = await prisma.cadastroUnico.findFirst({
+    const documentoExistente = await prisma.pessoa.findFirst({
       where: {
         documento,
         NOT: {
@@ -140,14 +140,14 @@ export default async function EditarCadastroPage({
     if (documentoExistente) {
       return {
         errors: {
-          documento: "Ja existe um cadastro com este documento.",
+          documento: "Já existe um cadastro com este documento.",
         },
         values,
       };
     }
 
     try {
-      await prisma.cadastroUnico.update({
+      await prisma.pessoa.update({
         where: { id: formId },
         data: {
           tipo: tipo as "PF" | "PJ" | "PUBLICO" | "PRIVADO",
@@ -165,7 +165,7 @@ export default async function EditarCadastroPage({
     } catch {
       return {
         errors: {
-          form: "Nao foi possivel salvar o registro. Tente novamente.",
+          form: "Não foi possível salvar o registro. Tente novamente.",
         },
         values,
       };
@@ -190,7 +190,7 @@ export default async function EditarCadastroPage({
                 Atualize os dados do cadastro
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg">
-                Revise as informacoes e salve as alteracoes deste registro.
+                Revise as informações e salve as alterações deste registro.
               </p>
             </div>
           </div>

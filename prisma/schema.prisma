@@ -20,7 +20,7 @@ enum Role {
   ADMINISTRADOR_DIRETOR // Acesso a parametrização e dados sensíveis
   GERENTE               // Visão tática ampla sobre todos os módulos
   COORDENADOR_PROJETO   // Visão operacional, relatórios e filtros específicos
-  OPERADOR              // Trabalho de campo, inserção de dados, antigo 'extensionista'
+  OPERADOR              // Trabalho de campo, inserção de dados, antigo '"'"'extensionista'"'"'
 }
 
 enum TipoCadastro {
@@ -31,6 +31,35 @@ enum TipoCadastro {
 }
 
 // ============================================================================
+// 0. PESSOAS (cadastro básico - criado pelo fix_banco)
+// ============================================================================
+
+model Pessoa {
+  id               String       @id @default(dbgenerated("gen_random_uuid()"))
+  tipo           String   @default("PF")
+  documento      String   @unique
+  nome           String
+  email          String?
+  telefone       String?
+  endereco       String?
+  bairro         String?
+  cidade         String?
+  estado         String?
+  cep            String?
+  pais           String?
+  banco          String?
+  agencia        String?
+  conta          String?
+  pix            String?
+  origemCadastro String   @default("INTERNO")
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("pessoas")
+  @@index([documento])
+}
+
+// ============================================================================
 // 1. NÚCLEO E ACESSO (O "Cadastro Único")
 // ============================================================================
 
@@ -38,15 +67,15 @@ model CadastroUnico {
   id               String   @id @default(uuid())
   tipo             TipoCadastro
   documento        String   @unique // CPF / CNPJ
-  nome             String   // NOME / RAZÃO SOCIAL
-  
+  nome             String // NOME / RAZÃO SOCIAL
+
   // Dados exigidos pelo Beto para entrada externa
   email            String?
   telefone         String?
   endereco         String?
   documentosAnexos Boolean  @default(false) // Flag indicando se a pessoa fez upload de CNH/Contrato
   origemCadastro   String   @default("INTERNO") // Pode ser "LINK_EXTERNO", "INTERNO"
-  
+
   // Dados Bancários
   banco            String?
   agencia          String?
@@ -56,6 +85,7 @@ model CadastroUnico {
   usuario          User?
   colaborador      Colaborador?
   beneficiaria     Beneficiaria?
+  familia          FamiliaAter?
   empreendimento   Empreendimento?
   borderos         LancamentoFinanceiro[]
   contratos        ContratoFornecedor[]
@@ -73,14 +103,13 @@ model User {
   passwordHash  String?   // Para login seguro
   role          Role      @default(OPERADOR) // A hierarquia exigida pelo Beto
   status        String    @default("ATIVO")
-  
+  perfilId      String?
+
   cadastroId    String?   @unique
   cadastro      CadastroUnico? @relation(fields: [cadastroId], references: [id])
 
   @@map("users")
 }
-
-// ... (O RESTO DO SEU SCHEMA CONTINUA EXATAMENTE IGUAL: PROJETOS, FINANCEIRO, ETC)
 
 // ============================================================================
 // 2. GESTÃO DE PROJETOS E ORÇAMENTO (Abas B1, B2, B3, B4)
@@ -89,15 +118,15 @@ model User {
 model Projeto {
   id                 String   @id @default(uuid())
   centroCusto        String   @unique // ID C. DE CUSTO (Ex: 1084)
-  ano                Int?     
-  status             String   
-  portfolio          String?  
-  titulo             String   
-  abreviacao         String?  
-  financiador        String?  
+  ano                Int?
+  status             String
+  portfolio          String?
+  titulo             String
+  abreviacao         String?
+  financiador        String?
   numContrato        String?  // Nº DO CONTRATO/CONVÊNIO
   valorTotal         Decimal  @db.Decimal(15, 2)
-  vigenciaInicial    DateTime 
+  vigenciaInicial    DateTime
   vigenciaFinal      DateTime?
 
   // Relações
@@ -168,7 +197,7 @@ model LancamentoFinanceiro {
   atividade         String?
   valor             Decimal   @db.Decimal(15, 2)
   dataVencimento    DateTime
-  
+
   // Fluxo de Caixa / Tesouraria
   autorizado        Boolean   @default(false)
   conciliado        Boolean   @default(false)
@@ -210,7 +239,7 @@ model ColaboradorProjeto {
   projetoId     String
   colaborador   Colaborador @relation(fields: [colaboradorId], references: [id])
   projeto       Projeto     @relation(fields: [projetoId], references: [id])
-  
+
   @@map("colaboradores_projetos")
 }
 
@@ -218,21 +247,95 @@ model ColaboradorProjeto {
 // 5. MÓDULO TÉCNICO ATER E SGA (Abas AT, RELATAT, TEC 2026)
 // ============================================================================
 
+// ---------------------------------------------------------------------------
+// 5a. ATER Sociobio — Beneficiária (mulheres) — LEGADO preservado
+// ---------------------------------------------------------------------------
+
 model Beneficiaria {
-  id              String   @id @default(uuid())
-  codigoSGA       String?  @unique // ID SGA
-  nis             String?  @unique
-  municipio       String?
-  comunidade      String?
-  ufpa            String?  // Unidade Familiar de Produção Agrária
+  id                       String   @id @default(uuid())
+  codigoSGA                String?  @unique // ID SGA
+  nis                      String?  @unique
+  municipio                String?
+  comunidade               String?
+  ufpa                     String?  // Unidade Familiar de Produção Agrária
+  grupoInteresse           String?
+  statusCadastro           String?
+  situacaoProjeto          String?
+  tipoAtendimento          String?
+  atividadeProdutiva       String?
+  projetoColetivoPrincipal String?
+  valorProjetoATER         Decimal? @db.Decimal(15, 2)
+  valorInvestidoUFPA       Decimal? @db.Decimal(15, 2)
+  efetividade              String?
+  houveAvanco              Boolean?
+  sgaCadastro              Boolean?
+  sgaRevisao               Boolean?
+  sgaIndicador             Boolean?
+  sgaFotos                 Boolean?
+  statusSGA                String?
+  ajusteProjeto            String?
+  informacaoSGA            String?
+  envioSGAPorAtividade     Json?
 
   cadastroId      String   @unique
   cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
 
-  atendimentos    AtendimentoTecnico[]
-  controleSGA     ControleProcessoSGA?
+  atendimentos        AtendimentoTecnico[]
+  atendimentosATER   Atendimento[]
+  controleSGA         ControleProcessoSGA?
+  fomento             Fomento?
 
   @@map("beneficiarias")
+}
+
+// ---------------------------------------------------------------------------
+// 5b. ATER Socio — Família (novo módulo, orientado a família)
+// ---------------------------------------------------------------------------
+
+model FamiliaAter {
+  id                 String   @id @default(uuid())
+  nomeFamilia        String
+  nomeResponsavel    String?
+  documentoResponsavel String?  // CPF do responsável pela família
+  telefone           String?
+  quantidadeMembros  Int?
+  composicaoFamiliar Json?    // [{nome, parestesco, dataNascimento}]
+  municipio          String?
+  comunidade         String?
+  ufpa               String?  // Unidade Familiar de Produção Agrária
+  grupoInteresse     String?
+  statusCadastro     String?
+  situacaoProjeto    String?
+  tipoAtendimento    String?
+  atividadeProdutiva String?
+  projetoColetivoPrincipal String?
+  valorProjetoATER   Decimal? @db.Decimal(15, 2)
+  valorInvestidoUFPA Decimal? @db.Decimal(15, 2)
+  efetividade        String?
+  houveAvanco        Boolean?
+  nis                String?
+  codigoSGA          String?
+  sgaCadastro        Boolean?
+  sgaRevisao         Boolean?
+  sgaIndicador       Boolean?
+  sgaFotos           Boolean?
+  statusSGA          String?
+  ajusteProjeto      String?
+  informacaoSGA      String?
+  envioSGAPorAtividade Json?
+  situacaoFomento    String?
+  valorFomento       Decimal? @db.Decimal(15, 2)
+  sgaStatusAnalise   String?
+  sgaParcela1        String?
+  sgaParcela2        String?
+  sgaProjetoEnviado  Boolean  @default(false)
+
+  cadastroId String   @unique
+  cadastro   CadastroUnico @relation(fields: [cadastroId], references: [id])
+
+  atendimentos Atendimento[]
+
+  @@map("familias_ater")
 }
 
 model AtendimentoTecnico {
@@ -240,11 +343,11 @@ model AtendimentoTecnico {
   idTec             String   @unique // ID TEC (Ex: AT7OR241)
   data              DateTime @default(now())
   tecnico           String
-  
+
   // Eixo Produtivo
   produtivoAcao     String?
   produtivoImpacto  String? @db.Text
-  
+
   // Eixo Social
   socialAcao        String?
   socialImpacto     String? @db.Text
@@ -257,6 +360,63 @@ model AtendimentoTecnico {
   beneficiaria      Beneficiaria @relation(fields: [beneficiariaId], references: [id])
 
   @@map("atendimentos_tecnicos")
+}
+
+model Atendimento {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  numeroVisita     Int
+  data             DateTime?    @db.Timestamptz(6)
+  tecnico          String?
+  projetoId        String?
+  projetoTitulo    String?
+  statusRelatorio  String       @default("PENDENTE")
+  houveAtendimento Boolean?
+  enviadoSGA       Boolean      @default(false)
+  dataEnvioSGA     DateTime?    @db.Timestamptz(6)
+  eixoProdutivo    Json?
+  eixoSocial       Json?
+  eixoAmbiental    Json?
+  tecnicoId        String?
+  beneficiariaId   String?
+  beneficiaria     Beneficiaria? @relation(fields: [beneficiariaId], references: [id], onDelete: Cascade)
+  familiaId        String?
+  familia          FamiliaAter? @relation(fields: [familiaId], references: [id])
+  tecnicoRef       Tecnico?     @relation(fields: [tecnicoId], references: [id])
+
+  @@index([beneficiariaId], map: "atendimentos_beneficiaria_idx")
+  @@index([numeroVisita])
+  @@index([tecnicoId], map: "atendimentos_tecnico_idx")
+  @@index([familiaId], map: "atendimentos_familia_idx")
+  @@map("atendimentos")
+}
+
+model Tecnico {
+  id               String       @id @default(dbgenerated("gen_random_uuid()"))
+  nome             String
+  cpf              String       @unique
+  registroConselho String?
+  uf               String?
+  ativo            Boolean      @default(true)
+
+  atendimentos    Atendimento[]
+
+  @@index([cpf])
+  @@map("tecnicos_ater")
+}
+
+model Fomento {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  situacao       String?
+  valorFomento   Decimal?  @db.Decimal(15, 2)
+  valorInvestido Decimal?  @db.Decimal(15, 2)
+  retornoCampo   String?
+  orientacoes    String?
+  analiseAnater  String?
+  beneficiariaId String    @unique
+  beneficiaria   Beneficiaria @relation(fields: [beneficiariaId], references: [id], onDelete: Cascade)
+
+  @@index([beneficiariaId], map: "fomentos_beneficiaria_idx")
+  @@map("fomentos")
 }
 
 model ControleProcessoSGA {
@@ -289,7 +449,7 @@ model ProjetoProdutivo {
   id                String   @id @default(uuid())
   atividade         String   // SAF, Avicultura, etc.
   situacao          String?  // Ativo, Inativo
-  
+
   projetoId         String
   projeto           Projeto @relation(fields: [projetoId], references: [id])
 
@@ -316,7 +476,7 @@ model ContratoFornecedor {
 model Patrimonio {
   id              String   @id @default(uuid())
   tombamento      String?  @unique // N. Tombamento
-  descricao       String   
+  descricao       String
   status          String?  // Baixado, Em uso
   valorAquisicao  Decimal? @db.Decimal(15, 2)
 
@@ -333,7 +493,7 @@ model Empreendimento {
   nome            String   // Nome do Empreendimento (Magia Amazônica, etc)
   segmento        String?  // Agroecológico, Artesanato, Processados...
   status          String?  @default("ATIVO")
-  
+
   // O Dono do Empreendimento vem do Cadastro Único
   cadastroId      String   @unique
   cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])

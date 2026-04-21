@@ -21,7 +21,7 @@ export async function salvarCadastroExterno(
   const pix = String(formData.get("pix") ?? "").trim();
   const estado = String(formData.get("estado") ?? "").trim();
 
-  await prisma.cadastroUnico.create({
+  await prisma.pessoa.create({
     data: {
       tipo: tipo === "PJ" ? "PJ" : "PF",
       nome,
