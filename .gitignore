@@ -46,3 +46,19 @@ next-env.d.ts
 opencode.jsonc
 docs/HANDOFF*.md
 docs/PROMPT*.md
+docs/CHECKLIST_PREDEPLOY_*.md
+docs/CONSOLIDACAO_*.md
+docs/CONTEXTO_*.md
+docs/ESTRUTURA_*.md
+docs/LAYOUT_*.md
+docs/LEVANTAMENTO_*.md
+docs/MAPEAMENTO_*.md
+docs/MIGRATION_*.md
+docs/RESULTADO_*.md
+docs/SCHEMA_*.md
+docs/layout-banco-*.svg
+scripts/
+Cadastro(1).xlsx
+RELATAT 2026(1).xlsx
+SIGGA FIN V4 - CÓPIA 11-03 (2).xlsx
+TEC 2026.xlsx
