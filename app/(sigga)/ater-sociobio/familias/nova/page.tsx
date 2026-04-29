@@ -132,7 +132,7 @@ export default function NovaFamiliaPage() {
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                 <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Status do cadastro</span>
+                  <span className="text-sm font-medium text-zinc-700">Status do cadastro</span>
                   <select name="statusCadastro" className={inputClassName}>
                     <option value="">Selecione</option>
                     <option value="ATIVO">Ativo</option>
@@ -142,7 +142,7 @@ export default function NovaFamiliaPage() {
                 </label>
 
                 <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Tipo de atendimento</span>
+                  <span className="text-sm font-medium text-zinc-700">Tipo de atendimento</span>
                   <select name="tipoAtendimento" className={inputClassName}>
                     <option value="">Selecione</option>
                     <option value="INDIVIDUAL">Individual</option>
@@ -151,7 +151,7 @@ export default function NovaFamiliaPage() {
                 </label>
 
                 <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Atividade produtiva</span>
+                  <span className="text-sm font-medium text-zinc-700">Atividade produtiva</span>
                   <select name="atividadeProdutiva" defaultValue="" className={inputClassName}>
                     <option value="">Selecione</option>
                     {ATER_SOCIOBIO_ATIVIDADES_PRODUTIVAS.map((atividade) => (
@@ -163,7 +163,7 @@ export default function NovaFamiliaPage() {
                 </label>
 
                 <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Situação do fomento</span>
+                  <span className="text-sm font-medium text-zinc-700">Situação do fomento</span>
                   <select name="situacaoFomento" className={inputClassName}>
                     <option value="">Selecione</option>
                     <option value="Aprovado">Aprovado</option>
@@ -173,12 +173,12 @@ export default function NovaFamiliaPage() {
                 </label>
 
                 <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Valor projeto ATER</span>
+                  <span className="text-sm font-medium text-zinc-700">Valor projeto ATER</span>
                   <input name="valorProjetoATER" type="number" step="0.01" className={inputClassName} />
                 </label>
 
                 <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Valor fomento</span>
+                  <span className="text-sm font-medium text-zinc-700">Valor fomento</span>
                   <input name="valorFomento" type="number" step="0.01" className={inputClassName} />
                 </label>
               </div>

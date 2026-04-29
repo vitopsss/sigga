@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { Search, Eye, Pencil, Plus, ShoppingCart, Building2 } from "lucide-react";
-import { Prisma } from "@prisma/client";
-
-import { prisma } from "@/lib/prisma";
 import { isDatabaseUnavailableError } from "@/lib/prisma-runtime";
+import { CompraService, ContratoListItem } from "@/lib/services/compra.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { MetricCard, MetricGrid } from "@/components/dashboard/metric-cards";
@@ -12,9 +10,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { DatabaseWarning } from "@/components/system/database-warning";
 
 type SearchParams = Promise<{ busca?: string }>;
-type ContratoListItem = Prisma.ContratoFornecedorGetPayload<{
-  include: { fornecedor: true };
-}>;
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -40,19 +35,7 @@ export default async function ComprasPage({
   let databaseUnavailable = false;
 
   try {
-    contratos = await prisma.contratoFornecedor.findMany({
-      where: buscaNormalizada
-        ? {
-            OR: [
-              { idContrato: { contains: buscaNormalizada, mode: "insensitive" } },
-              { objeto: { contains: buscaNormalizada, mode: "insensitive" } },
-              { fornecedor: { nome: { contains: buscaNormalizada, mode: "insensitive" } } },
-            ],
-          }
-        : undefined,
-      include: { fornecedor: true },
-      orderBy: { idContrato: "desc" },
-    });
+    contratos = await CompraService.list(buscaNormalizada);
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       databaseUnavailable = true;

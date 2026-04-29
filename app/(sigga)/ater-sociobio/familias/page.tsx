@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Prisma } from "@prisma/client";
 import { ChevronLeft, ChevronRight, Eye, Hash, MapPin, PencilLine, Plus, Search, Users } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
@@ -20,9 +19,9 @@ import {
   TableRow,
 } from "@/components/ui";
 import { isAterMissingTableError } from "@/lib/ater-runtime";
-import { ATER_SOCIOBIO_TERRITORY_NAME, getAterSociobioMunicipios } from "@/lib/constants/ater-sociobio";
-import { prisma } from "@/lib/prisma";
+import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { Header } from "@/components/dashboard/header";
+import { AterSociobioService, FamiliaWithCadastro } from "@/lib/services/ater-sociobio.service";
 
 type SearchParams = Promise<{ busca?: string; municipio?: string; sga?: string; pagina?: string }>;
 
@@ -44,18 +43,10 @@ function buildHref(
 ) {
   const query = new URLSearchParams();
 
-  if (params.busca) {
-    query.set("busca", params.busca);
-  }
-  if (params.municipio) {
-    query.set("municipio", params.municipio);
-  }
-  if (params.sga) {
-    query.set("sga", params.sga);
-  }
-  if (params.pagina && params.pagina > 1) {
-    query.set("pagina", String(params.pagina));
-  }
+  if (params.busca) query.set("busca", params.busca);
+  if (params.municipio) query.set("municipio", params.municipio);
+  if (params.sga) query.set("sga", params.sga);
+  if (params.pagina && params.pagina > 1) query.set("pagina", String(params.pagina));
 
   const queryString = query.toString();
   return queryString ? `${pathname}?${queryString}` : pathname;
@@ -74,112 +65,31 @@ export default async function FamiliasPage({
   const sgaNorm = sga.trim().toLowerCase();
   const requestedPage = parsePage(pagina);
 
-  const where: Prisma.FamiliaAterWhereInput = {};
-  const and: Prisma.FamiliaAterWhereInput[] = [];
-
-  if (buscaNorm) {
-    and.push({
-      OR: [
-        { nomeFamilia: { contains: buscaNorm, mode: "insensitive" } },
-        { nomeResponsavel: { contains: buscaNorm, mode: "insensitive" } },
-        { nis: { contains: buscaNorm, mode: "insensitive" } },
-        { codigoSGA: { contains: buscaNorm, mode: "insensitive" } },
-        { municipio: { contains: buscaNorm, mode: "insensitive" } },
-        { comunidade: { contains: buscaNorm, mode: "insensitive" } },
-      ],
-    });
-  }
-
-  if (municipioNorm) {
-    and.push({ municipio: { equals: municipioNorm, mode: "insensitive" } });
-  }
-
-  if (sgaNorm === "incompleto") {
-    and.push({
-      OR: [
-        { sgaCadastro: false },
-        { sgaCadastro: null },
-        { sgaRevisao: false },
-        { sgaRevisao: null },
-      ],
-    });
-  }
-
-  if (sgaNorm === "completo") {
-    and.push({
-      AND: [{ sgaCadastro: true }, { sgaRevisao: true }],
-    });
-  }
-
-  if (and.length > 0) {
-    where.AND = and;
-  }
-
-  let familias: Array<{
-    id: string;
-    nomeFamilia: string;
-    nomeResponsavel: string | null;
-    quantidadeMembros: number | null;
-    nis: string | null;
-    codigoSGA: string | null;
-    municipio: string | null;
-    _count: { atendimentos: number };
-  }> = [];
-  let municipios: string[] = [];
+  let familias: (FamiliaWithCadastro & { _count: { atendimentos: number } })[] = [];
   let totalFamilias = 0;
-  let totalMunicipios = 0;
-  let comNis = 0;
-  let comSGA = 0;
+  let metrics = { totalMunicipios: 0, comNis: 0, comSGA: 0, municipios: [] as string[] };
   let setupMissing = false;
 
   try {
-    totalFamilias = await prisma.familiaAter.count({ where });
+    const skip = (requestedPage - 1) * PAGE_SIZE;
+    const result = await AterSociobioService.listFamilias({
+      filtros: {
+        busca: buscaNorm,
+        municipio: municipioNorm,
+        sgaIncompleto: sgaNorm === "incompleto",
+      },
+      skip,
+      take: PAGE_SIZE,
+    });
 
-    const totalPages = Math.max(1, Math.ceil(totalFamilias / PAGE_SIZE));
-    const currentPage = Math.min(requestedPage, totalPages);
-    const skip = (currentPage - 1) * PAGE_SIZE;
-
-    const [familiasResult, municipiosResult, municipiosResumo, comNisResult, comSGAResult] = await Promise.all([
-      prisma.familiaAter.findMany({
-        where,
-        include: {
-          _count: {
-            select: { atendimentos: true },
-          },
-        },
-        orderBy: [{ municipio: "asc" }, { nomeFamilia: "asc" }],
-        skip,
-        take: PAGE_SIZE,
-      }),
-      prisma.familiaAter.findMany({
-        where: { municipio: { not: null } },
-        select: { municipio: true },
-        distinct: ["municipio"],
-        orderBy: { municipio: "asc" },
-      }),
-      prisma.familiaAter.findMany({
-        where: { ...where, municipio: { not: null } },
-        select: { municipio: true },
-        distinct: ["municipio"],
-      }),
-      prisma.familiaAter.count({
-        where: { ...where, nis: { not: null } },
-      }),
-      prisma.familiaAter.count({
-        where: { ...where, codigoSGA: { not: null } },
-      }),
-    ]);
-
-    familias = familiasResult;
-    municipios = getAterSociobioMunicipios(municipiosResult.map((item) => item.municipio));
-    totalMunicipios = municipiosResumo.length;
-    comNis = comNisResult;
-    comSGA = comSGAResult;
+    familias = result.familias;
+    totalFamilias = result.total;
+    metrics = result.metrics;
   } catch (error) {
     if (isAterMissingTableError(error)) {
       setupMissing = true;
     } else {
-      throw error;
+      console.error(error);
     }
   }
 
@@ -208,15 +118,15 @@ export default async function FamiliasPage({
             </Card>
             <Card className="p-5">
               <p className="text-sm text-zinc-500">Municípios</p>
-              <p className="mt-1 text-3xl font-bold text-zinc-950">{totalMunicipios}</p>
+              <p className="mt-1 text-3xl font-bold text-zinc-950">{metrics.totalMunicipios}</p>
             </Card>
             <Card className="p-5">
               <p className="text-sm text-zinc-500">Com NIS</p>
-              <p className="mt-1 text-3xl font-bold text-emerald-600">{comNis}</p>
+              <p className="mt-1 text-3xl font-bold text-emerald-600">{metrics.comNis}</p>
             </Card>
             <Card className="p-5">
               <p className="text-sm text-zinc-500">Com SGA</p>
-              <p className="mt-1 text-3xl font-bold text-emerald-600">{comSGA}</p>
+              <p className="mt-1 text-3xl font-bold text-emerald-600">{metrics.comSGA}</p>
             </Card>
           </div>
 
@@ -253,7 +163,7 @@ export default async function FamiliasPage({
                   className="h-11 rounded-xl border border-zinc-300 bg-zinc-50 px-4 text-sm text-zinc-700 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
                 >
                   <option value="">Todos os municípios da FLONA</option>
-                  {municipios.map((item) => (
+                  {metrics.municipios.map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>

@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
-
-import { prisma } from "@/lib/prisma";
-
+import { CadastroService } from "@/lib/services/cadastro.service";
 import { bancoOptions, estadoOptions, tipoOptions } from "../form-options";
 import { CadastroForm } from "./cadastro-form";
 
@@ -100,21 +98,9 @@ export default function NovoCadastroPage() {
       return { errors, values };
     }
 
-    const documentoExistente = await prisma.pessoa.findFirst({
-      where: {
-        documento,
-        ...(id
-          ? {
-              NOT: {
-                id,
-              },
-            }
-          : {}),
-      },
-      select: { id: true },
-    });
+    const documentoExiste = await CadastroService.checkDocumentoExists(documento, id || undefined);
 
-    if (documentoExistente) {
+    if (documentoExiste) {
       return {
         errors: {
           documento: "Já existe um cadastro com este documento.",
@@ -124,6 +110,7 @@ export default function NovoCadastroPage() {
     }
 
     const data = {
+      id: id || undefined,
       tipo: tipo as "PF" | "PJ" | "PUBLICO" | "PRIVADO",
       documento,
       nome,
@@ -137,16 +124,7 @@ export default function NovoCadastroPage() {
     };
 
     try {
-      if (id) {
-        await prisma.pessoa.update({
-          where: { id },
-          data,
-        });
-      } else {
-        await prisma.pessoa.create({
-          data,
-        });
-      }
+      await CadastroService.save(data);
     } catch {
       return {
         errors: {

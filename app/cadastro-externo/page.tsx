@@ -51,6 +51,11 @@ export default function CadastroExternoPage() {
               </div>
             ) : (
               <form action={formAction} className="mt-8 grid gap-8">
+                {state?.error && (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-800">
+                    {state.error}
+                  </div>
+                )}
                 <section className="grid gap-5">
                   <div>
                     <h2 className="text-lg font-semibold text-zinc-950">Dados principais</h2>

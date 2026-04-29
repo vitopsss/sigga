@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
-
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { prisma } from "@/lib/prisma";
-
+import { CompraService } from "@/lib/services/compra.service";
 import { atualizarContrato } from "../../actions";
 import { ContratoForm } from "../../form";
 
@@ -14,11 +12,8 @@ export default async function EditarContratoPage({
   const { id } = await params;
 
   const [contrato, fornecedores] = await Promise.all([
-    prisma.contratoFornecedor.findUnique({ where: { id } }),
-    prisma.cadastroUnico.findMany({
-      select: { id: true, nome: true, documento: true, tipo: true },
-      orderBy: { nome: "asc" },
-    }),
+    CompraService.getById(id),
+    CompraService.listFornecedores(),
   ]);
 
   if (!contrato) {

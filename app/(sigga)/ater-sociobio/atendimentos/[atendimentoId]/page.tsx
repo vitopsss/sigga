@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Button } from "@/components/ui";
-import { buscarAtendimento } from "@/lib/actions/atendimentos-familia";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
+import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,16 @@ export default async function AtendimentoDetailPage({
   params: Promise<{ atendimentoId: string }>;
 }) {
   const { atendimentoId } = await params;
-  const { data: atendimento, error } = await buscarAtendimento(atendimentoId);
+  
+  let atendimento = null;
+  let error: string | null = null;
+
+  try {
+    atendimento = await AterSociobioService.getAtendimentoById(atendimentoId);
+  } catch (e: any) {
+    console.error(e);
+    error = e.message;
+  }
 
   if (error === ATER_SETUP_ERROR) {
     return (
@@ -40,11 +49,11 @@ export default async function AtendimentoDetailPage({
     );
   }
 
-  if (error || !atendimento) {
+  if (!atendimento) {
     notFound();
   }
 
-  const eixo = (eixoData: Record<string, unknown> | null | undefined, label: string) => {
+  const renderEixo = (eixoData: any, label: string) => {
     if (!eixoData || Object.keys(eixoData).length === 0) return null;
 
     return (
@@ -53,31 +62,28 @@ export default async function AtendimentoDetailPage({
         <dl className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
           <div>
             <dt className="font-medium text-slate-500">Tipo de ação</dt>
-            <dd className="mt-1 text-slate-900">{(eixoData as { tipoAcao?: string }).tipoAcao ?? "-"}</dd>
+            <dd className="mt-1 text-slate-900">{eixoData.tipoAcao ?? "-"}</dd>
           </div>
           <div>
             <dt className="font-medium text-slate-500">Etapa</dt>
-            <dd className="mt-1 text-slate-900">{(eixoData as { etapa?: string }).etapa ?? "-"}</dd>
+            <dd className="mt-1 text-slate-900">{eixoData.etapa ?? "-"}</dd>
           </div>
           <div className="md:col-span-2">
             <dt className="font-medium text-slate-500">Impactos anteriores</dt>
-            <dd className="mt-1 text-slate-900">{(eixoData as { impactosAnteriores?: string }).impactosAnteriores ?? "-"}</dd>
+            <dd className="mt-1 text-slate-900">{eixoData.impactosAnteriores ?? "-"}</dd>
           </div>
           <div className="md:col-span-2">
             <dt className="font-medium text-slate-500">Desenvolvimento</dt>
-            <dd className="mt-1 text-slate-900">{(eixoData as { desenvolvimento?: string }).desenvolvimento ?? "-"}</dd>
+            <dd className="mt-1 text-slate-900">{eixoData.desenvolvimento ?? "-"}</dd>
           </div>
           <div className="md:col-span-2">
             <dt className="font-medium text-slate-500">Recomendações</dt>
-            <dd className="mt-1 text-slate-900">{(eixoData as { recomendacoes?: string }).recomendacoes ?? "-"}</dd>
+            <dd className="mt-1 text-slate-900">{eixoData.recomendacoes ?? "-"}</dd>
           </div>
         </dl>
       </section>
     );
   };
-
-  const familiaRaw = atendimento.familia as { nomeFamilia?: string; municipio?: string } | null;
-  const tecnicoRaw = atendimento.tecnicoRef as { nome?: string } | null;
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
@@ -101,7 +107,7 @@ export default async function AtendimentoDetailPage({
               <p className="mt-1 text-sm text-slate-500">{ATER_SOCIOBIO_TERRITORY_NAME}</p>
             </div>
             <div className="flex flex-col items-start gap-3 lg:items-end">
-              <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${statusColors[atendimento.statusRelatorio] ?? "bg-slate-100 text-slate-600"}`}>
+              <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${statusColors[atendimento.statusRelatorio ?? ""] ?? "bg-slate-100 text-slate-600"}`}>
                 {atendimento.statusRelatorio}
               </span>
               <Link href={`/ater-sociobio/atendimentos/${atendimentoId}/pdf`} target="_blank">
@@ -119,15 +125,15 @@ export default async function AtendimentoDetailPage({
           <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
             <div>
               <dt className="font-medium text-slate-500">Família</dt>
-              <dd className="mt-1 text-slate-900">{familiaRaw?.nomeFamilia ?? "-"}</dd>
+              <dd className="mt-1 text-slate-900">{atendimento.familia?.nomeFamilia ?? "-"}</dd>
             </div>
             <div>
               <dt className="font-medium text-slate-500">Município</dt>
-              <dd className="mt-1 text-slate-900">{familiaRaw?.municipio ?? "-"}</dd>
+              <dd className="mt-1 text-slate-900">{atendimento.familia?.municipio ?? "-"}</dd>
             </div>
             <div>
               <dt className="font-medium text-slate-500">Técnico</dt>
-              <dd className="mt-1 text-slate-900">{tecnicoRaw?.nome ?? atendimento.tecnico ?? "-"}</dd>
+              <dd className="mt-1 text-slate-900">{atendimento.tecnicoRef?.nome ?? atendimento.tecnico ?? "-"}</dd>
             </div>
             <div>
               <dt className="font-medium text-slate-500">Houve atendimento</dt>
@@ -145,9 +151,9 @@ export default async function AtendimentoDetailPage({
         </section>
 
         <div className="flex flex-col gap-6">
-          {eixo(atendimento.eixoProdutivo as Record<string, unknown>, "Eixo Produtivo")}
-          {eixo(atendimento.eixoSocial as Record<string, unknown>, "Eixo Social")}
-          {eixo(atendimento.eixoAmbiental as Record<string, unknown>, "Eixo Ambiental")}
+          {renderEixo(atendimento.eixoProdutivo, "Eixo Produtivo")}
+          {renderEixo(atendimento.eixoSocial, "Eixo Social")}
+          {renderEixo(atendimento.eixoAmbiental, "Eixo Ambiental")}
         </div>
       </div>
     </div>

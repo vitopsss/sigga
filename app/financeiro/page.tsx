@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Eye, Search, WalletCards } from "lucide-react";
-import { Prisma } from "@prisma/client";
 
 import { Header } from "@/components/dashboard/header";
 import { MetricCard, MetricGrid } from "@/components/dashboard/metric-cards";
@@ -8,30 +7,11 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { Badge, Button, Card } from "@/components/ui";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatabaseWarning } from "@/components/system/database-warning";
-import { prisma } from "@/lib/prisma";
 import { isDatabaseUnavailableError } from "@/lib/prisma-runtime";
+import { FinanceiroService, LancamentoListItem } from "@/lib/services/financeiro.service";
 import { autorizarLancamento, conciliarLancamento, registrarPagamento } from "./actions";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-type LancamentoListItem = Prisma.LancamentoFinanceiroGetPayload<{
-  include: {
-    bordero: {
-      include: {
-        projeto: {
-          select: {
-            titulo: true;
-          };
-        };
-      };
-    };
-    favorecido: {
-      select: {
-        nome: true;
-        documento: true;
-      };
-    };
-  };
-}>;
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -62,18 +42,9 @@ function getStatusBadge(lancamento: {
   autorizado: boolean;
   dataVencimento: Date;
 }) {
-  if (lancamento.conciliado) {
-    return <Badge variant="success">Conciliado</Badge>;
-  }
-
-  if (lancamento.autorizado) {
-    return <Badge variant="info">Autorizado</Badge>;
-  }
-
-  if (lancamento.dataVencimento < new Date()) {
-    return <Badge variant="destructive">Vencido</Badge>;
-  }
-
+  if (lancamento.conciliado) return <Badge variant="success">Conciliado</Badge>;
+  if (lancamento.autorizado) return <Badge variant="info">Autorizado</Badge>;
+  if (lancamento.dataVencimento < new Date()) return <Badge variant="destructive">Vencido</Badge>;
   return <Badge variant="warning">Pendente</Badge>;
 }
 
@@ -90,46 +61,8 @@ export default async function FinanceiroPage({
   let lancamentos: LancamentoListItem[] = [];
   let databaseUnavailable = false;
 
-  const where: Prisma.LancamentoFinanceiroWhereInput = {
-    ...(borderoId ? { borderoId } : {}),
-    ...(status === "conciliado"
-      ? { conciliado: true }
-      : status === "autorizado"
-        ? { autorizado: true }
-        : status === "pendente"
-          ? { conciliado: false }
-          : status === "vencido"
-            ? { conciliado: false, dataVencimento: { lt: new Date() } }
-            : {}),
-    ...(busca
-      ? {
-          OR: [
-            { nsu: { contains: busca, mode: "insensitive" } },
-            { fase: { contains: busca, mode: "insensitive" } },
-            { etapa: { contains: busca, mode: "insensitive" } },
-            { favorecido: { nome: { contains: busca, mode: "insensitive" } } },
-            { bordero: { idBordero: { contains: busca, mode: "insensitive" } } },
-            { bordero: { projeto: { titulo: { contains: busca, mode: "insensitive" } } } },
-          ],
-        }
-      : {}),
-  };
-
   try {
-    lancamentos = await prisma.lancamentoFinanceiro.findMany({
-      where,
-      include: {
-        bordero: {
-          include: {
-            projeto: { select: { titulo: true } },
-          },
-        },
-        favorecido: {
-          select: { nome: true, documento: true },
-        },
-      },
-      orderBy: [{ conciliado: "asc" }, { dataVencimento: "asc" }],
-    });
+    lancamentos = await FinanceiroService.list({ busca, status, borderoId });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       databaseUnavailable = true;

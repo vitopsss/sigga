@@ -2,14 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
-import { atualizarAtendimentoFamilia, buscarAtendimento, listarTecnicos } from "@/lib/actions/atendimentos-familia";
-import { listarFamilias } from "@/lib/actions/familias";
+import { atualizarAtendimentoFamilia } from "@/lib/actions/atendimentos-familia";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import {
   ATER_SOCIOBIO_ETAPAS,
   ATER_SOCIOBIO_PROJETOS_REFERENCIA,
   ATER_SOCIOBIO_TIPOS_ACAO,
 } from "@/lib/constants/ater-sociobio";
+import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +22,32 @@ export default async function EditarAtendimentoPage({
   params: Promise<{ atendimentoId: string }>;
 }) {
   const { atendimentoId } = await params;
-  const { data: atendimento, error } = await buscarAtendimento(atendimentoId);
+  
+  let atendimento = null;
+  let familias: any[] = [];
+  let tecnicos: any[] = [];
+  let error: string | null = null;
+  let setupMissing = false;
 
-  if (error === ATER_SETUP_ERROR) {
+  try {
+    const [atendRes, familiasRes, tecnicosRes] = await Promise.all([
+      AterSociobioService.getAtendimentoById(atendimentoId),
+      AterSociobioService.listFamilias({}),
+      AterSociobioService.listTecnicos()
+    ]);
+    atendimento = atendRes;
+    familias = familiasRes.familias;
+    tecnicos = tecnicosRes;
+  } catch (e: any) {
+    if (e.message === ATER_SETUP_ERROR) {
+      setupMissing = true;
+    } else {
+      console.error(e);
+      error = e.message;
+    }
+  }
+
+  if (setupMissing) {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-5xl flex-col gap-6">
@@ -37,7 +60,7 @@ export default async function EditarAtendimentoPage({
     );
   }
 
-  if (error || !atendimento) {
+  if (!atendimento) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
@@ -60,13 +83,6 @@ export default async function EditarAtendimentoPage({
     }
   }
 
-  const [{ data: familias, error: familiasError }, { data: tecnicos, error: tecnicosError }] = await Promise.all([
-    listarFamilias(),
-    listarTecnicos(),
-  ]);
-  const setupMissing = familiasError === ATER_SETUP_ERROR || tecnicosError === ATER_SETUP_ERROR;
-
-  // Garantir que os eixos sejam objetos válidos para acesso de propriedades
   const getEixoData = (val: any): Record<string, any> => {
     if (val && typeof val === "object" && !Array.isArray(val)) return val;
     return {};
@@ -95,8 +111,6 @@ export default async function EditarAtendimentoPage({
             </p>
           </div>
 
-          {setupMissing && <AterSetupWarning className="mt-8" />}
-
           <form action={submit} className="mt-8 space-y-8">
             <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm">
               <div className="mb-6">
@@ -109,7 +123,7 @@ export default async function EditarAtendimentoPage({
                   <span className="text-sm font-medium text-slate-700">Família *</span>
                   <select name="familiaId" required defaultValue={atendimento.familiaId ?? ""} className={inputClassName}>
                     <option value="">Selecione a família</option>
-                    {familias?.map((f) => (
+                    {familias.map((f) => (
                       <option key={f.id} value={f.id}>
                         {f.nomeFamilia} - {f.municipio ?? "sem município"}
                       </option>
@@ -163,7 +177,7 @@ export default async function EditarAtendimentoPage({
                   <span className="text-sm font-medium text-slate-700">Técnico responsável</span>
                   <select name="tecnicoId" defaultValue={atendimento.tecnicoId ?? ""} className={inputClassName}>
                     <option value="">Outro (informe abaixo)</option>
-                    {(tecnicos as { id: string; nome: string }[] | null)?.map((t) => (
+                    {tecnicos.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.nome}
                       </option>
@@ -200,7 +214,7 @@ export default async function EditarAtendimentoPage({
                 ["social", eixoSocial],
                 ["ambiental", eixoAmbiental],
               ] as const
-            ).map(([eixo, values]) => (
+            ).map(([eixo, vals]) => (
               <section key={eixo} className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm">
                 <div className="mb-6">
                   <h2 className="text-lg font-semibold capitalize text-slate-900">Eixo {eixo}</h2>
@@ -210,7 +224,7 @@ export default async function EditarAtendimentoPage({
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <label className="block">
                     <span className="text-sm font-medium text-slate-700">Tipo de ação</span>
-                    <select name={`eixo_${eixo}_tipoAcao`} defaultValue={values.tipoAcao ?? ""} className={inputClassName}>
+                    <select name={`eixo_${eixo}_tipoAcao`} defaultValue={vals.tipoAcao ?? ""} className={inputClassName}>
                       <option value="">Selecione</option>
                       {ATER_SOCIOBIO_TIPOS_ACAO[eixo].map((option) => (
                         <option key={option} value={option}>
@@ -222,7 +236,7 @@ export default async function EditarAtendimentoPage({
 
                   <label className="block">
                     <span className="text-sm font-medium text-slate-700">Etapa</span>
-                    <select name={`eixo_${eixo}_etapa`} defaultValue={values.etapa ?? ""} className={inputClassName}>
+                    <select name={`eixo_${eixo}_etapa`} defaultValue={vals.etapa ?? ""} className={inputClassName}>
                       <option value="">Selecione</option>
                       {ATER_SOCIOBIO_ETAPAS[eixo].map((option) => (
                         <option key={option} value={option}>
@@ -237,19 +251,19 @@ export default async function EditarAtendimentoPage({
                     <input
                       name={`eixo_${eixo}_impactosAnteriores`}
                       type="text"
-                      defaultValue={values.impactosAnteriores ?? ""}
+                      defaultValue={vals.impactosAnteriores ?? ""}
                       className={inputClassName}
                     />
                   </label>
 
                   <label className="block md:col-span-2">
                     <span className="text-sm font-medium text-slate-700">Desenvolvimento</span>
-                    <textarea name={`eixo_${eixo}_desenvolvimento`} rows={3} defaultValue={values.desenvolvimento ?? ""} className={inputClassName} />
+                    <textarea name={`eixo_${eixo}_desenvolvimento`} rows={3} defaultValue={vals.desenvolvimento ?? ""} className={inputClassName} />
                   </label>
 
                   <label className="block md:col-span-2">
                     <span className="text-sm font-medium text-slate-700">Recomendações</span>
-                    <textarea name={`eixo_${eixo}_recomendacoes`} rows={2} defaultValue={values.recomendacoes ?? ""} className={inputClassName} />
+                    <textarea name={`eixo_${eixo}_recomendacoes`} rows={2} defaultValue={vals.recomendacoes ?? ""} className={inputClassName} />
                   </label>
                 </div>
               </section>

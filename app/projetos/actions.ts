@@ -2,8 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-
-import { prisma } from "@/lib/prisma";
+import { ProjetoService, SaveProjetoDTO } from "@/lib/services/projeto.service";
 
 export type ProjetoActionState = {
   errors?: Record<string, string>;
@@ -69,13 +68,7 @@ export async function salvarProjeto(
     return { errors, values };
   }
 
-  const centroCustoExistente = await prisma.projeto.findFirst({
-    where: {
-      centroCusto,
-      ...(id ? { NOT: { id } } : {}),
-    },
-    select: { id: true },
-  });
+  const centroCustoExistente = await ProjetoService.checkCentroCustoExists(centroCusto, id || undefined);
 
   if (centroCustoExistente) {
     return {
@@ -84,14 +77,15 @@ export async function salvarProjeto(
     };
   }
 
-  const data = {
+  const dto: SaveProjetoDTO = {
+    id: id || undefined,
     centroCusto,
     titulo,
     abreviacao: abreviacao || null,
     portfolio: portfolio || null,
     financiador: financiador || null,
     numContrato: numContrato || null,
-    ano,
+    ano: ano ?? null,
     valorTotal: Number(valorTotal),
     status,
     vigenciaInicial: vigenciaInicial || new Date(),
@@ -99,12 +93,9 @@ export async function salvarProjeto(
   };
 
   try {
-    if (id) {
-      await prisma.projeto.update({ where: { id }, data });
-    } else {
-      await prisma.projeto.create({ data });
-    }
-  } catch {
+    await ProjetoService.save(dto);
+  } catch (error) {
+    console.error("Failed to save projeto:", error);
     return {
       errors: { form: "Não foi possível salvar o projeto. Tente novamente." },
       values,
@@ -116,6 +107,11 @@ export async function salvarProjeto(
 }
 
 export async function deleteProjeto(id: string) {
-  await prisma.projeto.delete({ where: { id } });
-  revalidatePath("/projetos");
+  try {
+    await ProjetoService.delete(id);
+    revalidatePath("/projetos");
+  } catch (error) {
+    console.error("Failed to delete projeto:", error);
+    throw new Error("Erro ao excluir projeto.");
+  }
 }

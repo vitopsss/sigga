@@ -1,14 +1,10 @@
-import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/dashboard/sidebar";
-
+import { CompraService } from "@/lib/services/compra.service";
 import { criarContrato } from "../actions";
 import { ContratoForm } from "../form";
 
 export default async function NovoContratoPage() {
-  const fornecedores = await prisma.cadastroUnico.findMany({
-    select: { id: true, nome: true, documento: true, tipo: true },
-    orderBy: { nome: "asc" },
-  });
+  const fornecedores = await CompraService.listFornecedores();
 
   return (
     <div className="flex min-h-screen bg-zinc-50">

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Eye, Mail, Pencil, Phone, Plus, Search, UserRound, Building2 } from "lucide-react";
-import { Prisma } from "@prisma/client";
 
-import { prisma } from "@/lib/prisma";
 import { isDatabaseUnavailableError } from "@/lib/prisma-runtime";
+import { CadastroService, CadastroListItem } from "@/lib/services/cadastro.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { MetricCard, MetricGrid } from "@/components/dashboard/metric-cards";
@@ -12,16 +11,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { DatabaseWarning } from "@/components/system/database-warning";
 
 type SearchParams = Promise<{ busca?: string }>;
-type CadastroListItem = Prisma.PessoaGetPayload<{
-  select: {
-    id: true;
-    nome: true;
-    documento: true;
-    tipo: true;
-    email: true;
-    telefone: true;
-  };
-}>;
 
 function getTipoBadge(tipo: string) {
   if (tipo === "PF") return <Badge variant="success">Pessoa Física</Badge>;
@@ -43,25 +32,7 @@ export default async function CadastrosPage({
   let databaseUnavailable = false;
 
   try {
-    cadastros = await prisma.pessoa.findMany({
-      where: buscaNormalizada
-        ? {
-            OR: [
-              { nome: { contains: buscaNormalizada, mode: "insensitive" } },
-              { documento: { contains: buscaNormalizada, mode: "insensitive" } },
-            ],
-          }
-        : undefined,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        nome: true,
-        documento: true,
-        tipo: true,
-        email: true,
-        telefone: true,
-      },
-    });
+    cadastros = await CadastroService.list(buscaNormalizada);
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       databaseUnavailable = true;

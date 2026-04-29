@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Trash2 } from "lucide-react";
-
-import { prisma } from "@/lib/prisma";
+import { BorderoService } from "@/lib/services/bordero.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Button, Card } from "@/components/ui";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,24 +22,9 @@ export default async function EditarBorderoPage({
   const { id } = await params;
 
   const [bordero, projetos, favorecidos] = await Promise.all([
-    prisma.bordero.findUnique({
-      where: { id },
-      include: {
-        projeto: { select: { titulo: true, centroCusto: true } },
-        lancamentos: {
-          include: { favorecido: true },
-          orderBy: { dataVencimento: "asc" },
-        },
-      },
-    }),
-    prisma.projeto.findMany({
-      select: { id: true, centroCusto: true, titulo: true },
-      orderBy: { centroCusto: "asc" },
-    }),
-    prisma.cadastroUnico.findMany({
-      select: { id: true, nome: true, documento: true, tipo: true },
-      orderBy: { nome: "asc" },
-    }),
+    BorderoService.getById(id),
+    BorderoService.listProjetos(),
+    BorderoService.listFavorecidos(),
   ]);
 
   if (!bordero) {

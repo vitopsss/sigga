@@ -4,10 +4,9 @@ import { Calendar, Hash, MapPin, Users } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Button, Card } from "@/components/ui";
-import { buscarFamilia } from "@/lib/actions/familias";
 import { ATER_SETUP_ERROR, isAterMissingTableError } from "@/lib/ater-runtime";
-import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/dashboard/header";
+import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
 
 type Params = Promise<{ id: string }>;
 
@@ -19,9 +18,27 @@ export default async function FamiliaDetailPage({
   params: Params;
 }) {
   const { id } = await params;
-  const { data: familia, error } = await buscarFamilia(id);
+  
+  let familia = null;
+  let atendimentos: any[] = [];
+  let error: string | null = null;
+  let setupMissing = false;
 
-  if (error === ATER_SETUP_ERROR) {
+  try {
+    [familia, atendimentos] = await Promise.all([
+      AterSociobioService.getFamiliaById(id),
+      AterSociobioService.listAtendimentos({ familiaId: id })
+    ]);
+  } catch (e: any) {
+    if (isAterMissingTableError(e)) {
+      setupMissing = true;
+    } else {
+      console.error(e);
+      error = e.message;
+    }
+  }
+
+  if (error === ATER_SETUP_ERROR || setupMissing) {
     return (
       <div className="min-h-screen bg-zinc-50/50">
         <Header title="Erro de Configuração" />
@@ -36,30 +53,6 @@ export default async function FamiliaDetailPage({
 
   if (!familia) {
     notFound();
-  }
-
-  let atendimentos: Array<{
-    id: string;
-    numeroVisita: number;
-    data: Date | null;
-    tecnico: string | null;
-    statusRelatorio: string;
-    tecnicoRef: { nome: string } | null;
-  }> = [];
-  let setupMissing = false;
-
-  try {
-    atendimentos = await prisma.atendimento.findMany({
-      where: { familiaId: id },
-      orderBy: { data: "desc" },
-      include: { tecnicoRef: true },
-    });
-  } catch (queryError) {
-    if (isAterMissingTableError(queryError)) {
-      setupMissing = true;
-    } else {
-      throw queryError;
-    }
   }
 
   const statusColors: Record<string, string> = {
@@ -88,8 +81,6 @@ export default async function FamiliaDetailPage({
 
       <div className="p-6 lg:p-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
-
-        {setupMissing && <AterSetupWarning />}
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card className="p-5">

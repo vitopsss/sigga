@@ -1,26 +1,24 @@
 import Link from "next/link";
-import { CircleDollarSign, Landmark, Wallet, Pencil } from "lucide-react";
 import { notFound } from "next/navigation";
-import type { Decimal } from "@prisma/client/runtime/library";
+import { Pencil, Calendar, Target, Plus, Building2 } from "lucide-react";
 
-import { prisma } from "@/lib/prisma";
+import { ProjetoService } from "@/lib/services/projeto.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { Card, Badge, Button } from "@/components/ui";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { adicionarOrcamento } from "../acoes-itens";
 
-const formatCurrency = (value: number | Decimal) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
-
-const formatDate = (value: Date | null) => value ? value.toLocaleDateString("pt-BR") : "Em aberto";
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
 
 function getStatusBadge(status: string) {
-  const normalized = status.toLowerCase();
-  if (normalized.includes("ativo") || normalized.includes("execucao")) return <Badge variant="success">Ativo</Badge>;
-  if (normalized.includes("elaboracao") || normalized.includes("analise")) return <Badge variant="warning">Em elaboração</Badge>;
-  if (normalized.includes("concluido")) return <Badge variant="info">Concluído</Badge>;
-  if (normalized.includes("pausado") || normalized.includes("suspenso")) return <Badge variant="warning">Pausado</Badge>;
-  if (normalized.includes("nao iniciado")) return <Badge variant="outline">Não iniciado</Badge>;
+  const s = status.toLowerCase();
+  if (s === "ativo" || s === "em execução") return <Badge variant="success">Ativo</Badge>;
+  if (s === "planejamento") return <Badge variant="warning">Planejamento</Badge>;
+  if (s === "concluído") return <Badge variant="info">Concluído</Badge>;
   return <Badge variant="outline">{status}</Badge>;
 }
 
@@ -30,180 +28,161 @@ export default async function ProjetoDetalhePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const projeto = await ProjetoService.getById(id);
 
-  const projeto = await prisma.projeto.findUnique({
-    where: { id },
-    include: {
-      orcamentos: { select: { id: true, idOrc: true, descricao: true, valorTotal: true } },
-      borderos: {
-        orderBy: { data: "desc" },
-        include: {
-          lancamentos: {
-            select: { id: true, nsu: true, valor: true, dataVencimento: true, conciliado: true, favorecido: { select: { nome: true } } },
-          },
-        },
-      },
-    },
-  });
-
-  if (!projeto) notFound();
-
-  const totalOrcado = projeto.orcamentos.reduce((t, i) => t + Number(i.valorTotal), 0);
-  const totalFaturado = 0;
-  const totalLiquidado = 0;
-  const totalBorderos = projeto.borderos.length;
-  const totalLancamentos = projeto.borderos.reduce((t, b) => t + b.lancamentos.length, 0);
-  const totalMovimentado = projeto.borderos.reduce(
-    (t, b) => t + b.lancamentos.reduce((bt, l) => bt + Number(l.valor), 0), 0
-  );
-  const totalConciliados = projeto.borderos.reduce(
-    (t, b) => t + b.lancamentos.filter((l) => l.conciliado).length, 0
-  );
+  if (!projeto) {
+    notFound();
+  }
 
   return (
     <div className="flex min-h-screen bg-zinc-50">
       <Sidebar />
 
-      <main className="ml-64 flex-1">
+      <main className="flex-1 ml-64">
         <Header
-          title={projeto.titulo}
-          description={`Centro de Custo: ${projeto.centroCusto}`}
+          title={projeto.centroCusto}
+          description={projeto.titulo}
           actions={
             <Link href={`/projetos/${projeto.id}/editar`}>
               <Button variant="primary">
-                <Pencil className="h-4 w-4" /> Editar
+                <Pencil className="h-4 w-4" /> Editar Projeto
               </Button>
             </Link>
           }
         />
 
-        <div className="space-y-6 p-6 lg:p-8">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100">
-                  <CircleDollarSign className="h-5 w-5 text-teal-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-500">Orçado</p>
-                  <p className="text-xl font-bold text-zinc-950">{formatCurrency(totalOrcado)}</p>
-                </div>
+        <div className="p-6 lg:p-8 space-y-8">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="p-6 space-y-4">
+              <div className="flex items-center gap-3 text-zinc-500">
+                <Calendar className="h-5 w-5" />
+                <span className="text-sm font-medium uppercase tracking-wider">Vigência</span>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-zinc-950">
+                  {projeto.vigenciaInicial.toLocaleDateString("pt-BR")} — 
+                  {projeto.vigenciaFinal?.toLocaleDateString("pt-BR") ?? "Indefinida"}
+                </p>
+                <p className="text-sm text-zinc-500 mt-1">Prazo contratual</p>
               </div>
             </Card>
-            <Card className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                  <Wallet className="h-5 w-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-500">Faturado</p>
-                  <p className="text-xl font-bold text-zinc-950">{formatCurrency(totalFaturado)}</p>
-                </div>
+
+            <Card className="p-6 space-y-4">
+              <div className="flex items-center gap-3 text-zinc-500">
+                <Building2 className="h-5 w-5" />
+                <span className="text-sm font-medium uppercase tracking-wider">Investimento</span>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-zinc-950">
+                  {currencyFormatter.format(Number(projeto.valorTotal))}
+                </p>
+                <p className="text-sm text-zinc-500 mt-1">Valor total do contrato</p>
               </div>
             </Card>
-            <Card className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
-                  <Landmark className="h-5 w-5 text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-500">Liquidado</p>
-                  <p className="text-xl font-bold text-zinc-950">{formatCurrency(totalLiquidado)}</p>
-                </div>
+
+            <Card className="p-6 space-y-4">
+              <div className="flex items-center gap-3 text-zinc-500">
+                <Target className="h-5 w-5" />
+                <span className="text-sm font-medium uppercase tracking-wider">Status Atual</span>
               </div>
-            </Card>
-            <Card className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
-                  <Wallet className="h-5 w-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-500">Movimentado</p>
-                  <p className="text-xl font-bold text-zinc-950">{formatCurrency(totalMovimentado)}</p>
-                </div>
+              <div className="flex flex-col gap-2">
+                <div>{getStatusBadge(projeto.status)}</div>
+                <p className="text-sm text-zinc-500">Fase do ciclo de vida</p>
               </div>
             </Card>
           </div>
 
-          <Card>
-            <div className="border-b border-zinc-200/60 p-6">
-              <h2 className="text-lg font-semibold text-zinc-950">Resumo do Projeto</h2>
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-zinc-950">Itens de Orçamento</h2>
             </div>
-            <div className="p-6">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Status</p>
-                  <div className="mt-1">{getStatusBadge(projeto.status)}</div>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Centro de Custo</p>
-                  <p className="mt-1 font-semibold text-zinc-950">{projeto.centroCusto}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Valor Total</p>
-                  <p className="mt-1 font-semibold text-zinc-950">{formatCurrency(projeto.valorTotal)}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Vigência</p>
-                  <p className="mt-1 text-sm text-zinc-700">{formatDate(projeto.vigenciaInicial)} - {formatDate(projeto.vigenciaFinal)}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="border-b border-zinc-200/60 p-6">
-              <h2 className="text-lg font-semibold text-zinc-950">Orçamentos</h2>
-              <p className="text-sm text-zinc-500">Itens orçamentários do projeto</p>
-            </div>
-            <div className="p-6">
-              {projeto.orcamentos.length === 0 ? (
-                <p className="text-zinc-500">Nenhum orçamento.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
+            
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cód. Orc</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Ref. Unitária</TableHead>
+                    <TableHead>Total Previsto</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projeto.orcamentoItens.length === 0 ? (
                     <TableRow>
-                      <TableHead>Código</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
+                      <TableCell colSpan={4} className="text-center py-8 text-zinc-500">
+                        Nenhum item de orçamento cadastrado.
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {projeto.orcamentos.map((o) => (
-                      <TableRow key={o.id}>
-                        <TableCell className="font-mono text-sm">{o.idOrc}</TableCell>
-                        <TableCell>{o.descricao}</TableCell>
-                        <TableCell className="text-right font-semibold">{formatCurrency(o.valorTotal)}</TableCell>
+                  ) : (
+                    projeto.orcamentoItens.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-mono text-xs">{item.idOrc}</TableCell>
+                        <TableCell className="text-zinc-700">{item.descricao ?? "—"}</TableCell>
+                        <TableCell>{currencyFormatter.format(Number(item.valorReferencia))}</TableCell>
+                        <TableCell className="font-semibold text-zinc-950">
+                          {currencyFormatter.format(Number(item.valorTotal))}
+                        </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          </Card>
+                    ))
+                  )}
+                  <TableRow className="bg-zinc-50/50">
+                    <form action={adicionarOrcamento.bind(null, projeto.id)}>
+                      <TableCell><input name="idOrc" placeholder="Cód." required className="w-full bg-transparent border-none focus:ring-0 text-xs font-mono" /></TableCell>
+                      <TableCell><input name="descricao" placeholder="Nova descrição do item..." className="w-full bg-transparent border-none focus:ring-0 text-sm" /></TableCell>
+                      <TableCell><input name="valorReferencia" type="number" step="0.01" placeholder="0,00" className="w-full bg-transparent border-none focus:ring-0 text-sm" /></TableCell>
+                      <TableCell className="flex items-center gap-2">
+                        <input name="valorTotal" type="number" step="0.01" placeholder="0,00" className="w-full bg-transparent border-none focus:ring-0 text-sm font-semibold" />
+                        <Button type="submit" variant="ghost" size="icon" className="h-8 w-8 text-teal-600">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </form>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Card>
+          </section>
 
-          <Card>
-            <div className="border-b border-zinc-200/60 p-6">
-              <h2 className="text-lg font-semibold text-zinc-950">Borderos</h2>
-              <p className="text-sm text-zinc-500">Pagamentos e recebimentos</p>
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-zinc-950">Metas e Indicadores</h2>
+              <Link href={`/monitoramento/novo?projetoId=${projeto.id}`}>
+                <Button variant="secondary" size="sm">Configurar Metas</Button>
+              </Link>
             </div>
-            <div className="p-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Total</p>
-                  <p className="text-2xl font-bold text-zinc-950">{totalBorderos}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Lançamentos</p>
-                  <p className="text-2xl font-bold text-zinc-950">{totalLancamentos}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Conciliados</p>
-                  <p className="text-2xl font-bold text-zinc-950">{totalConciliados}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
+            
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Meta</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Unidade</TableHead>
+                    <TableHead>Previsto</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projeto.metas.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-zinc-500">
+                        Nenhuma meta configurada para este projeto.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    projeto.metas.map((meta) => (
+                      <TableRow key={meta.id}>
+                        <TableCell className="font-medium text-zinc-950">{meta.titulo}</TableCell>
+                        <TableCell className="text-zinc-600 text-sm">{meta.descricao ?? "—"}</TableCell>
+                        <TableCell className="text-zinc-500 text-xs uppercase tracking-wider">{meta.unidade ?? "un"}</TableCell>
+                        <TableCell className="font-bold text-zinc-950">{meta.valorPrevisto}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </section>
         </div>
       </main>
     </div>

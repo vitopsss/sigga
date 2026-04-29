@@ -1,12 +1,10 @@
-import { prisma } from "@/lib/prisma";
+import { RHService } from "@/lib/services/rh.service";
 import { salvarColaborador } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function NovoColaborador() {
-  const pessoas = await prisma.pessoa.findMany({
-    orderBy: { nome: 'asc' }
-  });
+  const pessoas = await RHService.listPeople();
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
@@ -14,7 +12,13 @@ export default async function NovoColaborador() {
       <form action={salvarColaborador} className="space-y-4 bg-white p-6 rounded-xl shadow">
         <div>
           <label className="block text-sm font-medium mb-1">ID RH (Matrícula)</label>
-          <input name="idRH" type="text" placeholder="Ex: RH2026-01" required className="w-full p-2 border rounded-md" />
+          <input 
+            name="idRH" 
+            type="text" 
+            placeholder="Ex: RH2026-01" 
+            required 
+            className="w-full p-2 border rounded-md" 
+          />
         </div>
 
         <div>
@@ -34,13 +38,24 @@ export default async function NovoColaborador() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Vínculo</label>
-            <input name="vinculo" type="text" placeholder="Bolsista/CLT" className="w-full p-2 border rounded-md" />
+            <input 
+              name="vinculo" 
+              type="text" 
+              placeholder="Bolsista/CLT" 
+              className="w-full p-2 border rounded-md" 
+            />
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Salário Base / Bolsa (R$)</label>
-          <input name="salarioBase" type="number" step="0.01" required className="w-full p-2 border rounded-md" />
+          <input 
+            name="salarioBase" 
+            type="number" 
+            step="0.01" 
+            required 
+            className="w-full p-2 border rounded-md" 
+          />
         </div>
 
         <div>
@@ -51,7 +66,10 @@ export default async function NovoColaborador() {
           </select>
         </div>
 
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">
+        <button 
+          type="submit" 
+          className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+        >
           Salvar Colaborador
         </button>
       </form>

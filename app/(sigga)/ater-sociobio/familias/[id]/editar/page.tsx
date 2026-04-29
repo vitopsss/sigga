@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
-import { atualizarFamilia, buscarFamilia } from "@/lib/actions/familias";
+import { atualizarFamilia } from "@/lib/actions/familias";
 import { Header } from "@/components/dashboard/header";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import {
@@ -10,6 +10,7 @@ import {
   ATER_SOCIOBIO_MUNICIPIOS,
   ATER_SOCIOBIO_TERRITORY_NAME,
 } from "@/lib/constants/ater-sociobio";
+import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
 
 const inputClassName =
   "mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100";
@@ -24,7 +25,16 @@ export default async function EditarFamiliaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { data: familia, error } = await buscarFamilia(id);
+  
+  let familia = null;
+  let error: string | null = null;
+
+  try {
+    familia = await AterSociobioService.getFamiliaById(id);
+  } catch (e: any) {
+    console.error(e);
+    error = e.message;
+  }
 
   if (error === ATER_SETUP_ERROR) {
     return (
@@ -215,7 +225,7 @@ export default async function EditarFamiliaPage({
               <option key={grupo} value={grupo} />
             ))}
           </datalist>
-        </section>
+          </section>
         </div>
       </div>
     </div>

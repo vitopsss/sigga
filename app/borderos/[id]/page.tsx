@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Eye, Pencil } from "lucide-react";
-
-import { prisma } from "@/lib/prisma";
+import { BorderoService } from "@/lib/services/bordero.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { Card, Badge, Button } from "@/components/ui";
@@ -42,16 +41,7 @@ export default async function BorderoDetalhePage({
 }) {
   const { id } = await params;
 
-  const bordero = await prisma.bordero.findUnique({
-    where: { id },
-    include: {
-      projeto: { select: { titulo: true, centroCusto: true } },
-      lancamentos: {
-        include: { favorecido: true },
-        orderBy: { dataVencimento: "asc" },
-      },
-    },
-  });
+  const bordero = await BorderoService.getById(id);
 
   if (!bordero) {
     notFound();

@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Mail, MapPin, Pencil, Phone, WalletCards } from "lucide-react";
 import { notFound } from "next/navigation";
-
-import { prisma } from "@/lib/prisma";
+import { CadastroService } from "@/lib/services/cadastro.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
-
 import { DeleteButton } from "../delete-button";
 
 function getTypeClasses(tipo: string) {
@@ -26,22 +24,7 @@ export default async function CadastroDetalhePage({
 }) {
   const { id } = await params;
 
-  const cadastro = await prisma.pessoa.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      tipo: true,
-      documento: true,
-      nome: true,
-      email: true,
-      telefone: true,
-      endereco: true,
-      banco: true,
-      agencia: true,
-      conta: true,
-      pix: true,
-    },
-  });
+  const cadastro = await CadastroService.getById(id);
 
   if (!cadastro) {
     notFound();

@@ -3,10 +3,10 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Button, Card } from "@/components/ui";
-import { listarAtendimentosFamilia } from "@/lib/actions/atendimentos-familia";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { Header } from "@/components/dashboard/header";
+import { AterSociobioService, AtendimentoWithDetails } from "@/lib/services/ater-sociobio.service";
 
 export const dynamic = "force-dynamic";
 
@@ -17,16 +17,6 @@ const statusColors: Record<string, string> = {
   RASCUNHO: "bg-blue-100 text-blue-700",
   CONCLUIDO: "bg-emerald-100 text-emerald-700",
   ENVIADO_SGA: "bg-purple-100 text-purple-700",
-};
-
-type Row = {
-  id: unknown;
-  numeroVisita: unknown;
-  data: unknown;
-  tecnico: unknown;
-  statusRelatorio: unknown;
-  familia: { nomeFamilia?: unknown; municipio?: unknown } | null;
-  tecnicoRef: { nome?: unknown } | null;
 };
 
 type SearchParams = Promise<{ busca?: string; status?: string; pagina?: string }>;
@@ -46,15 +36,9 @@ function buildHref(
 ) {
   const query = new URLSearchParams();
 
-  if (params.busca) {
-    query.set("busca", params.busca);
-  }
-  if (params.status) {
-    query.set("status", params.status);
-  }
-  if (params.pagina && params.pagina > 1) {
-    query.set("pagina", String(params.pagina));
-  }
+  if (params.busca) query.set("busca", params.busca);
+  if (params.status) query.set("status", params.status);
+  if (params.pagina && params.pagina > 1) query.set("pagina", String(params.pagina));
 
   const queryString = query.toString();
   return queryString ? `${pathname}?${queryString}` : pathname;
@@ -70,14 +54,22 @@ export default async function AtendimentosPage({
   const statusNorm = status.trim().toUpperCase();
   const requestedPage = parsePage(pagina);
 
-  const { data: atendimentos, error } = (await listarAtendimentosFamilia()) as { data: Row[] | null; error: string | null };
+  let atendimentos: AtendimentoWithDetails[] = [];
+  let error: string | null = null;
 
-  const atendimentosFiltrados = (atendimentos ?? []).filter((at) => {
-    const familiaNome = at.familia?.nomeFamilia != null ? String(at.familia.nomeFamilia).toLowerCase() : "";
-    const municipio = at.familia?.municipio != null ? String(at.familia.municipio).toLowerCase() : "";
-    const tecnicoNome = at.tecnicoRef?.nome != null ? String(at.tecnicoRef.nome).toLowerCase() : at.tecnico != null ? String(at.tecnico).toLowerCase() : "";
-    const statusValue = at.statusRelatorio != null ? String(at.statusRelatorio).toUpperCase() : "";
-    const numeroVisita = at.numeroVisita != null ? String(at.numeroVisita) : "";
+  try {
+    atendimentos = await AterSociobioService.listAtendimentos();
+  } catch (e) {
+    console.error(e);
+    error = "Erro ao carregar atendimentos.";
+  }
+
+  const atendimentosFiltrados = atendimentos.filter((at) => {
+    const familiaNome = at.familia?.nomeFamilia?.toLowerCase() ?? "";
+    const municipio = at.familia?.municipio?.toLowerCase() ?? "";
+    const tecnicoNome = (at.tecnicoRef?.nome ?? at.tecnico ?? "").toLowerCase();
+    const statusValue = (at.statusRelatorio ?? "").toUpperCase();
+    const numeroVisita = String(at.numeroVisita ?? "");
 
     const matchBusca =
       !buscaNorm ||
@@ -156,7 +148,7 @@ export default async function AtendimentosPage({
           {!atendimentosPagina.length ? (
             <div className="rounded-[2rem] border border-slate-200 bg-white p-12 text-center shadow-sm">
               <p className="text-slate-600">
-                {atendimentos?.length ? "Nenhum atendimento encontrado para os filtros atuais." : "Nenhum atendimento registrado ainda."}
+                {atendimentos.length ? "Nenhum atendimento encontrado para os filtros atuais." : "Nenhum atendimento registrado ainda."}
               </p>
             </div>
           ) : (
@@ -179,29 +171,29 @@ export default async function AtendimentosPage({
                     const tecnicoNome = at.tecnicoRef?.nome ?? at.tecnico;
 
                     return (
-                      <tr key={String(at.id)} className="hover:bg-slate-50">
-                        <td className="px-6 py-4 font-medium text-slate-900">#{String(at.numeroVisita)}</td>
+                      <tr key={at.id} className="hover:bg-slate-50">
+                        <td className="px-6 py-4 font-medium text-slate-900">#{at.numeroVisita}</td>
                         <td className="px-6 py-4 text-slate-600">
-                          {at.data ? new Date(String(at.data)).toLocaleDateString("pt-BR") : "-"}
+                          {at.data ? new Date(at.data).toLocaleDateString("pt-BR") : "-"}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="font-medium text-slate-900">{familiaNome != null ? String(familiaNome) : "-"}</span>
-                          {municipio != null && <span className="ml-2 text-slate-500">{String(municipio)}</span>}
+                          <span className="font-medium text-slate-900">{familiaNome ?? "-"}</span>
+                          {municipio && <span className="ml-2 text-slate-500">{municipio}</span>}
                         </td>
-                        <td className="px-6 py-4 text-slate-600">{tecnicoNome != null ? String(tecnicoNome) : "-"}</td>
+                        <td className="px-6 py-4 text-slate-600">{tecnicoNome ?? "-"}</td>
                         <td className="px-6 py-4">
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[String(at.statusRelatorio)] ?? "bg-slate-100 text-slate-600"}`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[at.statusRelatorio ?? ""] ?? "bg-slate-100 text-slate-600"}`}
                           >
-                            {String(at.statusRelatorio)}
+                            {at.statusRelatorio}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-3">
-                            <Link href={`/ater-sociobio/atendimentos/${String(at.id)}/editar`} className="text-slate-500 hover:underline">
+                            <Link href={`/ater-sociobio/atendimentos/${at.id}/editar`} className="text-slate-500 hover:underline">
                               Editar
                             </Link>
-                            <Link href={`/ater-sociobio/atendimentos/${String(at.id)}`} className="text-emerald-600 hover:underline">
+                            <Link href={`/ater-sociobio/atendimentos/${at.id}`} className="text-emerald-600 hover:underline">
                               Ver
                             </Link>
                           </div>

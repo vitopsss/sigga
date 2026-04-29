@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Pencil, Building2 } from "lucide-react";
-
+import { CompraService } from "@/lib/services/compra.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Badge, Button, Card } from "@/components/ui";
-import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/dashboard/header";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
@@ -29,10 +28,7 @@ export default async function ContratoDetalhePage({
 }) {
   const { id } = await params;
 
-  const contrato = await prisma.contratoFornecedor.findUnique({
-    where: { id },
-    include: { fornecedor: true },
-  });
+  const contrato = await CompraService.getById(id);
 
   if (!contrato) {
     notFound();

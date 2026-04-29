@@ -2,8 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
-import { criarAtendimentoFamilia, listarTecnicos } from "@/lib/actions/atendimentos-familia";
-import { listarFamilias } from "@/lib/actions/familias";
+import { criarAtendimentoFamilia } from "@/lib/actions/atendimentos-familia";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import {
   ATER_SOCIOBIO_ETAPAS,
@@ -11,6 +10,7 @@ import {
   ATER_SOCIOBIO_TERRITORY_NAME,
   ATER_SOCIOBIO_TIPOS_ACAO,
 } from "@/lib/constants/ater-sociobio";
+import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
 
 export const dynamic = "force-dynamic";
 
@@ -35,11 +35,24 @@ export default async function NovoAtendimentoPage({
     }
   }
 
-  const [{ data: familias, error: familiasError }, { data: tecnicos, error: tecnicosError }] = await Promise.all([
-    listarFamilias(),
-    listarTecnicos(),
-  ]);
-  const setupMissing = familiasError === ATER_SETUP_ERROR || tecnicosError === ATER_SETUP_ERROR;
+  let familias: any[] = [];
+  let tecnicos: any[] = [];
+  let setupMissing = false;
+
+  try {
+    const [familiasResult, tecnicosResult] = await Promise.all([
+      AterSociobioService.listFamilias({}),
+      AterSociobioService.listTecnicos()
+    ]);
+    familias = familiasResult.familias;
+    tecnicos = tecnicosResult;
+  } catch (e: any) {
+    if (e.message === ATER_SETUP_ERROR) {
+      setupMissing = true;
+    } else {
+      console.error(e);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,_#f8fafc_0%,_#eefbf5_100%)] px-4 py-8 sm:px-6 lg:px-8">
@@ -74,7 +87,7 @@ export default async function NovoAtendimentoPage({
                   <span className="text-sm font-medium text-slate-700">Família *</span>
                   <select name="familiaId" required defaultValue={familiaIdPre ?? ""} className={inputClassName}>
                     <option value="">Selecione a família</option>
-                    {familias?.map((f) => (
+                    {familias.map((f) => (
                       <option key={f.id} value={f.id}>
                         {f.nomeFamilia} - {f.municipio ?? "sem município"}
                       </option>
@@ -123,7 +136,7 @@ export default async function NovoAtendimentoPage({
                   <span className="text-sm font-medium text-slate-700">Técnico responsável</span>
                   <select name="tecnicoId" className={inputClassName}>
                     <option value="">Outro (informe abaixo)</option>
-                    {(tecnicos as { id: string; nome: string }[] | null)?.map((t) => (
+                    {tecnicos.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.nome}
                       </option>

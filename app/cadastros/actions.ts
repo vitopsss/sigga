@@ -1,13 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-
-import { prisma } from "@/lib/prisma";
+import { CadastroService } from "@/lib/services/cadastro.service";
 
 export async function deleteCadastro(id: string) {
-  await prisma.pessoa.delete({
-    where: { id },
-  });
-
+  await CadastroService.delete(id);
   revalidatePath("/cadastros");
 }

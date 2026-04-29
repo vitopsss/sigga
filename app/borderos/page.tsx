@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { Search, WalletCards, Eye, Pencil, Plus, X } from "lucide-react";
-import { Prisma } from "@prisma/client";
-
-import { prisma } from "@/lib/prisma";
+import { BorderoListItem, BorderoService } from "@/lib/services/bordero.service";
 import { isDatabaseUnavailableError } from "@/lib/prisma-runtime";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
@@ -12,12 +10,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { DatabaseWarning } from "@/components/system/database-warning";
 
 type SearchParams = Promise<{ busca?: string; projetoId?: string; status?: string }>;
-type BorderoListItem = Prisma.BorderoGetPayload<{
-  include: {
-    projeto: { select: { titulo: true; centroCusto: true } };
-    lancamentos: { select: { valor: true } };
-  };
-}>;
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -56,45 +48,7 @@ export default async function BorderosPage({
   let databaseUnavailable = false;
 
   try {
-    const where: Prisma.BorderoWhereInput = {};
-    const and: Prisma.BorderoWhereInput[] = [];
-
-    if (buscaNorm) {
-      and.push({
-        OR: [
-          { idBordero: { contains: buscaNorm, mode: "insensitive" } },
-          { tipoBordero: { contains: buscaNorm, mode: "insensitive" } },
-          { projeto: { titulo: { contains: buscaNorm, mode: "insensitive" } } },
-        ],
-      });
-    }
-
-    if (projetoId) {
-      and.push({ projetoId });
-    }
-
-    if (status) {
-      and.push({ status: { equals: status, mode: "insensitive" } });
-    }
-
-    if (and.length > 0) {
-      where.AND = and;
-    }
-
-    [borderos, projetos] = await Promise.all([
-      prisma.bordero.findMany({
-        where,
-        include: {
-          projeto: { select: { titulo: true, centroCusto: true } },
-          lancamentos: { select: { valor: true } },
-        },
-        orderBy: { data: "desc" },
-      }),
-      prisma.projeto.findMany({
-        select: { id: true, titulo: true, centroCusto: true },
-        orderBy: { centroCusto: "asc" },
-      }),
-    ]);
+    [borderos, projetos] = await BorderoService.list({ busca: buscaNorm, projetoId, status });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       databaseUnavailable = true;

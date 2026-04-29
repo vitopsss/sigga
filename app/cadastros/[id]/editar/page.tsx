@@ -1,8 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { Pencil } from "lucide-react";
-
-import { prisma } from "@/lib/prisma";
-
+import { CadastroService } from "@/lib/services/cadastro.service";
 import { bancoOptions, estadoOptions, tipoOptions } from "../../form-options";
 import { CadastroForm } from "../../novo/cadastro-form";
 
@@ -46,22 +44,7 @@ export default async function EditarCadastroPage({
 }) {
   const { id } = await params;
 
-  const cadastro = await prisma.pessoa.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      tipo: true,
-      documento: true,
-      nome: true,
-      email: true,
-      telefone: true,
-      endereco: true,
-      banco: true,
-      agencia: true,
-      conta: true,
-      pix: true,
-    },
-  });
+  const cadastro = await CadastroService.getById(id);
 
   if (!cadastro) {
     notFound();
@@ -127,17 +110,9 @@ export default async function EditarCadastroPage({
       return { errors, values };
     }
 
-    const documentoExistente = await prisma.pessoa.findFirst({
-      where: {
-        documento,
-        NOT: {
-          id: formId,
-        },
-      },
-      select: { id: true },
-    });
+    const documentoExiste = await CadastroService.checkDocumentoExists(documento, formId);
 
-    if (documentoExistente) {
+    if (documentoExiste) {
       return {
         errors: {
           documento: "Já existe um cadastro com este documento.",
@@ -146,22 +121,22 @@ export default async function EditarCadastroPage({
       };
     }
 
+    const data = {
+      id: formId,
+      tipo: tipo as "PF" | "PJ" | "PUBLICO" | "PRIVADO",
+      documento,
+      nome,
+      email: email || null,
+      telefone: telefone || null,
+      endereco: endereco || null,
+      banco: banco || null,
+      agencia: agencia || null,
+      conta: conta || null,
+      pix: pix || null,
+    };
+
     try {
-      await prisma.pessoa.update({
-        where: { id: formId },
-        data: {
-          tipo: tipo as "PF" | "PJ" | "PUBLICO" | "PRIVADO",
-          documento,
-          nome,
-          email: email || null,
-          telefone: telefone || null,
-          endereco: endereco || null,
-          banco: banco || null,
-          agencia: agencia || null,
-          conta: conta || null,
-          pix: pix || null,
-        },
-      });
+      await CadastroService.save(data);
     } catch {
       return {
         errors: {
