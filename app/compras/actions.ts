@@ -22,15 +22,15 @@ function validateContrato(formData: FormData) {
   const valorTotal = parseValor(formData);
 
   if (!idContrato) {
-    throw new Error("ID do contrato obrigatorio.");
+    throw new Error("ID do contrato obrigatório.");
   }
 
   if (!fornecedorId) {
-    throw new Error("Fornecedor obrigatorio.");
+    throw new Error("Fornecedor obrigatório.");
   }
 
   if (!Number.isFinite(valorTotal) || valorTotal <= 0) {
-    throw new Error("Valor total invalido.");
+    throw new Error("Valor total inválido.");
   }
 
   return {
@@ -44,38 +44,47 @@ function validateContrato(formData: FormData) {
 
 export async function criarContrato(formData: FormData) {
   const data = validateContrato(formData);
+  let createdId: string | undefined;
 
   try {
     const contrato = await prisma.contratoFornecedor.create({ data });
-    revalidatePath("/compras");
-    revalidatePath(`/compras/${contrato.id}`);
-    redirect(`/compras/${contrato.id}`);
+    createdId = contrato.id;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw new Error("Ja existe um contrato com esse identificador.");
+      throw new Error("Já existe um contrato com esse identificador.");
     }
 
     throw error;
+  }
+
+  if (createdId) {
+    revalidatePath("/compras");
+    revalidatePath(`/compras/${createdId}`);
+    redirect(`/compras/${createdId}`);
   }
 }
 
 export async function atualizarContrato(id: string, formData: FormData) {
   const data = validateContrato(formData);
+  let success = false;
 
   try {
-    const contrato = await prisma.contratoFornecedor.update({
+    await prisma.contratoFornecedor.update({
       where: { id },
       data,
     });
-
-    revalidatePath("/compras");
-    revalidatePath(`/compras/${id}`);
-    redirect(`/compras/${contrato.id}`);
+    success = true;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw new Error("Ja existe um contrato com esse identificador.");
+      throw new Error("Já existe um contrato com esse identificador.");
     }
 
     throw error;
+  }
+
+  if (success) {
+    revalidatePath("/compras");
+    revalidatePath(`/compras/${id}`);
+    redirect(`/compras/${id}`);
   }
 }

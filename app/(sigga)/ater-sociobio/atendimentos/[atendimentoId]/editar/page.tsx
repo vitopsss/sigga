@@ -38,7 +38,17 @@ export default async function EditarAtendimentoPage({
   }
 
   if (error || !atendimento) {
-    notFound();
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-slate-900">Atendimento não encontrado</h2>
+          <p className="mt-2 text-sm text-slate-600">Não foi possível localizar o atendimento solicitado.</p>
+          <Link href="/ater-sociobio/atendimentos" className="mt-4 inline-block text-sm text-emerald-600 hover:underline">
+            Voltar para a listagem
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   async function submit(formData: FormData) {
@@ -56,9 +66,15 @@ export default async function EditarAtendimentoPage({
   ]);
   const setupMissing = familiasError === ATER_SETUP_ERROR || tecnicosError === ATER_SETUP_ERROR;
 
-  const eixoProdutivo = (atendimento.eixoProdutivo as Record<string, string> | null) ?? {};
-  const eixoSocial = (atendimento.eixoSocial as Record<string, string> | null) ?? {};
-  const eixoAmbiental = (atendimento.eixoAmbiental as Record<string, string> | null) ?? {};
+  // Garantir que os eixos sejam objetos válidos para acesso de propriedades
+  const getEixoData = (val: any): Record<string, any> => {
+    if (val && typeof val === "object" && !Array.isArray(val)) return val;
+    return {};
+  };
+
+  const eixoProdutivo = getEixoData(atendimento.eixoProdutivo);
+  const eixoSocial = getEixoData(atendimento.eixoSocial);
+  const eixoAmbiental = getEixoData(atendimento.eixoAmbiental);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,_#f8fafc_0%,_#eefbf5_100%)] px-4 py-8 sm:px-6 lg:px-8">

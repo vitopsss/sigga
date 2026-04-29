@@ -10,39 +10,27 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
-function isStandaloneMode() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const standaloneMedia = window.matchMedia?.("(display-mode: standalone)")?.matches ?? false;
-  const standaloneNavigator = "standalone" in window.navigator && Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
-  return standaloneMedia || standaloneNavigator;
-}
-
 export function InstallAppButton() {
+  const [mounted, setMounted] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(() => isStandaloneMode());
+  const [installed, setInstalled] = useState(true); // Assume installed until mounted to prevent flash
   const [showHelp, setShowHelp] = useState(false);
-  const [isIos] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  });
-  const [isSafari] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    return /safari/.test(userAgent) && !/chrome|android/.test(userAgent);
-  });
+  const [isIos, setIsIos] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
+    setMounted(true);
+    
+    if (typeof window !== "undefined") {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      setIsIos(/iphone|ipad|ipod/.test(userAgent));
+      setIsSafari(/safari/.test(userAgent) && !/chrome|android/.test(userAgent));
+      setIsMobile(/android|iphone|ipad|ipod/.test(userAgent));
+
+      const standaloneMedia = window.matchMedia?.("(display-mode: standalone)")?.matches ?? false;
+      const standaloneNavigator = "standalone" in window.navigator && Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+      setInstalled(standaloneMedia || standaloneNavigator);
     }
 
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -73,7 +61,13 @@ export function InstallAppButton() {
     return "Se o navegador não mostrar o prompt, use o menu do Chrome ou Edge e escolha Instalar aplicativo.";
   }, [isIos, isSafari]);
 
-  if (installed) {
+  if (!mounted || installed) {
+    return null;
+  }
+
+  // Only show the button if we actually have a prompt, OR if it's a mobile device (where manual "Add to Home Screen" is common).
+  // This prevents desktop browsers without PWA support from showing a useless button.
+  if (!deferredPrompt && !isMobile) {
     return null;
   }
 
@@ -96,7 +90,7 @@ export function InstallAppButton() {
       {showHelp ? (
         <div className="w-80 rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xl">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
               <Smartphone className="h-5 w-5" />
             </div>
             <div className="space-y-2">

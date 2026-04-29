@@ -129,7 +129,7 @@ export default async function Home() {
             <Card className="mb-8 border-amber-200 bg-amber-50/80">
               <div className="p-6">
                 <div className="flex items-center gap-3">
-                  <Badge variant="warning">Banco indisponivel</Badge>
+                  <Badge variant="warning">Banco indisponível</Badge>
                   <p className="text-sm font-medium text-amber-900">{DATABASE_UNAVAILABLE_ERROR}</p>
                 </div>
                 <p className="mt-3 text-sm text-amber-800">
@@ -167,9 +167,9 @@ export default async function Home() {
               iconColor="text-sky-600"
             />
             <MetricCard
-              title="Borderos"
+              title="Borderôs"
               value={currencyFormatter.format(saldoBorderos)}
-              subtitle={`${totalBorderos} borderos cadastrados`}
+              subtitle={`${totalBorderos} borderôs cadastrados`}
               icon={WalletCards}
               iconBg="bg-amber-100"
               iconColor="text-amber-600"
@@ -232,7 +232,7 @@ export default async function Home() {
             <Card>
               <div className="flex items-center justify-between border-b border-zinc-200/60 p-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-zinc-950">Borderos Recentes</h3>
+                  <h3 className="text-lg font-semibold text-zinc-950">Borderôs Recentes</h3>
                   <p className="text-sm text-zinc-500">Últimas movimentações financeiras</p>
                 </div>
                 <Link href="/borderos">
@@ -244,7 +244,7 @@ export default async function Home() {
               <div className="divide-y divide-zinc-100">
                 {borderosRecentes.length === 0 ? (
                   <div className="p-6 text-center text-sm text-zinc-500">
-                    Nenhum bordero encontrado
+                    Nenhum borderô encontrado
                   </div>
                 ) : (
                   borderosRecentes.map((bordero) => {

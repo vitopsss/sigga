@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Calendar, Hash, MapPin, Users } from "lucide-react";
+import { Calendar, Hash, MapPin, Users } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
-import { Badge, Button, Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { buscarFamilia } from "@/lib/actions/familias";
 import { ATER_SETUP_ERROR, isAterMissingTableError } from "@/lib/ater-runtime";
 import { prisma } from "@/lib/prisma";
+import { Header } from "@/components/dashboard/header";
 
 type Params = Promise<{ id: string }>;
 
@@ -22,16 +23,12 @@ export default async function FamiliaDetailPage({
 
   if (error === ATER_SETUP_ERROR) {
     return (
-      <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6">
-          <div className="flex items-center gap-4">
-            <Link href="/ater-sociobio/familias" className="text-sm text-slate-500 hover:text-slate-700">
-              <ArrowLeft className="mr-1 inline h-4 w-4" />
-              Voltar
-            </Link>
+      <div className="min-h-screen bg-zinc-50/50">
+        <Header title="Erro de Configuração" />
+        <div className="p-6 lg:p-8">
+          <div className="mx-auto max-w-6xl">
+            <AterSetupWarning />
           </div>
-
-          <AterSetupWarning />
         </div>
       </div>
     );
@@ -73,34 +70,24 @@ export default async function FamiliaDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <div className="flex items-center gap-4">
-          <Link href="/ater-sociobio/familias" className="text-sm text-slate-500 hover:text-slate-700">
-            <ArrowLeft className="mr-1 inline h-4 w-4" />
-            Voltar
-          </Link>
-        </div>
-
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <Badge variant="success" className="mb-2">
-                ATER Sociobio
-              </Badge>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{familia.nomeFamilia}</h1>
-              {familia.nomeResponsavel && <p className="mt-1 text-slate-600">Responsável: {familia.nomeResponsavel}</p>}
-            </div>
-            <div className="flex gap-2">
-              <Link href={`/ater-sociobio/familias/${familia.id}/editar`}>
-                <Button variant="ghost">Editar família</Button>
-              </Link>
-              <Link href={`/ater-sociobio/atendimentos/nova?familiaId=${familia.id}`}>
-                <Button variant="primary">Novo atendimento</Button>
-              </Link>
-            </div>
+    <div className="min-h-screen bg-zinc-50/50">
+      <Header
+        title={familia.nomeFamilia}
+        description={familia.nomeResponsavel ? `Responsável: ${familia.nomeResponsavel}` : "Detalhes da família"}
+        actions={
+          <div className="flex gap-2">
+            <Link href={`/ater-sociobio/familias/${familia.id}/editar`}>
+              <Button variant="ghost">Editar família</Button>
+            </Link>
+            <Link href={`/ater-sociobio/atendimentos/nova?familiaId=${familia.id}`}>
+              <Button variant="primary">Novo atendimento</Button>
+            </Link>
           </div>
-        </section>
+        }
+      />
+
+      <div className="p-6 lg:p-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6">
 
         {setupMissing && <AterSetupWarning />}
 
@@ -229,6 +216,7 @@ export default async function FamiliaDetailPage({
             </div>
           )}
         </section>
+        </div>
       </div>
     </div>
   );

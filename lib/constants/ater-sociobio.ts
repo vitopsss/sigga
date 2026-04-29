@@ -1,52 +1,52 @@
-export const ATER_SOCIOBIO_TERRITORY_NAME = "FLONA de Tefe";
+export const ATER_SOCIOBIO_TERRITORY_NAME = "FLONA de Tefé";
 
-export const ATER_SOCIOBIO_MUNICIPIOS = ["Alvaraes", "Carauari", "Jurua", "Tefe"] as const;
+export const ATER_SOCIOBIO_MUNICIPIOS = ["Alvarães", "Carauari", "Juruá", "Tefé"] as const;
 
 export const ATER_SOCIOBIO_ATIVIDADES_PRODUTIVAS = [
   "SAF - Sist. Agroflorestal",
   "Avicultura Outras",
   "Empreendimento - Artesanato (costura)",
   "Mandala/PAIS/Similares",
-  "Empreendimento - Alimentacao (Churrasco)",
-  "Empreendimento - Servicos (Salao de beleza)",
-  "Empreendimento - Alimentacao (Padaria)",
-  "Empreendimento - Comercio (Minimercado)",
-  "Empreendimento - Acougue",
+  "Empreendimento - Alimentação (Churrasco)",
+  "Empreendimento - Serviços (Salão de beleza)",
+  "Empreendimento - Alimentação (Padaria)",
+  "Empreendimento - Comércio (Minimercado)",
+  "Empreendimento - Açougue",
   "Meliponicultura",
-  "Empreendimento - Agroindustria de leite",
+  "Empreendimento - Agroindústria de leite",
 ] as const;
 
 export const ATER_SOCIOBIO_GRUPOS_INTERESSE = [
-  "Distrito de Freguesia do Andira",
+  "Distrito de Freguesia do Andirá",
   "Quilombo de Santa Tereza do Matupiri",
-  "Comunidade Sao Tome",
+  "Comunidade São Tomé",
   "Comunidade Santa Luzia",
-  "Comunidade Sao Domingos",
-  "Comunidade Sao Sebastiao",
-  "Grupo de Interesse Sao Raimundo do Mutuca",
-  "Comunidade Indigena Sao Pedro",
+  "Comunidade São Domingos",
+  "Comunidade São Sebastião",
+  "Grupo de Interesse São Raimundo do Mutuca",
+  "Comunidade Indígena São Pedro",
 ] as const;
 
 export const ATER_SOCIOBIO_PROJETOS_REFERENCIA = [
   "Ater - Sociobiodiversidade",
-  "Rede de Quintais Agroecologicos e Produtivos Amazonicos - Da Terra a Mesa",
-  "Mulheres Rurais, Autonomia, Alimentacao e Vidas Saudaveis",
+  "Rede de Quintais Agroecológicos e Produtivos Amazônicos - Da Terra à Mesa",
+  "Mulheres Rurais, Autonomia, Alimentação e Vidas Saudáveis",
   "Quintais Produtivos para Mulheres Rurais",
-  "Capacitacao e formacao em ATER",
-  "Capacitacao e formacao em ATER II",
+  "Capacitação e formação em ATER",
+  "Capacitação e formação em ATER II",
 ] as const;
 
 export const ATER_SOCIOBIO_TIPOS_ACAO = {
   produtivo: [
-    "Producao e produtividade/ Diversificacao Produtiva",
-    "Comercializacao",
+    "Produção e produtividade/ Diversificação Produtiva",
+    "Comercialização",
     "Beneficiamento",
-    "Praticas agricolas/manejo",
-    "Boas praticas agricolas / Manejo",
+    "Práticas agrícolas/manejo",
+    "Boas práticas agrícolas / Manejo",
   ],
   social: [
-    "Documentacao familiar e da propriedade",
-    "Gestao",
+    "Documentação familiar e da propriedade",
+    "Gestão",
   ],
   ambiental: [
     "Saneamento Rural",
@@ -57,15 +57,15 @@ export const ATER_SOCIOBIO_TIPOS_ACAO = {
 export const ATER_SOCIOBIO_ETAPAS = {
   produtivo: [
     "Manejo",
-    "Comercializacao",
+    "Comercialização",
     "Sanidade Animal",
     "Beneficiamento",
-    "Equipamentos e instalacoes",
-    "Gestao",
+    "Equipamentos e instalações",
+    "Gestão",
   ],
   social: [
     "Documentos emitidos",
-    "Gestao",
+    "Gestão",
   ],
   ambiental: [
     "Manejo/Tratamento de Dejetos",

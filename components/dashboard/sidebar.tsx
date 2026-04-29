@@ -20,14 +20,14 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { href: "/", label: "Painel Geral", icon: LayoutDashboard },
-  { href: "/cadastros", label: "Cadastro Unico", icon: Building2 },
+  { href: "/cadastros", label: "Cadastro Único", icon: Building2 },
   { href: "/ater-sociobio", label: "ATER Sociobio", icon: Leaf },
   { href: "/projetos", label: "Projetos", icon: BriefcaseBusiness },
-  { href: "/borderos", label: "Borderos", icon: WalletCards },
-  { href: "/financeiro", label: "Lancamentos", icon: WalletCards },
+  { href: "/borderos", label: "Borderôs", icon: WalletCards },
+  { href: "/financeiro", label: "Lançamentos", icon: WalletCards },
   { href: "/compras", label: "Compras e Contratos", icon: ShoppingCart },
   { href: "/rh", label: "Recursos Humanos", icon: Users },
-  { href: "/patrimonio", label: "Patrimonio", icon: Package },
+  { href: "/patrimonio", label: "Patrimônio", icon: Package },
 ];
 
 export function Sidebar() {

@@ -63,7 +63,7 @@ export default async function EditarBorderoPage({
             </Link>
             <div>
               <h1 className="text-xl font-semibold text-zinc-950">Editar {bordero.idBordero}</h1>
-              <p className="text-sm text-zinc-500">Atualize os dados do bordero e mantenha os lancamentos.</p>
+              <p className="text-sm text-zinc-500">Atualize os dados do borderô e mantenha os lançamentos.</p>
             </div>
           </div>
         </div>
@@ -72,12 +72,12 @@ export default async function EditarBorderoPage({
           <form action={updateAction} className="space-y-6">
             <Card>
               <div className="border-b border-zinc-200/60 p-6">
-                <h2 className="text-lg font-semibold text-zinc-950">Dados do bordero</h2>
+                <h2 className="text-lg font-semibold text-zinc-950">Dados do borderô</h2>
               </div>
 
               <div className="grid gap-4 p-6 md:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-700">ID do bordero</label>
+                  <label className="text-sm font-medium text-zinc-700">ID do borderô</label>
                   <input name="idBordero" defaultValue={bordero.idBordero} required className={inputClassName} />
                 </div>
 
@@ -115,14 +115,14 @@ export default async function EditarBorderoPage({
 
             <div className="flex justify-end">
               <Button type="submit" variant="primary">
-                Salvar bordero
+                Salvar borderô
               </Button>
             </div>
           </form>
 
           <Card>
             <div className="border-b border-zinc-200/60 p-6">
-              <h2 className="text-lg font-semibold text-zinc-950">Adicionar lancamento</h2>
+              <h2 className="text-lg font-semibold text-zinc-950">Adicionar lançamento</h2>
             </div>
 
             <form action={adicionarLancamento.bind(null, bordero.id)} className="grid gap-4 p-6 md:grid-cols-2 lg:grid-cols-4">
@@ -185,11 +185,11 @@ export default async function EditarBorderoPage({
 
           <Card>
             <div className="border-b border-zinc-200/60 p-6">
-              <h2 className="text-lg font-semibold text-zinc-950">Lancamentos atuais</h2>
+              <h2 className="text-lg font-semibold text-zinc-950">Lançamentos atuais</h2>
             </div>
 
             {bordero.lancamentos.length === 0 ? (
-              <div className="p-6 text-sm text-zinc-500">Nenhum lancamento cadastrado.</div>
+              <div className="p-6 text-sm text-zinc-500">Nenhum lançamento cadastrado.</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -199,7 +199,7 @@ export default async function EditarBorderoPage({
                     <TableHead>Valor</TableHead>
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Acoes</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

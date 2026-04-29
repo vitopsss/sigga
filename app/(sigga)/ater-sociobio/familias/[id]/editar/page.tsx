@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { atualizarFamilia, buscarFamilia } from "@/lib/actions/familias";
+import { Header } from "@/components/dashboard/header";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import {
   ATER_SOCIOBIO_ATIVIDADES_PRODUTIVAS,
@@ -28,12 +28,12 @@ export default async function EditarFamiliaPage({
 
   if (error === ATER_SETUP_ERROR) {
     return (
-      <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-5xl flex-col gap-6">
-          <Link href="/ater-sociobio/familias" className="text-sm text-slate-500 hover:text-slate-700">
-            Voltar
-          </Link>
-          <AterSetupWarning />
+      <div className="min-h-screen bg-zinc-50/50">
+        <Header title="Erro de Configuração" />
+        <div className="p-6 lg:p-8">
+          <div className="mx-auto max-w-5xl">
+            <AterSetupWarning />
+          </div>
         </div>
       </div>
     );
@@ -53,25 +53,16 @@ export default async function EditarFamiliaPage({
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,_#f8fafc_0%,_#eefbf5_100%)] px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_24px_80px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-8 lg:p-10">
-          <div className="border-b border-slate-200 pb-8">
-            <Link href={`/ater-sociobio/familias/${id}`} className="inline-flex text-sm font-medium text-slate-500 hover:text-slate-700">
-              Voltar
-            </Link>
-            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-              ATER Sociobio
-            </span>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              Editar família
-            </h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
-              Atualize os dados de identificação, localização e acompanhamento da família no lote {ATER_SOCIOBIO_TERRITORY_NAME}.
-            </p>
-          </div>
+    <div className="min-h-screen bg-zinc-50/50">
+      <Header
+        title="Editar família"
+        description={`Atualize os dados de identificação, localização e acompanhamento da família no lote ${ATER_SOCIOBIO_TERRITORY_NAME}`}
+      />
 
-          <form action={submit} className="mt-8 space-y-8">
+      <div className="p-6 lg:p-8">
+        <div className="mx-auto max-w-5xl">
+          <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10">
+            <form action={submit} className="space-y-8">
             <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm">
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-slate-900">Identificação da família</h2>
@@ -225,6 +216,7 @@ export default async function EditarFamiliaPage({
             ))}
           </datalist>
         </section>
+        </div>
       </div>
     </div>
   );

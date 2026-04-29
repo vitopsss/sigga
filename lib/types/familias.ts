@@ -19,7 +19,7 @@ export const composicaoFamiliarSchema = z.object({
 });
 
 export const criarFamiliaSchema = z.object({
-  nomeFamilia: z.string().trim().min(1, "Nome da familia obrigatorio"),
+  nomeFamilia: z.string().trim().min(1, "Nome da família obrigatório"),
   nomeResponsavel: optionalString,
   documentoResponsavel: optionalString,
   telefone: optionalString,
@@ -75,7 +75,7 @@ const eixoSchema = z.object({
 });
 
 export const criarAtendimentoSchema = z.object({
-  familiaId: z.string().trim().min(1, "Familia obrigatoria"),
+  familiaId: z.string().trim().min(1, "Família obrigatória"),
   numeroVisita: z.coerce.number().int().min(1).max(16),
   data: nullableDate,
   tecnico: z.string().trim().min(1),

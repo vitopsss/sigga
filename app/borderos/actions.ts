@@ -17,7 +17,7 @@ function parseOptionalDate(value: string) {
 function parseRequiredAmount(value: FormDataEntryValue | null) {
   const amount = Number(value ?? 0);
   if (!Number.isFinite(amount) || amount <= 0) {
-    throw new Error("Valor invalido.");
+    throw new Error("Valor inválido.");
   }
   return amount;
 }
@@ -81,7 +81,7 @@ function validarBordero(formData: FormData) {
   const dataStr = getText(formData.get("data"));
 
   if (!projetoId) {
-    throw new Error("Projeto obrigatorio.");
+    throw new Error("Projeto obrigatório.");
   }
 
   if (!idBordero) {
@@ -122,7 +122,7 @@ function readLancamentosFromForm(formData: FormData) {
     }
 
     if (!nsu || !favorecidoId || !dataVencimentoStr || !Number.isFinite(valorRaw) || valorRaw <= 0) {
-      throw new Error("Cada lancamento precisa de NSU, favorecido, valor e vencimento.");
+      throw new Error("Cada lançamento precisa de NSU, favorecido, valor e vencimento.");
     }
 
     lancamentos.push({
@@ -146,6 +146,8 @@ export async function salvarBordero(formData: FormData): Promise<void> {
   if (!borderoInput.idBordero) {
     borderoInput.idBordero = await gerarProximoIdBordero();
   }
+
+  let createdId: string | undefined;
 
   try {
     const bordero = await prisma.$transaction(async (tx) => {
@@ -179,12 +181,30 @@ export async function salvarBordero(formData: FormData): Promise<void> {
       return created;
     });
 
+    createdId = bordero.id;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        const target = (error.meta?.target as string[]) || [];
+        if (target.includes("idBordero")) {
+          throw new Error(`O ID de borderô "${borderoInput.idBordero}" já está sendo usado por outro registro.`);
+        }
+        if (target.includes("nsu")) {
+          throw new Error("Um ou mais NSUs informados já estão em uso em outros lançamentos. O NSU deve ser único.");
+        }
+      }
+      if (error.code === "P2003") {
+        throw new Error("Erro de referência: Verifique se o Projeto e os Favorecidos selecionados são válidos.");
+      }
+    }
+    console.error("Erro ao salvar borderô:", error);
+    throw new Error("Erro ao salvar borderô. Verifique os dados.");
+  }
+
+  if (createdId) {
     revalidatePath("/borderos");
     revalidatePath("/financeiro");
-    redirect(`/borderos/${bordero.id}`);
-  } catch (error) {
-    console.error("Erro ao salvar bordero:", error);
-    throw new Error("Erro ao salvar bordero. Verifique os dados.");
+    redirect(`/borderos/${createdId}`);
   }
 }
 
@@ -192,8 +212,10 @@ export async function atualizarBordero(id: string, formData: FormData): Promise<
   const borderoInput = validarBordero(formData);
 
   if (!borderoInput.idBordero) {
-    throw new Error("ID do bordero obrigatorio.");
+    throw new Error("ID do borderô obrigatório.");
   }
+
+  let success = false;
 
   try {
     await prisma.bordero.update({
@@ -207,15 +229,24 @@ export async function atualizarBordero(id: string, formData: FormData): Promise<
     });
 
     await sincronizarStatusBordero(id);
+    success = true;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const target = (error.meta?.target as string[]) || [];
+      if (target.includes("idBordero")) {
+        throw new Error(`O ID de borderô "${borderoInput.idBordero}" já está sendo usado por outro registro.`);
+      }
+    }
+    console.error("Erro ao atualizar borderô:", error);
+    throw new Error("Erro ao atualizar borderô. Verifique os dados.");
+  }
 
+  if (success) {
     revalidatePath("/borderos");
     revalidatePath(`/borderos/${id}`);
     revalidatePath(`/borderos/${id}/editar`);
     revalidatePath("/financeiro");
     redirect(`/borderos/${id}`);
-  } catch (error) {
-    console.error("Erro ao atualizar bordero:", error);
-    throw new Error("Erro ao atualizar bordero. Verifique os dados.");
   }
 }
 
@@ -229,15 +260,15 @@ export async function adicionarLancamento(borderoId: string, formData: FormData)
   const valor = parseRequiredAmount(formData.get("valor"));
 
   if (!nsu) {
-    throw new Error("NSU obrigatorio.");
+    throw new Error("NSU obrigatório.");
   }
 
   if (!favorecidoId) {
-    throw new Error("Favorecido obrigatorio.");
+    throw new Error("Favorecido obrigatório.");
   }
 
   if (!dataVencimento) {
-    throw new Error("Data de vencimento obrigatoria.");
+    throw new Error("Data de vencimento obrigatória.");
   }
 
   try {
@@ -265,8 +296,14 @@ export async function adicionarLancamento(borderoId: string, formData: FormData)
     revalidatePath(`/borderos/${borderoId}/editar`);
     revalidatePath("/financeiro");
   } catch (error) {
-    console.error("Erro ao adicionar lancamento:", error);
-    throw new Error("Erro ao adicionar lancamento.");
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const target = (error.meta?.target as string[]) || [];
+      if (target.includes("nsu")) {
+        throw new Error(`O NSU "${nsu}" já está sendo usado em outro lançamento.`);
+      }
+    }
+    console.error("Erro ao adicionar lançamento:", error);
+    throw new Error("Erro ao adicionar lançamento.");
   }
 }
 

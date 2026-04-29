@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Eye, Pencil } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import { Header } from "@/components/dashboard/header";
 import { Card, Badge, Button } from "@/components/ui";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
@@ -64,32 +65,24 @@ export default async function BorderoDetalhePage({
       <Sidebar />
 
       <main className="flex-1 ml-64">
-        <div className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-zinc-200 bg-white/80 px-6 backdrop-blur-md">
-          <div className="flex items-center gap-4">
-            <Link href="/borderos">
-              <Button variant="secondary" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-zinc-950">{bordero.idBordero}</h1>
-              <p className="text-sm text-zinc-500">{bordero.projeto.titulo}</p>
+        <Header
+          title={bordero.idBordero}
+          description={bordero.projeto.titulo}
+          actions={
+            <div className="flex items-center gap-2">
+              <Link href={`/borderos/${bordero.id}/editar`}>
+                <Button variant="primary">
+                  <Pencil className="h-4 w-4" /> Editar
+                </Button>
+              </Link>
+              <Link href={`/financeiro?borderoId=${bordero.id}`}>
+                <Button variant="secondary">
+                  <Eye className="h-4 w-4" /> Ver lancamentos
+                </Button>
+              </Link>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link href={`/borderos/${bordero.id}/editar`}>
-              <Button variant="primary">
-                <Pencil className="h-4 w-4" /> Editar
-              </Button>
-            </Link>
-            <Link href={`/financeiro?borderoId=${bordero.id}`}>
-              <Button variant="secondary">
-                <Eye className="h-4 w-4" /> Ver lancamentos
-              </Button>
-            </Link>
-          </div>
-        </div>
+          }
+        />
 
         <div className="p-6 lg:p-8 space-y-6">
           <Card>

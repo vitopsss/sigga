@@ -2,10 +2,11 @@ import Link from "next/link";
 import { Users } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
-import { Badge, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { isAterMissingTableError } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { prisma } from "@/lib/prisma";
+import { Header } from "@/components/dashboard/header";
 
 export const dynamic = "force-dynamic";
 
@@ -38,20 +39,13 @@ export default async function AterSociobioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50/50 via-slate-50 to-teal-50/30">
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-10">
-        <div className="mb-8">
-          <Badge variant="success" className="w-fit">
-            ATER Sociobio
-          </Badge>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
-            Acompanhamento Territorial
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Acompanhamento técnico de famílias do lote {ATER_SOCIOBIO_TERRITORY_NAME}, com foco em ATER Sociobiodiversidade.
-          </p>
-        </div>
+    <div className="min-h-screen bg-zinc-50/50">
+      <Header
+        title="ATER Sociobio"
+        description={`Acompanhamento técnico de famílias do lote ${ATER_SOCIOBIO_TERRITORY_NAME}`}
+      />
 
+      <div className="p-6 lg:p-8">
         {setupMissing && <AterSetupWarning className="mb-8" />}
 
         <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -92,7 +86,7 @@ export default async function AterSociobioPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+              className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
             >
               <span className="text-base font-medium text-slate-700">{item.label}</span>
               <p className="mt-1 text-sm text-slate-500">{item.desc}</p>

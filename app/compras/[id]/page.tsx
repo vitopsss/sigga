@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil, Building2 } from "lucide-react";
+import { Pencil, Building2 } from "lucide-react";
 
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Badge, Button, Card } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
+import { Header } from "@/components/dashboard/header";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -42,25 +43,17 @@ export default async function ContratoDetalhePage({
       <Sidebar />
 
       <main className="flex-1 ml-64">
-        <div className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-zinc-200 bg-white/80 px-6 backdrop-blur-md">
-          <div className="flex items-center gap-4">
-            <Link href="/compras">
-              <Button variant="secondary" size="icon">
-                <ArrowLeft className="h-4 w-4" />
+        <Header
+          title={contrato.idContrato}
+          description={contrato.fornecedor.nome}
+          actions={
+            <Link href={`/compras/${contrato.id}/editar`}>
+              <Button variant="primary">
+                <Pencil className="h-4 w-4" /> Editar
               </Button>
             </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-zinc-950">{contrato.idContrato}</h1>
-              <p className="text-sm text-zinc-500">{contrato.fornecedor.nome}</p>
-            </div>
-          </div>
-
-          <Link href={`/compras/${contrato.id}/editar`}>
-            <Button variant="primary">
-              <Pencil className="h-4 w-4" /> Editar
-            </Button>
-          </Link>
-        </div>
+          }
+        />
 
         <div className="space-y-6 p-6 lg:p-8">
           <Card>

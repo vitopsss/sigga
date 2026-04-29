@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, Mail, MapPin, Pencil, Phone, WalletCards } from "lucide-react";
+import { Mail, MapPin, Pencil, Phone, WalletCards } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { Header } from "@/components/dashboard/header";
 
 import { DeleteButton } from "../delete-button";
 
@@ -46,34 +48,15 @@ export default async function CadastroDetalhePage({
   }
 
   return (
-    <div className="bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.12),_transparent_30%)]">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:px-10 lg:py-10">
-        <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-8 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.35)] backdrop-blur xl:p-10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <span
-                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ring-1 ring-inset ${getTypeClasses(
-                  cadastro.tipo,
-                )}`}
-              >
-                {cadastro.tipo}
-              </span>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
-                {cadastro.nome}
-              </h1>
-              <p className="mt-3 text-base text-zinc-600">
-                Documento: <span className="font-medium text-zinc-900">{cadastro.documento}</span>
-              </p>
-            </div>
+    <div className="flex min-h-screen bg-zinc-50">
+      <Sidebar />
 
+      <main className="flex-1 ml-64">
+        <Header
+          title={cadastro.nome}
+          description={`Documento: ${cadastro.documento}`}
+          actions={
             <div className="flex flex-wrap gap-3">
-              <Link
-                href="/cadastros"
-                className="inline-flex h-11 items-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Voltar
-              </Link>
               <Link
                 href={`/cadastros/${cadastro.id}/editar`}
                 className="inline-flex h-11 items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
@@ -83,8 +66,26 @@ export default async function CadastroDetalhePage({
               </Link>
               <DeleteButton id={cadastro.id} />
             </div>
-          </div>
-        </section>
+          }
+        />
+
+        <div className="p-6 lg:p-8 space-y-8">
+          <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-8 shadow-sm backdrop-blur xl:p-10">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ring-1 ring-inset ${getTypeClasses(
+                    cadastro.tipo,
+                  )}`}
+                >
+                  {cadastro.tipo}
+                </span>
+                <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
+                  {cadastro.nome}
+                </h1>
+              </div>
+            </div>
+          </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-[0_20px_80px_-30px_rgba(15,23,42,0.25)] backdrop-blur sm:p-8">
@@ -146,6 +147,7 @@ export default async function CadastroDetalhePage({
           </div>
         </section>
       </div>
-    </div>
-  );
+    </main>
+  </div>
+);
 }

@@ -36,6 +36,10 @@ export async function listarAtendimentosFamilia(familiaId?: string) {
 }
 
 export async function buscarAtendimento(id: string) {
+  if (!id || id.length !== 36) {
+    return { data: null, error: "ID de atendimento inválido." };
+  }
+
   try {
     const data = await prisma.atendimento.findUnique({
       where: { id },

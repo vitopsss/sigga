@@ -6,6 +6,9 @@ import { Plus, Search, User, Building2 } from "lucide-react";
 import { Badge, Button, Card, Empty, EmptyIcon, EmptyTitle, EmptyDescription, EmptyActions, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui";
 import { DeleteButton } from "@/app/_components/delete-button";
 import { DatabaseWarning } from "@/components/system/database-warning";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { Header } from "@/components/dashboard/header";
+import { MetricCard, MetricGrid } from "@/components/dashboard/metric-cards";
 
 type SearchParams = Promise<{ busca?: string }>;
 type ColaboradorListItem = Prisma.ColaboradorGetPayload<{
@@ -56,30 +59,47 @@ export default async function RHPage({ searchParams }: { searchParams: SearchPar
   const totalAtivos = colaboradores.filter((c) => c.status?.toLowerCase() === "ativo").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-teal-50/30">
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-10">
-        <div className="mb-8">
-          <div className="flex flex-col gap-2">
-            <Badge variant="default" className="w-fit">Recursos Humanos</Badge>
-            <h1 className="text-4xl font-bold tracking-tight text-zinc-950">Equipe técnica</h1>
-            <p className="text-zinc-500">Gestão de empregados, bolsistas e prestadores vinculados aos projetos.</p>
-          </div>
-        </div>
+    <div className="flex min-h-screen bg-zinc-50">
+      <Sidebar />
 
-        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <Card className="p-5">
-            <p className="text-sm text-zinc-500">Colaboradores</p>
-            <p className="mt-1 text-3xl font-bold text-zinc-950">{colaboradores.length}</p>
-          </Card>
-          <Card className="p-5">
-            <p className="text-sm text-zinc-500">Ativos</p>
-            <p className="mt-1 text-3xl font-bold text-emerald-600">{totalAtivos}</p>
-          </Card>
-          <Card className="p-5">
-            <p className="text-sm text-zinc-500">Folha base</p>
-            <p className="mt-1 text-2xl font-bold text-zinc-950">{currencyFormatter.format(totalSalarios)}</p>
-          </Card>
-        </div>
+      <main className="flex-1 ml-64">
+        <Header
+          title="Recursos Humanos"
+          description="Gestão de equipe técnica e colaboradores"
+          actions={
+            <Link href="/rh/novo">
+              <Button variant="primary">
+                <Plus className="h-4 w-4" /> Novo
+              </Button>
+            </Link>
+          }
+        />
+
+        <div className="p-6 lg:p-8 space-y-6">
+          <MetricGrid>
+            <MetricCard
+              title="Colaboradores"
+              value={colaboradores.length}
+              subtitle="registrados"
+              icon={User}
+              iconBg="bg-teal-100"
+              iconColor="text-teal-600"
+            />
+            <MetricCard
+              title="Ativos"
+              value={totalAtivos}
+              icon={User}
+              iconBg="bg-emerald-100"
+              iconColor="text-emerald-600"
+            />
+            <MetricCard
+              title="Folha base"
+              value={currencyFormatter.format(totalSalarios)}
+              icon={Building2}
+              iconBg="bg-sky-100"
+              iconColor="text-sky-600"
+            />
+          </MetricGrid>
 
         <Card>
           {databaseUnavailable ? (
@@ -184,7 +204,8 @@ export default async function RHPage({ searchParams }: { searchParams: SearchPar
             <p className="text-sm text-zinc-500">{colaboradores.length} colaboradores na listagem atual.</p>
           </div>
         </Card>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
