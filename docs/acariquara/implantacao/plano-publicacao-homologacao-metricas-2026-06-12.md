@@ -29,6 +29,8 @@ Pendências para homologação:
 
 - enviar os commits locais para o repositório remoto;
 - publicar o app em um provedor web;
+- tratar ambiente gratuito apenas como teste interno, quando aplicável;
+- para acesso externo em projeto contratado, preferir ambiente pago ou formalmente adequado ao uso comercial;
 - configurar variáveis de produção/homologação:
   - `DATABASE_URL`;
   - `DIRECT_URL`;
