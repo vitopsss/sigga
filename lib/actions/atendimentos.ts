@@ -15,7 +15,7 @@ export async function listarTecnicos() {
 
 export async function listarAtendimentos(beneficiariaId?: string) {
   try {
-    const data = await AterSociobioService.listAtendimentos(beneficiariaId);
+    const data = await AterSociobioService.listAtendimentos({ beneficiariaId });
     return { data, error: null };
   } catch (error) {
     console.error(error);

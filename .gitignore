@@ -44,6 +44,8 @@ next-env.d.ts
 .env
 .opencode/
 opencode.jsonc
+.tmp-chrome-headless/
+run_logs/
 docs/HANDOFF*.md
 docs/PROMPT*.md
 docs/CHECKLIST_PREDEPLOY_*.md
@@ -57,8 +59,11 @@ docs/MIGRATION_*.md
 docs/RESULTADO_*.md
 docs/SCHEMA_*.md
 docs/layout-banco-*.svg
-scripts/
 Cadastro(1).xlsx
 RELATAT 2026(1).xlsx
 SIGGA FIN V4 - CÓPIA 11-03 (2).xlsx
 TEC 2026.xlsx
+
+# arquivos grandes de referencia local
+/referencias/sigga-legado/*
+!/referencias/sigga-legado/README.md

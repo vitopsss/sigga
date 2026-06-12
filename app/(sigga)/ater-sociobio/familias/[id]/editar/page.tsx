@@ -1,23 +1,44 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { PaperBooleanOptions } from "@/components/ater/paper-boolean-field";
+import { IntegrantesForm } from "@/components/ater/integrantes-form";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
-import { atualizarFamilia } from "@/lib/actions/familias";
 import { Header } from "@/components/dashboard/header";
+import { atualizarFamilia } from "@/lib/actions/familias";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
+import { ATER_SOCIOBIO_MUNICIPIOS } from "@/lib/constants/ater-sociobio";
 import {
-  ATER_SOCIOBIO_ATIVIDADES_PRODUTIVAS,
-  ATER_SOCIOBIO_GRUPOS_INTERESSE,
-  ATER_SOCIOBIO_MUNICIPIOS,
-  ATER_SOCIOBIO_TERRITORY_NAME,
-} from "@/lib/constants/ater-sociobio";
-import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
+  AterSociobioService,
+  type FamiliaWithCadastro,
+  type OrganizacaoColetivaListItem,
+} from "@/lib/services/ater-sociobio.service";
 
 const inputClassName =
-  "mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100";
+  "mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15";
 
 const labelClassName = "block";
 
 export const dynamic = "force-dynamic";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+type AtividadeRow = {
+  atividade?: unknown;
+  producaoAnual?: unknown;
+  unidade?: unknown;
+  atividadePrincipal?: unknown;
+};
+
+function getAtividades(value: unknown): AtividadeRow[] {
+  return Array.isArray(value) ? (value as AtividadeRow[]) : [];
+}
+
+function asText(value: unknown) {
+  return typeof value === "string" || typeof value === "number" ? String(value) : "";
+}
 
 export default async function EditarFamiliaPage({
   params,
@@ -25,15 +46,19 @@ export default async function EditarFamiliaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  
-  let familia = null;
+
+  let familia: FamiliaWithCadastro | null = null;
+  let organizacoes: OrganizacaoColetivaListItem[] = [];
   let error: string | null = null;
 
   try {
-    familia = await AterSociobioService.getFamiliaById(id);
-  } catch (e: any) {
+    [familia, organizacoes] = await Promise.all([
+      AterSociobioService.getFamiliaById(id),
+      AterSociobioService.listOrganizacoesColetivas(),
+    ]);
+  } catch (e: unknown) {
     console.error(e);
-    error = e.message;
+    error = getErrorMessage(e);
   }
 
   if (error === ATER_SETUP_ERROR) {
@@ -53,9 +78,11 @@ export default async function EditarFamiliaPage({
     notFound();
   }
 
+  const atividades = getAtividades(familia.envioSGAPorAtividade);
+  const atividadeSlots = Array.from({ length: Math.max(9, atividades.length + 1) }, (_, index) => index);
+
   async function submit(formData: FormData) {
     "use server";
-
     const result = await atualizarFamilia(id, formData);
     if (result.data) {
       redirect(`/ater-sociobio/familias/${id}`);
@@ -65,169 +92,158 @@ export default async function EditarFamiliaPage({
   return (
     <div className="min-h-screen bg-zinc-50/50">
       <Header
-        title="Editar família"
-        description={`Atualize os dados de identificação, localização e acompanhamento da família no lote ${ATER_SOCIOBIO_TERRITORY_NAME}`}
+        title="Editar UFPA"
+        description={`Atualizando dados de ${familia.nomeFamilia}`}
+        actions={
+          <Link href={`/ater-sociobio/familias/${id}`} className="text-sm font-bold text-zinc-500 hover:text-zinc-700">
+            Voltar para detalhes
+          </Link>
+        }
       />
 
       <div className="p-6 lg:p-8">
-        <div className="mx-auto max-w-5xl">
-          <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10">
-            <form action={submit} className="space-y-8">
-            <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-slate-900">Identificação da família</h2>
-                <p className="mt-1 text-sm text-slate-600">Nome e dados de identificação da unidade familiar.</p>
+        <div className="mx-auto max-w-6xl">
+          <section className="rounded-[2.5rem] border border-zinc-200 bg-white p-6 shadow-sm sm:p-10 lg:p-12">
+            <form action={submit} className="space-y-12">
+              <Section title="Dados da UFPA" description="Informações cadastrais e de localização.">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <label className={labelClassName + " lg:col-span-2"}>
+                    <span className="text-sm font-medium text-zinc-700">Denominação da UFPA *</span>
+                    <input name="nomeFamilia" type="text" required defaultValue={familia.nomeFamilia} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">DAP/CAF</span>
+                    <input name="dapCaf" type="text" defaultValue={familia.dapCaf ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Órgão Emissor</span>
+                    <input name="dapCafOrgaoEmissor" type="text" defaultValue={familia.dapCafOrgaoEmissor ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Validade</span>
+                    <input name="dapCafValidade" type="date" defaultValue={familia.dapCafValidade ? new Date(familia.dapCafValidade).toISOString().split('T')[0] : ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Área total (ha)</span>
+                    <input name="areaEstabelecimento" type="number" step="0.01" defaultValue={familia.areaEstabelecimento?.toString() ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Área imóvel principal (ha)</span>
+                    <input name="areaImovelPrincipal" type="number" step="0.01" defaultValue={familia.areaImovelPrincipal?.toString() ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Município</span>
+                    <select name="municipio" defaultValue={familia.municipio ?? ""} className={inputClassName}>
+                      <option value="">Selecione...</option>
+                      {ATER_SOCIOBIO_MUNICIPIOS.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className={labelClassName + " lg:col-span-2"}>
+                    <span className="text-sm font-medium text-zinc-700">Endereço/Acesso</span>
+                    <input name="enderecoUfpa" type="text" defaultValue={familia.enderecoUfpa ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Comunidade</span>
+                    <input name="comunidade" type="text" defaultValue={familia.comunidade ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Organização Coletiva</span>
+                    <select name="organizacaoColetivaId" defaultValue={familia.organizacaoColetivaId ?? ""} className={inputClassName}>
+                      <option value="">Nenhuma / Sem vínculo</option>
+                      {organizacoes.map((org) => (
+                        <option key={org.id} value={org.id}>{org.denominacao}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Código SGA</span>
+                    <input name="codigoSGA" type="text" defaultValue={familia.codigoSGA ?? ""} className={inputClassName} />
+                  </label>
+                </div>
+              </Section>
+
+              <IntegrantesForm initialData={familia.integrantes.map(i => ({
+                nome: i.nome,
+                cpf: i.cpf,
+                nisCadUnico: i.nisCadUnico,
+                apelido: i.apelido,
+                sexo: i.sexo,
+                orientacaoSexual: i.orientacaoSexual,
+                identidadeGenero: i.identidadeGenero,
+                dataNascimento: i.dataNascimento,
+                escolaridade: i.escolaridade,
+                nomeMae: i.nomeMae,
+                nomePai: i.nomePai,
+                classificacao: i.classificacao,
+                email: i.email,
+                telefones: i.telefones,
+                responsavelUfpa: i.responsavelUfpa,
+                parentesco: i.parentesco
+              }))} />
+
+              <Section title="Atividade, produção anual e unidade" description="Referência produtiva da UFPA.">
+                <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+                  <div className="grid grid-cols-[64px_1fr_160px_160px] bg-zinc-50 text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    <div className="px-4 py-3">Nº</div>
+                    <div className="px-4 py-3">Atividade</div>
+                    <div className="px-4 py-3 text-center">Produção</div>
+                    <div className="px-4 py-3 text-center">Principal</div>
+                  </div>
+                  {atividadeSlots.map((index) => {
+                    const atividade = atividades[index];
+                    return (
+                      <div key={index} className="grid grid-cols-[64px_1fr_160px_160px] items-center border-t border-zinc-100">
+                        <div className="px-4 py-3 text-sm font-medium text-zinc-400">{index + 1}.</div>
+                        <input name={`atividade_${index}_atividade`} type="text" defaultValue={asText(atividade?.atividade)} className="h-full border-r border-zinc-50 px-4 py-3 text-sm outline-none focus:bg-emerald-50/30" placeholder="Descrição..." />
+                        <input name={`atividade_${index}_producaoAnual`} type="text" defaultValue={asText(atividade?.producaoAnual)} className="h-full border-r border-zinc-50 px-4 py-3 text-center text-sm outline-none focus:bg-emerald-50/30" placeholder="Qtd + Unid" />
+                        <div className="flex justify-center px-4 py-3">
+                          <PaperBooleanOptions name={`atividade_${index}_atividadePrincipal`} defaultValue={atividade?.atividadePrincipal === true ? true : atividade?.atividadePrincipal === false ? false : null} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+
+              <div className="flex flex-col gap-4 border-t border-zinc-100 pt-10 sm:flex-row sm:items-center sm:justify-between">
+                <Link href={`/ater-sociobio/familias/${id}`} className="text-sm font-bold text-zinc-400 hover:text-zinc-600">
+                  Cancelar alterações
+                </Link>
+                <button
+                  type="submit"
+                  className="inline-flex h-14 items-center justify-center rounded-2xl bg-emerald-600 px-10 text-base font-bold text-white shadow-xl shadow-emerald-600/20 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                >
+                  Salvar Alterações
+                </button>
               </div>
-
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <label className={labelClassName + " md:col-span-2"}>
-                  <span className="text-sm font-medium text-slate-700">Nome da família *</span>
-                  <input name="nomeFamilia" type="text" required defaultValue={familia.nomeFamilia} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Nome do responsável</span>
-                  <input name="nomeResponsavel" type="text" defaultValue={familia.nomeResponsavel ?? ""} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Telefone / WhatsApp</span>
-                  <input name="telefone" type="text" defaultValue={familia.telefone ?? ""} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Quantidade de membros</span>
-                  <input name="quantidadeMembros" type="number" min="1" defaultValue={familia.quantidadeMembros ?? ""} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">NIS</span>
-                  <input name="nis" type="text" defaultValue={familia.nis ?? ""} className={inputClassName} />
-                </label>
-              </div>
-            </section>
-
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-slate-900">Localização e território</h2>
-                <p className="mt-1 text-sm text-slate-600">Dados geográficos e de cobertura territorial do lote.</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Município</span>
-                  <select name="municipio" defaultValue={familia.municipio ?? ""} className={inputClassName}>
-                    <option value="">Selecione o município da FLONA</option>
-                    {ATER_SOCIOBIO_MUNICIPIOS.map((municipio) => (
-                      <option key={municipio} value={municipio}>
-                        {municipio}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Comunidade</span>
-                  <input name="comunidade" type="text" defaultValue={familia.comunidade ?? ""} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">UFPA</span>
-                  <input name="ufpa" type="text" defaultValue={familia.ufpa ?? ""} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Grupo de interesse</span>
-                  <input name="grupoInteresse" type="text" list="grupo-interesse-options" defaultValue={familia.grupoInteresse ?? ""} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Código SGA</span>
-                  <input name="codigoSGA" type="text" defaultValue={familia.codigoSGA ?? ""} className={inputClassName} />
-                </label>
-              </div>
-            </section>
-
-            <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-slate-900">Situação e projeto</h2>
-                <p className="mt-1 text-sm text-slate-600">Dados operacionais do acompanhamento.</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Status do cadastro</span>
-                  <select name="statusCadastro" defaultValue={familia.statusCadastro ?? ""} className={inputClassName}>
-                    <option value="">Selecione</option>
-                    <option value="ATIVO">Ativo</option>
-                    <option value="INATIVO">Inativo</option>
-                    <option value="RESERVA">Reserva</option>
-                  </select>
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Tipo de atendimento</span>
-                  <select name="tipoAtendimento" defaultValue={familia.tipoAtendimento ?? ""} className={inputClassName}>
-                    <option value="">Selecione</option>
-                    <option value="INDIVIDUAL">Individual</option>
-                    <option value="COLETIVO">Coletivo</option>
-                  </select>
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Atividade produtiva</span>
-                  <select name="atividadeProdutiva" defaultValue={familia.atividadeProdutiva ?? ""} className={inputClassName}>
-                    <option value="">Selecione</option>
-                    {ATER_SOCIOBIO_ATIVIDADES_PRODUTIVAS.map((atividade) => (
-                      <option key={atividade} value={atividade}>
-                        {atividade}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Situação do fomento</span>
-                  <select name="situacaoFomento" defaultValue={familia.situacaoFomento ?? ""} className={inputClassName}>
-                    <option value="">Selecione</option>
-                    <option value="Aprovado">Aprovado</option>
-                    <option value="Não aprovado">Não aprovado</option>
-                    <option value="Em análise">Em análise</option>
-                  </select>
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Valor projeto ATER</span>
-                  <input name="valorProjetoATER" type="number" step="0.01" defaultValue={familia.valorProjetoATER?.toString() ?? ""} className={inputClassName} />
-                </label>
-
-                <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Valor fomento</span>
-                  <input name="valorFomento" type="number" step="0.01" defaultValue={familia.valorFomento?.toString() ?? ""} className={inputClassName} />
-                </label>
-              </div>
-            </section>
-
-            <div className="flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <p className="max-w-2xl text-sm leading-6 text-slate-500">
-                Depois de salvar, os dados atualizados aparecem no perfil da família e nas listagens do lote {ATER_SOCIOBIO_TERRITORY_NAME}.
-              </p>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
-              >
-                Salvar alterações
-              </button>
-            </div>
-          </form>
-          <datalist id="grupo-interesse-options">
-            {ATER_SOCIOBIO_GRUPOS_INTERESSE.map((grupo) => (
-              <option key={grupo} value={grupo} />
-            ))}
-          </datalist>
+            </form>
           </section>
         </div>
       </div>
     </div>
+  );
+}
+
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-zinc-900">{title}</h2>
+        {description && <p className="mt-2 text-sm text-zinc-500">{description}</p>}
+      </div>
+      {children}
+    </section>
   );
 }

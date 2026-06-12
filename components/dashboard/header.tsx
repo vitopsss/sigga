@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState } from "react";
 import { Search } from "lucide-react";
 
@@ -17,6 +18,7 @@ interface HeaderProps {
 export function Header({ title, description, actions, showBack }: HeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
+  const siggaterScope = pathname.startsWith("/ater-sociobio");
 
   // Se showBack não for passado, mostramos se não for a home
   const shouldShowBack = showBack ?? pathname !== "/";
@@ -27,12 +29,16 @@ export function Header({ title, description, actions, showBack }: HeaderProps) {
         {/* Left - Title & Back */}
         <div className="flex items-center gap-4">
           {shouldShowBack && (
-            <AppBackButton className="mr-2 hidden lg:flex" />
+            <Suspense fallback={null}>
+              <AppBackButton className="mr-2 hidden lg:flex" />
+            </Suspense>
           )}
           <div>
             <div className="flex items-center gap-3">
               {shouldShowBack && (
-                <AppBackButton className="lg:hidden" />
+                <Suspense fallback={null}>
+                  <AppBackButton className="lg:hidden" />
+                </Suspense>
               )}
               <h1 className="text-xl font-semibold text-zinc-950 lg:text-2xl">{title}</h1>
             </div>
@@ -47,30 +53,34 @@ export function Header({ title, description, actions, showBack }: HeaderProps) {
             {actions}
           </div>
 
-          {/* Search */}
-          <div className="relative">
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 transition-colors hover:bg-zinc-50 lg:h-11 lg:w-11"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-            {searchOpen && (
-              <div className="absolute right-0 top-12 w-80 rounded-2xl border border-zinc-200 bg-white p-4 shadow-xl">
-                <input
-                  type="search"
-                  placeholder="Buscar no sistema..."
-                  className="h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-4 text-sm placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-                  autoFocus
-                />
+          {!siggaterScope && (
+            <>
+              {/* Search */}
+              <div className="relative">
+                <button
+                  onClick={() => setSearchOpen(!searchOpen)}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 transition-colors hover:bg-zinc-50 lg:h-11 lg:w-11"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+                {searchOpen && (
+                  <div className="absolute right-0 top-12 w-80 rounded-2xl border border-zinc-200 bg-white p-4 shadow-xl">
+                    <input
+                      type="search"
+                      placeholder="Buscar no sistema..."
+                      className="h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-4 text-sm placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                      autoFocus
+                    />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <NotificationCenter />
+              <NotificationCenter />
+            </>
+          )}
         </div>
       </div>
-      
+
       {/* Mobile Actions */}
       {actions && (
         <div className="mt-2 flex sm:hidden">

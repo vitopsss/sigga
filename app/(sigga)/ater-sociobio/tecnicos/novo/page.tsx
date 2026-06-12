@@ -24,7 +24,7 @@ export default function NovoTecnicoPage() {
         <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_24px_80px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:p-8 lg:p-10">
           <div className="border-b border-slate-200 pb-8">
             <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-              ATER Sociobio
+              SIGGATER Web
             </span>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
               Novo técnico
@@ -53,7 +53,12 @@ export default function NovoTecnicoPage() {
                 </label>
 
                 <label className={labelClassName}>
-                  <span className="text-sm font-medium text-slate-700">Registro do conselho</span>
+                  <span className="text-sm font-medium text-slate-700">Conselho (Ex: CREA, CRF)</span>
+                  <input name="conselho" type="text" className={inputClassName} />
+                </label>
+
+                <label className={labelClassName}>
+                  <span className="text-sm font-medium text-slate-700">Número do Registro</span>
                   <input name="registroConselho" type="text" className={inputClassName} />
                 </label>
 

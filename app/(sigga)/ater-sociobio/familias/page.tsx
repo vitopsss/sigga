@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Eye, Hash, MapPin, PencilLine, Plus, Search, Users } from "lucide-react";
+import { BarChart3, ChevronLeft, ChevronRight, Eye, MapPin, PencilLine, Plus, Search, Users } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import {
@@ -21,9 +21,9 @@ import {
 import { isAterMissingTableError } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { Header } from "@/components/dashboard/header";
-import { AterSociobioService, FamiliaWithCadastro } from "@/lib/services/ater-sociobio.service";
+import { AterSociobioService, FamiliaListItem } from "@/lib/services/ater-sociobio.service";
 
-type SearchParams = Promise<{ busca?: string; municipio?: string; sga?: string; pagina?: string }>;
+type SearchParams = Promise<{ busca?: string; municipio?: string; sga?: string; indicador?: string; pagina?: string }>;
 
 const PAGE_SIZE = 10;
 
@@ -38,6 +38,7 @@ function buildHref(
     busca?: string;
     municipio?: string;
     sga?: string;
+    indicador?: string;
     pagina?: number;
   },
 ) {
@@ -46,6 +47,7 @@ function buildHref(
   if (params.busca) query.set("busca", params.busca);
   if (params.municipio) query.set("municipio", params.municipio);
   if (params.sga) query.set("sga", params.sga);
+  if (params.indicador) query.set("indicador", params.indicador);
   if (params.pagina && params.pagina > 1) query.set("pagina", String(params.pagina));
 
   const queryString = query.toString();
@@ -59,15 +61,32 @@ export default async function FamiliasPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { busca = "", municipio = "", sga = "", pagina = "1" } = await searchParams;
+  const { busca = "", municipio = "", sga = "", indicador = "", pagina = "1" } = await searchParams;
   const buscaNorm = busca.trim();
   const municipioNorm = municipio.trim();
   const sgaNorm = sga.trim().toLowerCase();
+  const indicadorNorm = indicador.trim().toLowerCase();
   const requestedPage = parsePage(pagina);
 
-  let familias: (FamiliaWithCadastro & { _count: { atendimentos: number } })[] = [];
+  let familias: FamiliaListItem[] = [];
   let totalFamilias = 0;
-  let metrics = { totalMunicipios: 0, comNis: 0, comSGA: 0, municipios: [] as string[] };
+  let metrics = {
+    totalMunicipios: 0,
+    comNis: 0,
+    comSGA: 0,
+    comDapCaf: 0,
+    semInternet: 0,
+    semAguaTratada: 0,
+    semEsgotoTratado: 0,
+    insegurancaAlimentar: 0,
+    semCadUnico: 0,
+    municipios: [] as string[],
+    porMunicipio: [] as { name: string; value: number }[],
+    diagnosticoStatus: [] as { name: string; value: number }[],
+    aguaTratadaStatus: [] as { name: string; value: number }[],
+    cadUnicoStatus: [] as { name: string; value: number }[],
+    insegurancaAlimentarStatus: [] as { name: string; value: number }[],
+  };
   let setupMissing = false;
 
   try {
@@ -77,6 +96,7 @@ export default async function FamiliasPage({
         busca: buscaNorm,
         municipio: municipioNorm,
         sgaIncompleto: sgaNorm === "incompleto",
+        indicador: indicadorNorm,
       },
       skip,
       take: PAGE_SIZE,
@@ -97,62 +117,69 @@ export default async function FamiliasPage({
   const currentPage = Math.min(requestedPage, totalPages);
   const startItem = totalFamilias === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const endItem = totalFamilias === 0 ? 0 : Math.min(currentPage * PAGE_SIZE, totalFamilias);
-  const hasFilters = Boolean(buscaNorm || municipioNorm || sgaNorm);
-  const baseQuery = { busca: buscaNorm, municipio: municipioNorm, sga: sgaNorm };
+  const hasFilters = Boolean(buscaNorm || municipioNorm || sgaNorm || indicadorNorm);
+  const baseQuery = { busca: buscaNorm, municipio: municipioNorm, sga: sgaNorm, indicador: indicadorNorm };
+  const indicatorOptions = [
+    ["", "Todos os indicadores"],
+    ["com-diagnostico", "Com diagnóstico"],
+    ["sem-diagnostico", "Sem diagnóstico"],
+    ["com-dap-caf", "Com DAP/CAF"],
+    ["sem-dap-caf", "Sem DAP/CAF"],
+    ["com-sga", "Com SGA"],
+    ["sem-sga", "Sem SGA"],
+    ["com-internet", "Com internet"],
+    ["sem-internet", "Sem internet"],
+    ["com-agua-tratada", "Com água tratada"],
+    ["sem-agua-tratada", "Sem água tratada"],
+    ["com-esgoto-tratado", "Com esgoto tratado"],
+    ["sem-esgoto-tratado", "Sem esgoto tratado"],
+    ["inseguranca-alimentar", "Com insegurança alimentar"],
+    ["com-cadunico", "Com CadÚnico"],
+    ["sem-cadunico", "Sem CadÚnico"],
+  ] as const;
 
   return (
     <div className="min-h-screen bg-zinc-50/50">
       <Header
-        title="Famílias"
-        description={`Famílias acompanhadas no lote ${ATER_SOCIOBIO_TERRITORY_NAME}`}
+        title="UFPAs"
+        description={`Unidades familiares acompanhadas nas atividades de ${ATER_SOCIOBIO_TERRITORY_NAME}`}
+        actions={
+          <Link href="/ater-sociobio/dashboard">
+            <Button variant="secondary">
+              <BarChart3 className="h-4 w-4" />
+              Painel
+            </Button>
+          </Link>
+        }
       />
 
       <div className="p-6 lg:p-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-6">
           {setupMissing && <AterSetupWarning className="mb-8" />}
 
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Card className="p-5">
-              <p className="text-sm text-zinc-500">Total filtrado</p>
-              <p className="mt-1 text-3xl font-bold text-zinc-950">{totalFamilias}</p>
-            </Card>
-            <Card className="p-5">
-              <p className="text-sm text-zinc-500">Municípios</p>
-              <p className="mt-1 text-3xl font-bold text-zinc-950">{metrics.totalMunicipios}</p>
-            </Card>
-            <Card className="p-5">
-              <p className="text-sm text-zinc-500">Com NIS</p>
-              <p className="mt-1 text-3xl font-bold text-emerald-600">{metrics.comNis}</p>
-            </Card>
-            <Card className="p-5">
-              <p className="text-sm text-zinc-500">Com SGA</p>
-              <p className="mt-1 text-3xl font-bold text-emerald-600">{metrics.comSGA}</p>
-            </Card>
-          </div>
-
           <Card>
             <div className="flex flex-col gap-4 border-b border-zinc-200/60 p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-zinc-950">Lista de famílias</h2>
-                  <p className="text-sm text-zinc-500">Busque por nome, responsável, NIS, SGA ou comunidade e refine pelos municípios do lote {ATER_SOCIOBIO_TERRITORY_NAME}.</p>
+                  <h2 className="text-lg font-semibold text-zinc-950">Lista de UFPAs</h2>
+                  <p className="text-sm text-zinc-500">Busque por denominação, responsável, DAP/CAF, NIS, SGA ou comunidade e refine pelos municípios cadastrados.</p>
                 </div>
                 <Link href="/ater-sociobio/familias/nova">
                   <Button variant="primary">
                     <Plus className="h-4 w-4" />
-                    Nova família
+                    Nova UFPA
                   </Button>
                 </Link>
               </div>
 
-              <form action="/ater-sociobio/familias" method="GET" className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_220px_220px_auto_auto]">
+              <form action="/ater-sociobio/familias" method="GET" className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_220px_220px_260px_auto_auto]">
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                   <input
                     type="search"
                     name="busca"
                     defaultValue={buscaNorm}
-                    placeholder="Buscar família..."
+                    placeholder="Buscar UFPA..."
                     className="h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 pl-11 pr-4 text-sm placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
                   />
                 </div>
@@ -162,7 +189,7 @@ export default async function FamiliasPage({
                   defaultValue={municipioNorm}
                   className="h-11 rounded-xl border border-zinc-300 bg-zinc-50 px-4 text-sm text-zinc-700 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
                 >
-                  <option value="">Todos os municípios da FLONA</option>
+                  <option value="">Todos os municípios</option>
                   {metrics.municipios.map((item) => (
                     <option key={item} value={item}>
                       {item}
@@ -180,7 +207,20 @@ export default async function FamiliasPage({
                   <option value="incompleto">SGA incompleto</option>
                 </select>
 
-                <Button type="submit" variant="ghost">
+                <select
+                  name="indicador"
+                  defaultValue={indicadorNorm}
+                  className="h-11 rounded-xl border border-zinc-300 bg-zinc-50 px-4 text-sm text-zinc-700 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
+                >
+                  {indicatorOptions.map(([value, label]) => (
+                    <option key={value || "todos"} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+
+                <Button type="submit" variant="secondary">
+                  <Search className="h-4 w-4" />
                   Filtrar
                 </Button>
 
@@ -201,11 +241,11 @@ export default async function FamiliasPage({
                 <EmptyIcon>
                   <Users className="h-10 w-10" />
                 </EmptyIcon>
-                <EmptyTitle>Nenhuma família encontrada</EmptyTitle>
+                <EmptyTitle>Nenhuma UFPA encontrada</EmptyTitle>
                 <EmptyDescription>
                   {hasFilters
-                    ? "Ajuste os filtros ou cadastre uma nova família."
-                    : "Cadastre a primeira família para iniciar o acompanhamento territorial."}
+                    ? "Ajuste os filtros ou cadastre uma nova UFPA."
+                    : "Cadastre a primeira UFPA para iniciar o acompanhamento territorial."}
                 </EmptyDescription>
                 <EmptyActions>
                   {hasFilters ? (
@@ -214,7 +254,7 @@ export default async function FamiliasPage({
                     </Link>
                   ) : null}
                   <Link href="/ater-sociobio/familias/nova">
-                    <Button variant="primary">Nova família</Button>
+                    <Button variant="primary">Nova UFPA</Button>
                   </Link>
                 </EmptyActions>
               </Empty>
@@ -222,12 +262,13 @@ export default async function FamiliasPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nome da Família</TableHead>
+                    <TableHead>Denominação da UFPA</TableHead>
                     <TableHead>Responsável</TableHead>
-                    <TableHead>NIS</TableHead>
+                    <TableHead>DAP/CAF</TableHead>
                     <TableHead>Código SGA</TableHead>
                     <TableHead>Município</TableHead>
-                    <TableHead>Atendimentos</TableHead>
+                    <TableHead>Integrantes</TableHead>
+                    <TableHead>Atendimentos válidos</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -238,7 +279,7 @@ export default async function FamiliasPage({
                         <div>
                           <p className="font-medium text-zinc-950">{f.nomeFamilia}</p>
                           <p className="text-xs text-zinc-500">
-                            {f.quantidadeMembros ? `${f.quantidadeMembros} membros` : ""}
+                            {f.organizacaoColetiva?.denominacao || f.grupoInteresse || f.comunidade || ""}
                           </p>
                         </div>
                       </TableCell>
@@ -246,10 +287,13 @@ export default async function FamiliasPage({
                         <span className="text-sm text-zinc-600">{f.nomeResponsavel ?? "-"}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center gap-1 font-mono text-sm">
-                          <Hash className="h-3 w-3 text-zinc-400" />
-                          {f.nis ?? <span className="text-zinc-400">-</span>}
-                        </span>
+                        {f.dapCaf ? (
+                          <span className="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-bold text-zinc-900">
+                            {f.dapCaf}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {f.codigoSGA ? <Badge variant="info">{f.codigoSGA}</Badge> : <span className="text-sm text-zinc-400">-</span>}
@@ -259,6 +303,9 @@ export default async function FamiliasPage({
                           <MapPin className="h-3.5 w-3.5 text-zinc-400" />
                           {f.municipio ?? "Não informado"}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{f._count.integrantes || f.quantidadeMembros || 0}</Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{f._count.atendimentos}</Badge>
@@ -284,8 +331,8 @@ export default async function FamiliasPage({
             <div className="flex flex-col gap-4 border-t border-zinc-200/60 px-6 py-4 md:flex-row md:items-center md:justify-between">
               <p className="text-sm text-zinc-500">
                 {totalFamilias > 0
-                  ? `Mostrando ${startItem}-${endItem} de ${totalFamilias} famílias.`
-                  : "0 famílias na listagem atual."}
+                  ? `Mostrando ${startItem}-${endItem} de ${totalFamilias} UFPAs.`
+                  : "0 UFPAs na listagem atual."}
               </p>
 
               <div className="flex items-center gap-2">

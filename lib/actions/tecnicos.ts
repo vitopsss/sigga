@@ -13,6 +13,7 @@ function getText(value: FormDataEntryValue | null) {
 export async function criarTecnico(formData: FormData) {
   const nome = getText(formData.get("nome"));
   const cpf = getText(formData.get("cpf"));
+  const conselho = getText(formData.get("conselho")) || null;
   const registroConselho = getText(formData.get("registroConselho")) || null;
   const uf = getText(formData.get("uf")) || null;
   const ativo = formData.get("ativo") === "true";
@@ -30,6 +31,7 @@ export async function criarTecnico(formData: FormData) {
       data: {
         nome,
         cpf,
+        conselho,
         registroConselho,
         uf,
         ativo,
@@ -70,6 +72,7 @@ export async function buscarTecnico(id: string) {
 export async function atualizarTecnico(id: string, formData: FormData) {
   const nome = getText(formData.get("nome"));
   const cpf = getText(formData.get("cpf"));
+  const conselho = getText(formData.get("conselho")) || null;
   const registroConselho = getText(formData.get("registroConselho")) || null;
   const uf = getText(formData.get("uf")) || null;
   const ativo = formData.get("ativo") === "true";
@@ -88,6 +91,7 @@ export async function atualizarTecnico(id: string, formData: FormData) {
       data: {
         nome,
         cpf,
+        conselho,
         registroConselho,
         uf,
         ativo,

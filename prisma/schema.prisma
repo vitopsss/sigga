@@ -18,16 +18,16 @@ datasource db {
 // ============================================================================
 enum Role {
   ADMINISTRADOR_DIRETOR // Acesso a parametrização e dados sensíveis
-  GERENTE               // Visão tática ampla sobre todos os módulos
-  COORDENADOR_PROJETO   // Visão operacional, relatórios e filtros específicos
-  OPERADOR              // Trabalho de campo, inserção de dados, antigo '"'"'extensionista'"'"'
+  GERENTE // Visão tática ampla sobre todos os módulos
+  COORDENADOR_PROJETO // Visão operacional, relatórios e filtros específicos
+  OPERADOR // Trabalho de campo, inserção de dados, antigo '"'"'extensionista'"'"'
 }
 
 enum TipoCadastro {
-  PF        // Pessoa Física
-  PJ        // Pessoa Jurídica
-  PUBLICO   // Público
-  PRIVADO   // Privado
+  PF // Pessoa Física
+  PJ // Pessoa Jurídica
+  PUBLICO // Público
+  PRIVADO // Privado
 }
 
 // ============================================================================
@@ -35,7 +35,7 @@ enum TipoCadastro {
 // ============================================================================
 
 model Pessoa {
-  id               String       @id @default(dbgenerated("gen_random_uuid()"))
+  id             String   @id @default(dbgenerated("gen_random_uuid()"))
   tipo           String   @default("PF")
   documento      String   @unique
   nome           String
@@ -55,8 +55,8 @@ model Pessoa {
   createdAt      DateTime @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
-  @@map("pessoas")
   @@index([documento])
+  @@map("pessoas")
 }
 
 // ============================================================================
@@ -64,49 +64,49 @@ model Pessoa {
 // ============================================================================
 
 model CadastroUnico {
-  id               String   @id @default(uuid())
-  tipo             TipoCadastro
-  documento        String   @unique // CPF / CNPJ
-  nome             String // NOME / RAZÃO SOCIAL
+  id        String       @id @default(uuid())
+  tipo      TipoCadastro
+  documento String       @unique // CPF / CNPJ
+  nome      String // NOME / RAZÃO SOCIAL
 
   // Dados exigidos pelo Beto para entrada externa
   email            String?
   telefone         String?
   endereco         String?
-  documentosAnexos Boolean  @default(false) // Flag indicando se a pessoa fez upload de CNH/Contrato
-  origemCadastro   String   @default("INTERNO") // Pode ser "LINK_EXTERNO", "INTERNO"
+  documentosAnexos Boolean @default(false) // Flag indicando se a pessoa fez upload de CNH/Contrato
+  origemCadastro   String  @default("INTERNO") // Pode ser "LINK_EXTERNO", "INTERNO"
 
   // Dados Bancários
-  banco            String?
-  agencia          String?
-  conta            String?
-  pix              String?
+  banco   String?
+  agencia String?
+  conta   String?
+  pix     String?
 
-  usuario          User?
-  colaborador      Colaborador?
-  beneficiaria     Beneficiaria?
-  familia          FamiliaAter?
-  empreendimento   Empreendimento?
-  borderos         LancamentoFinanceiro[]
-  contratos        ContratoFornecedor[]
+  usuario        User?
+  colaborador    Colaborador?
+  beneficiaria   Beneficiaria?
+  familia        FamiliaAter?
+  empreendimento Empreendimento?
+  borderos       LancamentoFinanceiro[]
+  contratos      ContratoFornecedor[]
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("cadastros_unicos")
 }
 
 model User {
-  id            String    @id @default(uuid())
-  name          String?
-  email         String?   @unique
-  passwordHash  String?   // Para login seguro
-  role          Role      @default(OPERADOR) // A hierarquia exigida pelo Beto
-  status        String    @default("ATIVO")
-  perfilId      String?
+  id           String  @id @default(uuid())
+  name         String?
+  email        String? @unique
+  passwordHash String? // Para login seguro
+  role         Role    @default(OPERADOR) // A hierarquia exigida pelo Beto
+  status       String  @default("ATIVO")
+  perfilId     String?
 
-  cadastroId    String?   @unique
-  cadastro      CadastroUnico? @relation(fields: [cadastroId], references: [id])
+  cadastroId String?        @unique
+  cadastro   CadastroUnico? @relation(fields: [cadastroId], references: [id])
 
   @@map("users")
 }
@@ -116,18 +116,18 @@ model User {
 // ============================================================================
 
 model Projeto {
-  id                 String   @id @default(uuid())
-  centroCusto        String   @unique // ID C. DE CUSTO (Ex: 1084)
-  ano                Int?
-  status             String
-  portfolio          String?
-  titulo             String
-  abreviacao         String?
-  financiador        String?
-  numContrato        String?  // Nº DO CONTRATO/CONVÊNIO
-  valorTotal         Decimal  @db.Decimal(15, 2)
-  vigenciaInicial    DateTime
-  vigenciaFinal      DateTime?
+  id              String    @id @default(uuid())
+  centroCusto     String    @unique // ID C. DE CUSTO (Ex: 1084)
+  ano             Int?
+  status          String
+  portfolio       String?
+  titulo          String
+  abreviacao      String?
+  financiador     String?
+  numContrato     String? // Nº DO CONTRATO/CONVÊNIO
+  valorTotal      Decimal   @db.Decimal(15, 2)
+  vigenciaInicial DateTime
+  vigenciaFinal   DateTime?
 
   // Relações
   orcamentos         OrcamentoItem[]
@@ -141,17 +141,17 @@ model Projeto {
 }
 
 model OrcamentoItem {
-  id              String   @id @default(uuid())
-  idOrc           String   @unique // IDORC
-  planoGerencial  String?  // PLANO GERENCIAL
+  id              String  @id @default(uuid())
+  idOrc           String  @unique // IDORC
+  planoGerencial  String? // PLANO GERENCIAL
   descricao       String?
   unidade         String?
   quantidade      Int?
-  valorReferencia Decimal  @db.Decimal(15, 2)
-  valorTotal      Decimal  @db.Decimal(15, 2)
+  valorReferencia Decimal @db.Decimal(15, 2)
+  valorTotal      Decimal @db.Decimal(15, 2)
 
-  projetoId       String
-  projeto         Projeto  @relation(fields: [projetoId], references: [id])
+  projetoId String
+  projeto   Projeto @relation(fields: [projetoId], references: [id])
 
   @@map("orcamentos_itens")
 }
@@ -161,54 +161,60 @@ model OrcamentoItem {
 // ============================================================================
 
 model FaturamentoProjeto {
-  id                String    @id @default(uuid())
-  parcela           Int?
-  vencimento        DateTime?
-  valorTotal        Decimal   @db.Decimal(15, 2)
-  dataLiquidacao    DateTime?
-  numNotaFiscal     String?   // Nº DE CONTROLE NF
+  id             String    @id @default(uuid())
+  parcela        Int?
+  vencimento     DateTime?
+  valorTotal     Decimal   @db.Decimal(15, 2)
+  dataLiquidacao DateTime?
+  numNotaFiscal  String? // Nº DE CONTROLE NF
 
-  projetoId         String
-  projeto           Projeto   @relation(fields: [projetoId], references: [id])
+  projetoId String
+  projeto   Projeto @relation(fields: [projetoId], references: [id])
 
   @@map("faturamentos_projetos")
 }
 
 model Bordero {
-  id              String    @id @default(uuid())
-  idBordero       String    @unique // IDBOR (Ex: BOR100546)
-  data            DateTime? @default(now())
-  cadastrador     String?
-  tipoBordero     String?   // Pagar ou Receber
-  status          String    @default("Pendente")
+  id          String    @id @default(uuid())
+  idBordero   String    @unique // IDBOR (Ex: BOR100546)
+  data        DateTime? @default(now())
+  cadastrador String?
+  tipoBordero String? // Pagar ou Receber
+  status      String    @default("Pendente")
 
-  projetoId       String
-  projeto         Projeto   @relation(fields: [projetoId], references: [id])
-  lancamentos     LancamentoFinanceiro[]
+  projetoId   String
+  projeto     Projeto                @relation(fields: [projetoId], references: [id])
+  lancamentos LancamentoFinanceiro[]
 
   @@map("borderos")
 }
 
 model LancamentoFinanceiro {
-  id                String    @id @default(uuid())
-  nsu               String    @unique // NSU
-  fase              String?
-  etapa             String?
-  atividade         String?
-  valor             Decimal   @db.Decimal(15, 2)
-  dataVencimento    DateTime
+  id        String  @id @default(uuid())
+  nsu       String  @unique // NSU
+  fase      String?
+  etapa     String?
+  atividade String?
+
+  // Classificação Operacional (46k)
+  idPgc      String? // Identificador do Plano Gerencial de Custos (Passivo)
+  idOrc      String? // Identificador do Orçamento (Passivo)
+  observacao String? @db.Text // Campo de observação estruturada
+
+  valor          Decimal  @db.Decimal(15, 2)
+  dataVencimento DateTime
 
   // Fluxo de Caixa / Tesouraria
-  autorizado        Boolean   @default(false)
-  conciliado        Boolean   @default(false)
-  dataPagamento     DateTime?
-  formaPagamento    String?
+  autorizado     Boolean   @default(false)
+  conciliado     Boolean   @default(false)
+  dataPagamento  DateTime?
+  formaPagamento String?
 
-  borderoId         String
-  bordero           Bordero   @relation(fields: [borderoId], references: [id], onDelete: Cascade)
+  borderoId String
+  bordero   Bordero @relation(fields: [borderoId], references: [id], onDelete: Cascade)
 
-  favorecidoId      String
-  favorecido        CadastroUnico @relation(fields: [favorecidoId], references: [id])
+  favorecidoId String
+  favorecido   CadastroUnico @relation(fields: [favorecidoId], references: [id])
 
   @@map("lancamentos_financeiros")
 }
@@ -218,23 +224,23 @@ model LancamentoFinanceiro {
 // ============================================================================
 
 model Colaborador {
-  id              String   @id @default(uuid())
-  idRH            String   @unique // IDRH
-  cargo           String?
-  vinculo         String?  // Celetista, Bolsista
-  salarioBase     Decimal  @db.Decimal(15, 2)
-  status          String?
+  id          String  @id @default(uuid())
+  idRH        String  @unique // IDRH
+  cargo       String?
+  vinculo     String? // Celetista, Bolsista
+  salarioBase Decimal @db.Decimal(15, 2)
+  status      String?
 
-  cadastroId      String   @unique
-  cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
-  alocacoes       ColaboradorProjeto[]
+  cadastroId String               @unique
+  cadastro   CadastroUnico        @relation(fields: [cadastroId], references: [id])
+  alocacoes  ColaboradorProjeto[]
 
   @@map("colaboradores")
 }
 
 model ColaboradorProjeto {
   id            String      @id @default(uuid())
-  porcentagem   Decimal     @db.Decimal(5, 2) @default(100.00)
+  porcentagem   Decimal     @default(100.00) @db.Decimal(5, 2)
   colaboradorId String
   projetoId     String
   colaborador   Colaborador @relation(fields: [colaboradorId], references: [id])
@@ -257,7 +263,7 @@ model Beneficiaria {
   nis                      String?  @unique
   municipio                String?
   comunidade               String?
-  ufpa                     String?  // Unidade Familiar de Produção Agrária
+  ufpa                     String? // Unidade Familiar de Produção Agrária
   grupoInteresse           String?
   statusCadastro           String?
   situacaoProjeto          String?
@@ -277,13 +283,13 @@ model Beneficiaria {
   informacaoSGA            String?
   envioSGAPorAtividade     Json?
 
-  cadastroId      String   @unique
-  cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
+  cadastroId String        @unique
+  cadastro   CadastroUnico @relation(fields: [cadastroId], references: [id])
 
-  atendimentos        AtendimentoTecnico[]
-  atendimentosATER   Atendimento[]
-  controleSGA         ControleProcessoSGA?
-  fomento             Fomento?
+  atendimentos     AtendimentoTecnico[]
+  atendimentosATER Atendimento[]
+  controleSGA      ControleProcessoSGA?
+  fomento          Fomento?
 
   @@map("beneficiarias")
 }
@@ -293,86 +299,432 @@ model Beneficiaria {
 // ---------------------------------------------------------------------------
 
 model FamiliaAter {
-  id                 String   @id @default(uuid())
-  nomeFamilia        String
-  nomeResponsavel    String?
-  documentoResponsavel String?  // CPF do responsável pela família
-  telefone           String?
-  quantidadeMembros  Int?
-  composicaoFamiliar Json?    // [{nome, parestesco, dataNascimento}]
-  municipio          String?
-  comunidade         String?
-  ufpa               String?  // Unidade Familiar de Produção Agrária
-  grupoInteresse     String?
-  statusCadastro     String?
-  situacaoProjeto    String?
-  tipoAtendimento    String?
-  atividadeProdutiva String?
+  id                       String   @id @default(uuid())
+  nomeFamilia              String
+  nomeResponsavel          String?
+  documentoResponsavel     String? // CPF do responsável pela família
+  telefone                 String?
+  quantidadeMembros        Int?
+  composicaoFamiliar       Json? // [{nome, parestesco, dataNascimento}]
+  municipio                String?
+  comunidade               String?
+  enderecoUfpa             String?
+  complementoUfpa          String?
+  cepUfpa                  String?
+  ufpa                     String? // Unidade Familiar de Produção Agrária
+  dapCaf                   String?
+  dapCafOrgaoEmissor       String?
+  dapCafValidade           DateTime?
+  areaEstabelecimento      Decimal? @db.Decimal(12, 2)
+  areaImovelPrincipal      Decimal? @db.Decimal(12, 2)
+  classificacaoUfpa        String?
+  bioma                    String?
+  latitude                 Decimal? @db.Decimal(10, 7)
+  longitude                Decimal? @db.Decimal(10, 7)
+  grupoInteresse           String?
+  statusCadastro           String?
+  situacaoProjeto          String?
+  tipoAtendimento          String?
+  atividadeProdutiva       String?
   projetoColetivoPrincipal String?
-  valorProjetoATER   Decimal? @db.Decimal(15, 2)
-  valorInvestidoUFPA Decimal? @db.Decimal(15, 2)
-  efetividade        String?
-  houveAvanco        Boolean?
-  nis                String?
-  codigoSGA          String?
-  sgaCadastro        Boolean?
-  sgaRevisao         Boolean?
-  sgaIndicador       Boolean?
-  sgaFotos           Boolean?
-  statusSGA          String?
-  ajusteProjeto      String?
-  informacaoSGA      String?
-  envioSGAPorAtividade Json?
-  situacaoFomento    String?
-  valorFomento       Decimal? @db.Decimal(15, 2)
-  sgaStatusAnalise   String?
-  sgaParcela1        String?
-  sgaParcela2        String?
-  sgaProjetoEnviado  Boolean  @default(false)
+  programaFomento          String?
+  valorProjetoATER         Decimal? @db.Decimal(15, 2)
+  valorInvestidoUFPA       Decimal? @db.Decimal(15, 2)
+  efetividade              String?
+  houveAvanco              Boolean?
+  nis                      String?
+  codigoSGA                String?
+  sgaCadastro              Boolean?
+  sgaRevisao               Boolean?
+  sgaIndicador             Boolean?
+  sgaFotos                 Boolean?
+  statusSGA                String?
+  ajusteProjeto            String?
+  informacaoSGA            String?
+  envioSGAPorAtividade     Json?
+  situacaoFomento          String?
+  valorFomento             Decimal? @db.Decimal(15, 2)
+  sgaStatusAnalise         String?
+  sgaParcela1              String?
+  sgaParcela2              String?
+  sgaProjetoEnviado        Boolean  @default(false)
+  dataEnvioSGA             DateTime?
+  statusGestor             String?
+  motivoReprovacaoGestor   String?  @db.Text
+  dataStatusGestor         DateTime?
+  organizacaoColetivaId    String?
 
-  cadastroId String   @unique
+  cadastroId String        @unique
   cadastro   CadastroUnico @relation(fields: [cadastroId], references: [id])
 
-  atendimentos Atendimento[]
+  organizacaoColetiva OrganizacaoColetiva? @relation(fields: [organizacaoColetivaId], references: [id], onDelete: SetNull)
+  integrantes          IntegranteUfpa[]
+  diagnostico          DiagnosticoUfpa?
+  indicadores          IndicadoresUfpa?
+  atendimentos         Atendimento[]
 
+  @@index([organizacaoColetivaId])
+  @@index([municipio])
+  @@index([dapCaf])
+  @@index([statusGestor])
   @@map("familias_ater")
 }
 
+model OrganizacaoColetiva {
+  id                    String    @id @default(uuid())
+  denominacao           String
+  cnpj                  String?
+  uf                    String?
+  municipio             String?
+  dataCadastro          DateTime?
+  entidadeExecutoraNome String?
+  entidadeExecutoraCnpj String?
+  unidadeServicos       String?
+  numeroInstrumento     String?
+  agenteAterNome1       String?
+  agenteAterCpf1        String?
+  agenteAterNome2       String?
+  agenteAterCpf2        String?
+  agenteAterNome3       String?
+  agenteAterCpf3        String?
+  agenteAterNome4       String?
+  agenteAterCpf4        String?
+  numeroFamilias        Int?
+  atividades            Json?
+  grupoInteresse        String?
+  observacoes           String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  familias    FamiliaAter[]
+  indicadores IndicadoresOrganizacaoColetiva?
+
+  @@index([denominacao])
+  @@index([municipio])
+  @@index([cnpj])
+  @@map("organizacoes_coletivas")
+}
+
+model IntegranteUfpa {
+  id               String    @id @default(uuid())
+  cpf              String?
+  nisCadUnico      String?
+  nome             String
+  apelido          String?
+  sexo             String?
+  orientacaoSexual String?
+  identidadeGenero String?
+  dataNascimento   DateTime?
+  escolaridade     String?
+  nomeMae          String?
+  nomePai          String?
+  classificacao    String?
+  email            String?
+  telefones        String?
+  responsavelUfpa  Boolean   @default(false)
+  parentesco       String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  familiaId String
+  familia   FamiliaAter @relation(fields: [familiaId], references: [id], onDelete: Cascade)
+
+  @@index([familiaId])
+  @@index([cpf])
+  @@index([nisCadUnico])
+  @@map("integrantes_ufpa")
+}
+
+model DiagnosticoUfpa {
+  id                        String    @id @default(uuid())
+  entidadeExecutoraNome     String?
+  entidadeExecutoraCnpj     String?
+  unidadeServicos           String?
+  numeroInstrumento         String?
+  dataDiagnostico           DateTime?
+  agenteAterNome1           String?
+  agenteAterCpf1            String?
+  agenteAterNome2           String?
+  agenteAterCpf2            String?
+  agenteAterNome3           String?
+  agenteAterCpf3            String?
+  localUf                   String?
+  localMunicipio            String?
+  localOrganizacaoColetiva  String?
+  possuiRadio               Boolean?
+  possuiTelevisao           Boolean?
+  possuiCelular             Boolean?
+  possuiInternet            Boolean?
+  usaRedesSociais           Boolean?
+  possuiOutroMeioComunicacao Boolean?
+  outroMeioComunicacao      String?
+  aguaParaConsumo           Boolean?
+  aguaConsumoTratada        Boolean?
+  aguaParaProducao          Boolean?
+  captacaoAguaChuva         Boolean?
+  esgotoTratado             Boolean?
+  fontesProtegidas          Boolean?
+  qtdMaquinasAgricolas      Int?
+  qtdImplementosAgricolas   Int?
+  qtdVeiculosPasseio        Int?
+  qtdConstrucoesRurais      Int?
+  qtdMotoresEletricos       Int?
+  qtdConjuntosIrrigacao     Int?
+  qtdAnimaisTrabalho        Int?
+  qtdMaquinarioTracaoAnimal Int?
+  qtdBovinos                Int?
+  qtdOvinos                 Int?
+  qtdCaprinos               Int?
+  qtdSuinos                 Int?
+  qtdAves                   Int?
+  qtdBubalinos              Int?
+  qtdEquinosMuaresAsininos  Int?
+  qtdColmeias               Int?
+  qtdPequenosAnimaisOutros  Int?
+  areaPastagens             Decimal?  @db.Decimal(12, 2)
+  areaCulturasTemporarias   Decimal?  @db.Decimal(12, 2)
+  areaCulturasPermanentes   Decimal?  @db.Decimal(12, 2)
+  areaLaminaAgua            Decimal?  @db.Decimal(12, 2)
+  areaExtrativismo          Decimal?  @db.Decimal(12, 2)
+  areaReservaLegal          Decimal?  @db.Decimal(12, 2)
+  areaOutrosUsos            Decimal?  @db.Decimal(12, 2)
+  recursosDisponiveis       Json?
+  atividadesColetivas       Json?
+  politicasPublicas         Json?
+  acoesPotenciaisProdutivo  String?   @db.Text
+  acoesPotenciaisSocial     String?   @db.Text
+  acoesPotenciaisAmbiental  String?   @db.Text
+  limitacoesProdutivo       String?   @db.Text
+  limitacoesSocial          String?   @db.Text
+  limitacoesAmbiental       String?   @db.Text
+  lgpdConsentimento         Boolean?
+  lgpdDataConsentimento     DateTime?
+  referenciaAnexoLgpd       String?
+  anexoLgpdKey              String?
+  anexoLgpdUrl              String?
+  representanteNome         String?
+  representanteCpf          String?
+  observacoes               String?   @db.Text
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  familiaId String      @unique
+  familia   FamiliaAter @relation(fields: [familiaId], references: [id], onDelete: Cascade)
+
+  @@index([aguaParaConsumo])
+  @@index([aguaConsumoTratada])
+  @@index([possuiInternet])
+  @@index([esgotoTratado])
+  @@map("diagnosticos_ufpa")
+}
+
+model IndicadoresUfpa {
+  id                                     String    @id @default(uuid())
+  entidadeExecutoraNome                  String?
+  entidadeExecutoraCnpj                  String?
+  unidadeServicos                        String?
+  numeroInstrumento                      String?
+  agenteAterNome1                        String?
+  agenteAterCpf1                         String?
+  agenteAterNome2                        String?
+  agenteAterCpf2                         String?
+  agenteAterNome3                        String?
+  agenteAterCpf3                         String?
+  localUf                                String?
+  localMunicipio                         String?
+  localOrganizacaoColetiva               String?
+  dataReferencia                         DateTime?
+  alimentacaoVariadaComprometida         Boolean?
+  comidaAcabouSemCondicao                Boolean?
+  deixouRefeicaoSemCondicao              Boolean?
+  comeuMenosSemCondicao                  Boolean?
+  qtdVezesComeuMenos                     Int?
+  sentiuFomeENaoComeu                    Boolean?
+  documentacaoPessoalCompleta            Boolean?
+  documentacaoPessoalQuais               String?   @db.Text
+  cadastradoCadUnico                     Boolean?
+  cadUnicoQuais                          String?   @db.Text
+  acessaPoliticasSociais                 Boolean?
+  politicasSociaisQuais                  String?   @db.Text
+  participaGrupoComunitario              Boolean?
+  qualGrupoComunitario                   String?
+  participaAssociacao                    Boolean?
+  participaCooperativa                   Boolean?
+  participaGrupoInformalProdutivo        Boolean?
+  participaGrupoInformalSocial           Boolean?
+  possuiPraticasSustentaveis             Boolean?
+  praticasSustentaveisQuais              String?   @db.Text
+  praticaIntegracaoAtividades            Boolean?
+  praticaDescarteCorretoEmbalagens       Boolean?
+  praticaControleQueimadas               Boolean?
+  praticaAdubacaoVerde                   Boolean?
+  praticaRecuperacaoPastagens            Boolean?
+  praticaCoberturaSolo                   Boolean?
+  praticaManejoIntegradoPragas           Boolean?
+  praticaCordoesVegetacao                Boolean?
+  praticaRotacaoCulturas                 Boolean?
+  praticaPlantioDireto                   Boolean?
+  praticaPousio                          Boolean?
+  praticaProtecaoNascentes               Boolean?
+  praticaPreservacaoApps                 Boolean?
+  praticaManejoFlorestal                 Boolean?
+  praticaRecomposicaoFlorestal           Boolean?
+  motivoSemPraticaFinanceiro             Boolean?
+  motivoSemPraticaFaltaInformacao        Boolean?
+  motivoSemPraticaTecnologico            Boolean?
+  motivoSemPraticaFaltaInteresse         Boolean?
+  valorBrutoProducaoUltimos12Meses       Decimal?  @db.Decimal(15, 2)
+  acessaPoliticasProdutivas              Boolean?
+  motivoNaoAcessaPoliticasFaltaInfo      Boolean?
+  motivoNaoAcessaPoliticasDificilAcesso  Boolean?
+  motivoNaoAcessaPoliticasSemInteresse   Boolean?
+  acessouPaa                             Boolean?
+  acessouPnae                            Boolean?
+  acessouPgpmBio                         Boolean?
+  acessouPronaf                          Boolean?
+  linhasPronaf                           Json?
+  canalTrocaProdutoServico               Boolean?
+  canalVendaPropriedade                  Boolean?
+  canalVendaDiretaConsumidor             Boolean?
+  canalFeira                             Boolean?
+  canalMercadoLocal                      Boolean?
+  canalAtravessador                      Boolean?
+  canalPaa                               Boolean?
+  canalPnae                              Boolean?
+  canalCooperativaEntreposto             Boolean?
+  observacoes                            String?   @db.Text
+  createdAt                              DateTime  @default(now())
+  updatedAt                              DateTime  @updatedAt
+
+  familiaId String      @unique
+  familia   FamiliaAter @relation(fields: [familiaId], references: [id], onDelete: Cascade)
+
+  @@index([alimentacaoVariadaComprometida])
+  @@index([comidaAcabouSemCondicao])
+  @@index([cadastradoCadUnico])
+  @@index([acessaPoliticasSociais])
+  @@index([acessaPoliticasProdutivas])
+  @@map("indicadores_ufpa")
+}
+
+model IndicadoresOrganizacaoColetiva {
+  id                                 String    @id @default(uuid())
+  entidadeExecutoraNome              String?
+  entidadeExecutoraCnpj              String?
+  unidadeServicos                    String?
+  numeroContrato                     String?
+  agenteAterNome1                    String?
+  agenteAterCpf1                     String?
+  agenteAterNome2                    String?
+  agenteAterCpf2                     String?
+  agenteAterNome3                    String?
+  agenteAterCpf3                     String?
+  agenteAterNome4                    String?
+  agenteAterCpf4                     String?
+  localEstado                        String?
+  localMunicipio                     String?
+  localOrganizacaoColetiva           String?
+  dataReferencia                     DateTime?
+  possuiPraticasAmbientais           Boolean?
+  praticaSeparacaoLixo               Boolean?
+  praticaDescarteCorretoLixo         Boolean?
+  praticaManutencaoAcessos           Boolean?
+  praticaTratamentoDejetos           Boolean?
+  praticaCaptacaoAguaChuva           Boolean?
+  praticaEducacaoAmbiental           Boolean?
+  praticaAvaliacaoPrevencaoRiscos    Boolean?
+  usaIdentidadeComercial             Boolean?
+  identidadeMarcaPropria             Boolean?
+  identidadeSeloArte                 Boolean?
+  identidadeSenaf                    Boolean?
+  identidadeSenafSociobiodiversidade Boolean?
+  identidadeSeloQuilombos            Boolean?
+  identidadeSeloIndigenas            Boolean?
+  identidadeSeloPovosTradicionais    Boolean?
+  possuiMulheresDiretoriaConselho    Boolean?
+  possuiJovensDiretoriaConselho      Boolean?
+  filiadaOrganizacao                 Boolean?
+  filiadaUnicafes                    Boolean?
+  filiadaUnicopas                    Boolean?
+  filiadaSistemaOcb                  Boolean?
+  acessaPoliticasPublicas            Boolean?
+  possuiCafJuridica                  Boolean?
+  acessouPronafCusteio               Boolean?
+  acessouPronafCapitalGiro           Boolean?
+  acessouPronafMaisAlimentos         Boolean?
+  acessouPronafIndustrializacao      Boolean?
+  acessouPronafAgroindustria         Boolean?
+  acessouPronafCotasPartes           Boolean?
+  acessouPaa                         Boolean?
+  acessouPnae                        Boolean?
+  acessouPgpm                        Boolean?
+  acessouPgpmSociobiodiversidade     Boolean?
+  acessouCooperaMaisBrasil           Boolean?
+  canalTrocaProdutoServico           Boolean?
+  canalVendaOrganizacao              Boolean?
+  canalVendaDiretaConsumidor         Boolean?
+  canalFeira                         Boolean?
+  canalMercadoLocal                  Boolean?
+  canalAtravessador                  Boolean?
+  canalPaa                           Boolean?
+  canalPnae                          Boolean?
+  canalMercadoJustoSolidario         Boolean?
+  observacoes                        String?   @db.Text
+  createdAt                          DateTime  @default(now())
+  updatedAt                          DateTime  @updatedAt
+
+  organizacaoColetivaId String              @unique
+  organizacaoColetiva   OrganizacaoColetiva @relation(fields: [organizacaoColetivaId], references: [id], onDelete: Cascade)
+
+  @@index([possuiPraticasAmbientais])
+  @@index([usaIdentidadeComercial])
+  @@index([acessaPoliticasPublicas])
+  @@map("indicadores_organizacoes_coletivas")
+}
+
 model AtendimentoTecnico {
-  id                String   @id @default(uuid())
-  idTec             String   @unique // ID TEC (Ex: AT7OR241)
-  data              DateTime @default(now())
-  tecnico           String
+  id      String   @id @default(uuid())
+  idTec   String   @unique // ID TEC (Ex: AT7OR241)
+  data    DateTime @default(now())
+  tecnico String
 
   // Eixo Produtivo
-  produtivoAcao     String?
-  produtivoImpacto  String? @db.Text
+  produtivoAcao    String?
+  produtivoImpacto String? @db.Text
 
   // Eixo Social
-  socialAcao        String?
-  socialImpacto     String? @db.Text
+  socialAcao    String?
+  socialImpacto String? @db.Text
 
   // Eixo Ambiental
-  ambientalAcao     String?
-  ambientalImpacto  String? @db.Text
+  ambientalAcao    String?
+  ambientalImpacto String? @db.Text
 
-  beneficiariaId    String
-  beneficiaria      Beneficiaria @relation(fields: [beneficiariaId], references: [id])
+  beneficiariaId String
+  beneficiaria   Beneficiaria @relation(fields: [beneficiariaId], references: [id])
 
   @@map("atendimentos_tecnicos")
 }
 
 model Atendimento {
-  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   numeroVisita     Int
-  data             DateTime?    @db.Timestamptz(6)
+  data             DateTime?     @db.Timestamptz(6)
   tecnico          String?
   projetoId        String?
   projetoTitulo    String?
-  statusRelatorio  String       @default("PENDENTE")
+  statusRelatorio  String        @default("PENDENTE")
   houveAtendimento Boolean?
-  enviadoSGA       Boolean      @default(false)
-  dataEnvioSGA     DateTime?    @db.Timestamptz(6)
+  enviadoSGA       Boolean       @default(false)
+  dataEnvioSGA     DateTime?     @db.Timestamptz(6)
+  atividadeNumeroTotal String?
+  codigoMeta       String?
+  descricaoMeta    String?       @db.Text
+  numeroMulheres   Int?
+  numeroJovens     Int?
+  statusGestor     String?
+  motivoReprovacaoGestor String? @db.Text
+  dataStatusGestor DateTime?     @db.Timestamptz(6)
   eixoProdutivo    Json?
   eixoSocial       Json?
   eixoAmbiental    Json?
@@ -380,8 +732,8 @@ model Atendimento {
   beneficiariaId   String?
   beneficiaria     Beneficiaria? @relation(fields: [beneficiariaId], references: [id], onDelete: Cascade)
   familiaId        String?
-  familia          FamiliaAter? @relation(fields: [familiaId], references: [id])
-  tecnicoRef       Tecnico?     @relation(fields: [tecnicoId], references: [id])
+  familia          FamiliaAter?  @relation(fields: [familiaId], references: [id])
+  tecnicoRef       Tecnico?      @relation(fields: [tecnicoId], references: [id])
 
   @@index([beneficiariaId], map: "atendimentos_beneficiaria_idx")
   @@index([numeroVisita])
@@ -391,28 +743,29 @@ model Atendimento {
 }
 
 model Tecnico {
-  id               String       @id @default(dbgenerated("gen_random_uuid()"))
+  id               String  @id @default(dbgenerated("gen_random_uuid()"))
   nome             String
-  cpf              String       @unique
+  cpf              String  @unique
+  conselho         String? // Ex: CREA, CRMV, CRF
   registroConselho String?
   uf               String?
-  ativo            Boolean      @default(true)
+  ativo            Boolean @default(true)
 
-  atendimentos    Atendimento[]
+  atendimentos Atendimento[]
 
   @@index([cpf])
   @@map("tecnicos_ater")
 }
 
 model Fomento {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   situacao       String?
-  valorFomento   Decimal?  @db.Decimal(15, 2)
-  valorInvestido Decimal?  @db.Decimal(15, 2)
+  valorFomento   Decimal?     @db.Decimal(15, 2)
+  valorInvestido Decimal?     @db.Decimal(15, 2)
   retornoCampo   String?
   orientacoes    String?
   analiseAnater  String?
-  beneficiariaId String    @unique
+  beneficiariaId String       @unique
   beneficiaria   Beneficiaria @relation(fields: [beneficiariaId], references: [id], onDelete: Cascade)
 
   @@index([beneficiariaId], map: "fomentos_beneficiaria_idx")
@@ -420,38 +773,38 @@ model Fomento {
 }
 
 model ControleProcessoSGA {
-  id                String   @id @default(uuid())
-  statusAnalise     String?  // Situação da Analise
-  parcela1          String?  // Parcela nº 1
-  parcela2          String?  // Parcela nº 2
-  projetoEnviado    Boolean  @default(false)
+  id             String  @id @default(uuid())
+  statusAnalise  String? // Situação da Analise
+  parcela1       String? // Parcela nº 1
+  parcela2       String? // Parcela nº 2
+  projetoEnviado Boolean @default(false)
 
-  beneficiariaId    String   @unique
-  beneficiaria      Beneficiaria @relation(fields: [beneficiariaId], references: [id])
+  beneficiariaId String       @unique
+  beneficiaria   Beneficiaria @relation(fields: [beneficiariaId], references: [id])
 
   @@map("controle_sga")
 }
 
 model PlanejamentoAtividade {
-  id                String   @id @default(uuid())
-  numMeta           Int
-  descricao         String
-  status            String   // Em execução, Não iniciado
-  valorUnitario     Decimal  @db.Decimal(15, 2)
+  id            String  @id @default(uuid())
+  numMeta       Int
+  descricao     String
+  status        String // Em execução, Não iniciado
+  valorUnitario Decimal @db.Decimal(15, 2)
 
-  projetoId         String
-  projeto           Projeto  @relation(fields: [projetoId], references: [id])
+  projetoId String
+  projeto   Projeto @relation(fields: [projetoId], references: [id])
 
   @@map("planejamento_ater")
 }
 
 model ProjetoProdutivo {
-  id                String   @id @default(uuid())
-  atividade         String   // SAF, Avicultura, etc.
-  situacao          String?  // Ativo, Inativo
+  id        String  @id @default(uuid())
+  atividade String // SAF, Avicultura, etc.
+  situacao  String? // Ativo, Inativo
 
-  projetoId         String
-  projeto           Projeto @relation(fields: [projetoId], references: [id])
+  projetoId String
+  projeto   Projeto @relation(fields: [projetoId], references: [id])
 
   @@map("projetos_produtivos")
 }
@@ -461,24 +814,24 @@ model ProjetoProdutivo {
 // ============================================================================
 
 model ContratoFornecedor {
-  id              String   @id @default(uuid())
-  idContrato      String   @unique // ID CONTRATO
-  objeto          String?  @db.Text
-  valorTotal      Decimal  @db.Decimal(15, 2)
-  status          String?
+  id         String  @id @default(uuid())
+  idContrato String  @unique // ID CONTRATO
+  objeto     String? @db.Text
+  valorTotal Decimal @db.Decimal(15, 2)
+  status     String?
 
-  fornecedorId    String
-  fornecedor      CadastroUnico @relation(fields: [fornecedorId], references: [id])
+  fornecedorId String
+  fornecedor   CadastroUnico @relation(fields: [fornecedorId], references: [id])
 
   @@map("contratos_fornecedores")
 }
 
 model Patrimonio {
-  id              String   @id @default(uuid())
-  tombamento      String?  @unique // N. Tombamento
-  descricao       String
-  status          String?  // Baixado, Em uso
-  valorAquisicao  Decimal? @db.Decimal(15, 2)
+  id             String   @id @default(uuid())
+  tombamento     String?  @unique // N. Tombamento
+  descricao      String
+  status         String? // Baixado, Em uso
+  valorAquisicao Decimal? @db.Decimal(15, 2)
 
   @@map("patrimonio")
 }
@@ -488,34 +841,34 @@ model Patrimonio {
 // ============================================================================
 
 model Empreendimento {
-  id              String   @id @default(uuid())
-  matricula       String?  @unique // MATRÍCULA SISREDE (Ex: 20002)
-  nome            String   // Nome do Empreendimento (Magia Amazônica, etc)
-  segmento        String?  // Agroecológico, Artesanato, Processados...
-  status          String?  @default("ATIVO")
+  id        String  @id @default(uuid())
+  matricula String? @unique // MATRÍCULA SISREDE (Ex: 20002)
+  nome      String // Nome do Empreendimento (Magia Amazônica, etc)
+  segmento  String? // Agroecológico, Artesanato, Processados...
+  status    String? @default("ATIVO")
 
   // O Dono do Empreendimento vem do Cadastro Único
-  cadastroId      String   @unique
-  cadastro        CadastroUnico @relation(fields: [cadastroId], references: [id])
+  cadastroId String        @unique
+  cadastro   CadastroUnico @relation(fields: [cadastroId], references: [id])
 
-  contribuicoes   ContribuicaoFundo[]
+  contribuicoes ContribuicaoFundo[]
 
   @@map("empreendimentos")
 }
 
 model ContribuicaoFundo {
-  id              String   @id @default(uuid())
-  parcela         String?  // Ex: "1/10", "2/10" (Aba Carnê)
-  mesReferencia   Int?
-  anoReferencia   Int?
-  valorGerado     Decimal  @db.Decimal(15, 2) // Valor calculado/orçado
-  valorPago       Decimal? @db.Decimal(15, 2) // Valor real pago
-  dataVencimento  DateTime?
-  dataPagamento   DateTime?
-  status          String   @default("PENDENTE") // PAGO, PENDENTE, ATRASADO
+  id             String    @id @default(uuid())
+  parcela        String? // Ex: "1/10", "2/10" (Aba Carnê)
+  mesReferencia  Int?
+  anoReferencia  Int?
+  valorGerado    Decimal   @db.Decimal(15, 2) // Valor calculado/orçado
+  valorPago      Decimal?  @db.Decimal(15, 2) // Valor real pago
+  dataVencimento DateTime?
+  dataPagamento  DateTime?
+  status         String    @default("PENDENTE") // PAGO, PENDENTE, ATRASADO
 
   empreendimentoId String
-  empreendimento  Empreendimento @relation(fields: [empreendimentoId], references: [id])
+  empreendimento   Empreendimento @relation(fields: [empreendimentoId], references: [id])
 
   @@map("contribuicoes_fundo")
 }

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contrato SIGGATER Web - ATERSOCIOBIO (Fase 1)</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 2cm;
+      }
+
+      :root {
+        --ink: #111;
+        --muted: #333;
+        --line: #000;
+        --panel: #f3f3f3;
+      }
+
+      body {
+        font-family: "Times New Roman", Times, serif;
+        line-height: 1.42;
+        color: var(--ink);
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: justify;
+        font-size: 10.6pt;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 18pt;
+        text-transform: uppercase;
+        border-bottom: 4px solid var(--line);
+        padding-bottom: 8px;
+        margin: 0 0 16px;
+        font-weight: bold;
+        page-break-after: avoid;
+      }
+
+      h2 {
+        font-size: 12pt;
+        margin: 18px 0 10px;
+        border-left: 8px solid var(--line);
+        padding-left: 12px;
+        background: var(--panel);
+        padding-top: 5px;
+        padding-bottom: 5px;
+        font-weight: bold;
+        text-transform: uppercase;
+        page-break-after: avoid;
+      }
+
+      p {
+        margin: 0 0 10px;
+        orphans: 3;
+        widows: 3;
+      }
+
+      .subtitle {
+        text-align: center;
+        font-weight: bold;
+        font-size: 12pt;
+        margin: 0 0 22px;
+      }
+
+      .no-split {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .parties {
+        background: #fafafa;
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        margin-bottom: 16px;
+        page-break-inside: avoid;
+      }
+
+      .label {
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 8pt;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 12px 18px;
+        padding: 0;
+      }
+
+      li {
+        margin: 0 0 6px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+        font-size: 9.8pt;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 8px;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eee;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      .notice {
+        border: 2px dashed var(--line);
+        padding: 14px;
+        background: #fbfbfb;
+      }
+
+      .total-box {
+        border: 3px solid var(--line);
+        padding: 14px;
+        text-align: center;
+        margin: 14px 0;
+        background: #f9f9f9;
+        font-size: 11pt;
+        page-break-inside: avoid;
+      }
+
+      .signature-section {
+        margin-top: 80px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .signature-grid {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 90px;
+        gap: 24px;
+      }
+
+      .signature-box {
+        width: 46%;
+        border-top: 2px solid var(--line);
+        text-align: center;
+        padding-top: 10px;
+        font-weight: bold;
+        font-size: 10pt;
+      }
+
+      @media print {
+        body {
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          border: none;
+        }
+        .signature-grid {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: nowrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Instrumento Particular de Prestação de Serviços de Implantação de Software (Web App)</h1>
+    <p class="subtitle">SIGGATER Web - Fase 1 do Projeto ATERSOCIOBIO</p>
+
+    <div class="parties">
+      <p>
+        <span class="label">CONTRATADO:</span>
+        <strong>JOÃO VICTOR PASSOS</strong>, inscrito no CNPJ sob o nº
+        <strong>66.290.033/0001-21</strong>.
+      </p>
+      <p>
+        <span class="label">CONTRATANTE:</span>
+        <strong>INSTITUTO ACARIQUARA</strong>, inscrito no CNPJ sob o n.
+        <strong>06.284.362/0001-38</strong>, com sede em Manaus/AM.
+      </p>
+      <p>
+        <span class="label">OBJETO:</span>
+        Implantação do <strong>SIGGATER Web</strong>, com foco exclusivo na
+        <strong>Fase 1 do projeto ATERSOCIOBIO</strong>, conforme escopo e premissas deste instrumento.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>1. Definições e Premissas</h2>
+      <p>
+        Para fins deste contrato: (i) "Sistema" significa o módulo web denominado SIGGATER Web;
+        (ii) "Fase 1" significa o recorte operacional exclusivo para o projeto ATERSOCIOBIO;
+        (iii) "Go-live" significa a entrada em produção para uso real; (iv) "Aceite" significa a aprovação formal
+        da entrega de um marco, conforme critérios definidos na Cláusula 6.
+      </p>
+      <p>
+        Este contrato foi dimensionado para uma fase enxuta, com entregas por marcos, preservando base técnica
+        compatível com expansões futuras por aditivo.
+      </p>
+      <p>
+        A <strong>Proposta Técnica e Comercial SIGGATER/ATERSOCIOBIO (Fase 1)</strong> integra este instrumento como
+        referência de escopo e condições, no que for compatível com as cláusulas contratuais aqui estabelecidas.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>2. Escopo da Fase 1 (Entregáveis)</h2>
+      <p>O Contratado se obriga a entregar, no ambito desta Fase 1:</p>
+      <ul>
+        <li>
+          Cadastro-base de famílias e/ou beneficiárias vinculadas ao ATERSOCIOBIO, com identificação, município,
+          comunidade, responsável e informações operacionais do projeto.
+        </li>
+        <li>Cadastro e gestão da equipe técnica responsável pelo acompanhamento de campo.</li>
+        <li>
+          Registro de visitas técnicas com número da visita, data, técnico responsável, referência do projeto e
+          estrutura para acompanhamento dos eixos produtivo, social e ambiental.
+        </li>
+        <li>Controle operacional de informações ligadas ao SGA e dados de acompanhamento do projeto.</li>
+        <li>Consultas, filtros e relatórios-base para apoio à coordenação e rotina do projeto.</li>
+        <li>Geração de PDF individual por visita técnica (relatório por atendimento), para uso operacional.</li>
+        <li>Perfis de acesso para administração, coordenação/gerência e operação.</li>
+      </ul>
+    </div>
+
+    <div class="no-split">
+      <h2>3. Itens Fora de Escopo</h2>
+      <div class="notice">
+        <ul>
+          <li>Atendimento simultâneo de outros projetos de ATER além do ATERSOCIOBIO.</li>
+          <li>Parametrizações específicas de fluxos não consolidados (ex.: ATER União com Municípios) nesta fase.</li>
+          <li>Aplicativo móvel nativo, operação offline e integrações externas não definidas.</li>
+          <li>Permanência presencial contínua, dedicação exclusiva ou alocação fixa do Contratado no Instituto.</li>
+          <li>
+            Geração de documentos em lote (mala direta), automação de preenchimento e emissão massiva de PDFs, bem como
+            adequação "pixel perfect" a layouts oficiais específicos (ANATER/ATER) e suas variações, quando aplicável.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="no-split">
+      <h2>4. Infraestrutura, Custos Recorrentes e Acessos</h2>
+      <p>
+        O Sistema será implantado como aplicação em nuvem. Os custos recorrentes de hospedagem, banco de dados,
+        armazenamento e serviços correlatos serão suportados diretamente pela Contratante, não estando incluídos
+        no valor de implantação.
+      </p>
+      <p>
+        A Contratante se compromete a providenciar e manter acessos necessários (contas/credenciais) para
+        infraestrutura e ambiente, quando aplicável. O Contratado deverá receber acessos técnicos mínimos para
+        operação e suporte durante a vigência deste contrato.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>5. Prazo, Treinamento, Operação Assistida e Garantia</h2>
+      <ul>
+        <li>
+          Prazo estimado de implantação: até <strong>60 (sessenta) dias corridos</strong>, contados do cumprimento
+          cumulativo de: (i) assinatura deste contrato; (ii) pagamento do <strong>Marco 0</strong>; e (iii) entrega,
+          pela Contratante, dos <strong>insumos mínimos</strong> e do <strong>modelo operacional/plano de trabalho</strong>
+          do SIGGAATER/ATERSOCIOBIO (rotinas, campos obrigatórios, regras de validação, modelo de relatório e critérios
+          de homologação).
+        </li>
+        <li>Treinamento inicial de ate <strong>2 (dois) pontos focais</strong> internos.</li>
+        <li>Operacao assistida por <strong>30 (trinta) dias</strong> apos o Go-live.</li>
+        <li>
+          Garantia corretiva por <strong>90 (noventa) dias</strong> após o aceite final e entrada em produção,
+          destinada à correção de falhas vinculadas ao escopo contratado.
+        </li>
+        <li>Suporte prestado prioritariamente de forma remota.</li>
+        <li>Até <strong>2 (duas)</strong> agendas presenciais durante a operação assistida, mediante agendamento.</li>
+      </ul>
+      <p>
+        Atrasos na entrega de insumos, indisponibilidade de pontos focais, ou atrasos de homologação pela Contratante
+        suspendem o cronograma pelo período correspondente, sem caracterizar atraso do Contratado.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>6. Homologação e Aceite</h2>
+      <p>
+        A cada marco, o Contratado disponibilizará a entrega para homologação pela Contratante. A Contratante
+        deverá responder em até <strong>7 (sete) dias corridos</strong>, com: (i) aceite; ou (ii) lista objetiva de
+        ajustes/correções vinculados ao escopo do marco.
+      </p>
+      <p>
+        Caso a Contratante não se manifeste no prazo acima, as partes deverão agendar uma validação conjunta em até
+        <strong>5 (cinco) dias corridos</strong>. Enquanto não houver validação e aceite formal, o marco permanecerá
+        em homologação, sem prejuízo da continuidade técnica do que for possível executar sem dependência do aceite.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>7. Investimento e Forma de Pagamento</h2>
+      <p>
+        O investimento total desta Fase 1 é de <strong>R$ 21.900,00 (vinte e um mil e novecentos reais)</strong>,
+        pago por marcos de entrega, conforme tabela:
+      </p>
+      <p>
+        As partes reconhecem que o valor desta Fase 1 contempla não apenas funcionalidades, mas também a estruturação
+        técnica inicial do ambiente, parametrização do recorte ATERSOCIOBIO, apoio à homologação, treinamento,
+        operação assistida e garantia corretiva, sendo preço fechado para o escopo contratado.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Marco</th>
+            <th>Descricao</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Marco 0</strong></td>
+            <td>Contratação, setup inicial e alinhamento final do fluxo do ATERSOCIOBIO.</td>
+            <td>R$ 6.570,00</td>
+          </tr>
+          <tr>
+            <td><strong>Entrega 1</strong></td>
+            <td>Cadastro-base, perfis de acesso e estrutura operacional do projeto.</td>
+            <td>R$ 6.570,00</td>
+          </tr>
+          <tr>
+            <td><strong>Entrega 2</strong></td>
+            <td>Visitas técnicas, controle operacional e relatórios-base.</td>
+            <td>R$ 6.570,00</td>
+          </tr>
+          <tr>
+            <td><strong>Aceite Final</strong></td>
+            <td>Homologação, treinamento e entrada em produção.</td>
+            <td>R$ 2.190,00</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="total-box">
+        <strong>VALOR TOTAL: R$ 21.900,00</strong>
+      </div>
+      <p>
+        O pagamento de cada marco deverá ocorrer mediante aceite formal do respectivo marco. O atraso no pagamento
+        suspende o cronograma até regularização.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>8. Mudanças de Escopo (Aditivos)</h2>
+      <p>
+        Demandas que excedam o escopo da Cláusula 2 ou que envolvam itens expressamente fora de escopo (Cláusula 3)
+        deverão ser tratadas por aditivo contratual, com orçamento e cronograma específicos, aprovados previamente
+        pela Contratante.
+      </p>
+      <p>
+        Em especial, funcionalidades de geração de documentos em lote (mala direta), templates oficiais e automações
+        de relatórios em PDF poderão ser contratadas como etapa posterior, mediante fornecimento dos modelos finais
+        (layouts) e critérios objetivos de aceite.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>9. Confidencialidade e LGPD</h2>
+      <p>
+        As partes se obrigam a manter sigilo sobre informações técnicas, dados e documentos acessados em razão deste
+        contrato, não os divulgando a terceiros sem autorização, exceto por obrigação legal.
+      </p>
+      <p>
+        As partes reconhecem a aplicação da Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Para fins operacionais,
+        a Contratante atua como <strong>Controladora</strong> dos dados e o Contratado como <strong>Operador</strong>,
+        no que couber, comprometendo-se a adotar medidas razoáveis de segurança, acesso mínimo necessário e
+        confidencialidade.
+      </p>
+      <p>
+        Em caso de encerramento, a Contratante poderá solicitar a devolução/transferência de dados acessíveis do
+        ambiente sob sua titularidade. A exclusão de dados em provedores de terceiros observará as políticas do
+        provedor e as responsabilidades definidas na Cláusula 4.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>10. Propriedade Intelectual, Know-how e Licença de Uso</h2>
+      <p>
+        O Contratado permanece titular da propriedade intelectual do código-fonte, arquitetura, componentes genéricos,
+        bibliotecas, métodos, rotinas, padrões, experiências e <strong>know-how</strong> empregados (ou desenvolvidos)
+        durante a execução deste contrato, exceto quando houver cessão expressa por escrito.
+      </p>
+      <p>
+        A Contratante recebe licença de uso do Sistema, para uso institucional no âmbito do ATERSOCIOBIO, pelo prazo
+        deste contrato, para fins operacionais. A licença não implica transferência de titularidade do código-fonte
+        ou do know-how do Contratado.
+      </p>
+      <p>
+        Regras de negócio, dados e conteúdos inseridos pela Contratante no Sistema permanecem de titularidade da
+        Contratante.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>11. Limitação de Responsabilidade</h2>
+      <p>
+        O Contratado não se responsabiliza por indisponibilidades decorrentes de falhas de provedores terceiros
+        (hospedagem, banco, rede, energia, serviços externos) sob responsabilidade da Contratante, nem por danos
+        indiretos, lucros cessantes ou perda de oportunidade.
+      </p>
+      <p>
+        A responsabilidade direta do Contratado, quando aplicável, fica limitada ao valor efetivamente pago pela
+        Contratante nos últimos <strong>3 (três) meses</strong> anteriores ao evento que deu causa ao pedido.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>12. Rescisão</h2>
+      <p>
+        O contrato poderá ser rescindido por qualquer parte mediante notificação por escrito com antecedência mínima
+        de <strong>15 (quinze) dias</strong>. Em caso de rescisão por inadimplência, a parte adimplente poderá rescindir
+        após notificação e não regularização em <strong>5 (cinco) dias</strong>.
+      </p>
+      <p>
+        Valores relativos a marcos já entregues e aceitos permanecem devidos. Marcos em andamento poderão ser ajustados
+        proporcionalmente, mediante registro do status e evidências do trabalho executado.
+      </p>
+    </div>
+
+    <div class="no-split">
+      <h2>13. Disposições Gerais e Foro</h2>
+      <p>
+        Este contrato representa o acordo integral entre as partes quanto ao objeto aqui tratado. Eventuais tolerâncias
+        não constituem renúncia de direitos. O foro eleito é o da comarca de <strong>Manaus/AM</strong>, com renúncia a
+        qualquer outro, por mais privilegiado que seja.
+      </p>
+    </div>
+
+    <div class="signature-section">
+      <p>Manaus/AM, ____ de __________________ de 2026.</p>
+      <div class="signature-grid">
+        <div class="signature-box">
+          JOÃO VICTOR PASSOS<br />
+          Contratado
+        </div>
+        <div class="signature-box">
+          INSTITUTO ACARIQUARA<br />
+          Contratante
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

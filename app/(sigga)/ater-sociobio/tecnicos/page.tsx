@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Badge, Button, Card, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui";
 import { isAterMissingTableError } from "@/lib/ater-runtime";
-import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
+import { ATER_SOCIOBIO_STATUS_RASCUNHO, ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/dashboard/header";
 
@@ -57,6 +57,7 @@ export default async function TecnicosPage({
     id: string;
     nome: string;
     cpf: string;
+    conselho: string | null;
     registroConselho: string | null;
     uf: string | null;
     ativo: boolean;
@@ -83,7 +84,7 @@ export default async function TecnicosPage({
       orderBy: [{ ativo: "desc" }, { nome: "asc" }],
       include: {
         _count: {
-          select: { atendimentos: true },
+          select: { atendimentos: { where: { statusRelatorio: { not: ATER_SOCIOBIO_STATUS_RASCUNHO } } } },
         },
       },
     });
@@ -109,7 +110,7 @@ export default async function TecnicosPage({
     <div className="min-h-screen bg-zinc-50/50">
       <Header
         title="Técnicos"
-        description={`Equipe de campo responsável pelo acompanhamento técnico das famílias no lote ${ATER_SOCIOBIO_TERRITORY_NAME}`}
+        description={`Equipe de campo responsável pelo acompanhamento técnico em ${ATER_SOCIOBIO_TERRITORY_NAME}`}
         actions={
           <Link href="/ater-sociobio/tecnicos/novo">
             <Button variant="primary">
@@ -133,7 +134,7 @@ export default async function TecnicosPage({
               <p className="mt-1 text-3xl font-bold text-emerald-600">{ativos}</p>
             </Card>
             <Card className="p-5">
-              <p className="text-sm text-zinc-500">Atendimentos na busca</p>
+              <p className="text-sm text-zinc-500">Atendimentos válidos na busca</p>
               <p className="mt-1 text-3xl font-bold text-zinc-950">{totalAtendimentos}</p>
             </Card>
           </div>
@@ -167,7 +168,8 @@ export default async function TecnicosPage({
                   <option value="inativos">Somente inativos</option>
                 </select>
 
-                <Button type="submit" variant="ghost">
+                <Button type="submit" variant="secondary">
+                  <Search className="h-4 w-4" />
                   Filtrar
                 </Button>
               </form>
@@ -178,9 +180,10 @@ export default async function TecnicosPage({
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>CPF</TableHead>
-                  <TableHead>Registro do Conselho</TableHead>
+                  <TableHead>Conselho</TableHead>
+                  <TableHead>Registro</TableHead>
                   <TableHead>UF</TableHead>
-                  <TableHead>Atendimentos</TableHead>
+                  <TableHead>Visitas</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -188,7 +191,7 @@ export default async function TecnicosPage({
               <TableBody>
                 {tecnicosPagina.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center text-slate-500">
+                    <TableCell colSpan={8} className="py-8 text-center text-slate-500">
                       Nenhum técnico encontrado para os filtros atuais.
                     </TableCell>
                   </TableRow>
@@ -197,6 +200,9 @@ export default async function TecnicosPage({
                     <TableRow key={tecnico.id}>
                       <TableCell className="font-medium text-slate-900">{tecnico.nome}</TableCell>
                       <TableCell className="font-mono text-sm">{tecnico.cpf}</TableCell>
+                      <TableCell>
+                        <span className="font-bold text-zinc-950">{tecnico.conselho ?? "-"}</span>
+                      </TableCell>
                       <TableCell>{tecnico.registroConselho ?? "-"}</TableCell>
                       <TableCell>{tecnico.uf ?? "-"}</TableCell>
                       <TableCell>

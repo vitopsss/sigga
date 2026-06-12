@@ -25,7 +25,7 @@ export async function getProximoIdBordero(): Promise<string> {
 }
 
 function validarBordero(formData: FormData): BorderoInputDTO {
-  let idBordero = getText(formData.get("idBordero"));
+  const idBordero = getText(formData.get("idBordero"));
   const projetoId = getText(formData.get("projetoId"));
   const tipoBordero = getText(formData.get("tipoBordero"));
   const dataStr = getText(formData.get("data"));

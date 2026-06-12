@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Search, FolderKanban, Briefcase, Calendar, Building2 } from "lucide-react";
+import { Plus, Search, FolderKanban, Briefcase, Calendar, Building2, Pencil } from "lucide-react";
 
 import { isDatabaseUnavailableError } from "@/lib/prisma-runtime";
 import { ProjetoService, ProjetoListItem } from "@/lib/services/projeto.service";
@@ -162,7 +162,7 @@ export default async function ProjetosPage({
                         <div className="flex items-center gap-1.5 text-zinc-600">
                           <Calendar className="h-3.5 w-3.5 text-zinc-400" />
                           <span className="text-xs">
-                            {projeto.vigenciaInicial.toLocaleDateString("pt-BR", { year: "2-digit", month: "2-digit" })} — 
+                            {projeto.vigenciaInicial.toLocaleDateString("pt-BR", { year: "2-digit", month: "2-digit" })} —
                             {projeto.vigenciaFinal?.toLocaleDateString("pt-BR", { year: "2-digit", month: "2-digit" }) ?? "Indef."}
                           </span>
                         </div>

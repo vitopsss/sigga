@@ -1,0 +1,1221 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Building2,
+  ClipboardCheck,
+  ClipboardList,
+  Droplets,
+  Filter,
+  Globe,
+  LayoutDashboard,
+  Leaf,
+  MousePointer2,
+  Search,
+  Users,
+  Wifi,
+  X,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import {
+  type SiggaterAtendimentoDashboardItem,
+  type SiggaterDashboardData,
+  type SiggaterDashboardItem,
+  type SiggaterOrganizacaoDashboardItem,
+} from "@/lib/services/ater-sociobio.service";
+import { getAterSociobioStatusRelatorioLabel } from "@/lib/constants/ater-sociobio";
+import { ExportExcelButton } from "@/components/system/export-excel-button";
+
+type DashboardTab = "ufpas" | "organizacoes" | "atendimentos";
+type FocusKey =
+  | "comAlertas"
+  | "semDiagnostico"
+  | "semAgua"
+  | "semCadUnico"
+  | "inseguranca"
+  | "semInternet"
+  | "semSga"
+  | "comDapCaf"
+  | "comMulheresUfpa"
+  | "comJovensUfpa"
+  | "comVisitas"
+  | "semPoliticasSociais"
+  | "semPoliticasProdutivas"
+  | "mulheres"
+  | "jovens"
+  | "emAnalise"
+  | "reprovados"
+  | "indicadoresPendentes"
+  | "semPraticasAmbientais"
+  | "semPoliticasPublicas"
+  | null;
+
+function normalized(value?: string | null) {
+  return String(value ?? "").trim();
+}
+
+function ratio(part: number, total: number) {
+  return total > 0 ? Math.round((part / total) * 100) : 0;
+}
+
+function formatDate(value?: string | null) {
+  return value ? new Date(value).toLocaleDateString("pt-BR") : "-";
+}
+
+function isDashboardTab(value: string | null): value is DashboardTab {
+  return value === "ufpas" || value === "organizacoes" || value === "atendimentos";
+}
+
+function isFocusKey(value: string | null): value is Exclude<FocusKey, null> {
+  return [
+    "comAlertas",
+    "semDiagnostico",
+    "semAgua",
+    "semCadUnico",
+    "inseguranca",
+    "semInternet",
+    "semSga",
+    "comDapCaf",
+    "comMulheresUfpa",
+    "comJovensUfpa",
+    "comVisitas",
+    "semPoliticasSociais",
+    "semPoliticasProdutivas",
+    "mulheres",
+    "jovens",
+    "emAnalise",
+    "reprovados",
+    "indicadoresPendentes",
+    "semPraticasAmbientais",
+    "semPoliticasPublicas",
+  ].includes(String(value));
+}
+
+function focusFilter(key: FocusKey, item: SiggaterDashboardItem | SiggaterAtendimentoDashboardItem | SiggaterOrganizacaoDashboardItem, tab: DashboardTab) {
+  if (!key) return true;
+
+  if (tab === "ufpas") {
+    const ufpa = item as SiggaterDashboardItem;
+    switch (key) {
+      case "comAlertas": return getRisks(ufpa).length > 0;
+      case "semDiagnostico": return !ufpa.diagnosticoRegistrado;
+      case "semAgua": return ufpa.aguaTratada === false;
+      case "semCadUnico": return ufpa.cadUnico === false;
+      case "inseguranca": return ufpa.insegurancaAlimentar === true;
+      case "semInternet": return ufpa.possuiInternet === false;
+      case "semSga": return !ufpa.temSga;
+      case "comDapCaf": return ufpa.temDapCaf;
+      case "comMulheresUfpa": return ufpa.mulheres > 0;
+      case "comJovensUfpa": return ufpa.jovens > 0;
+      case "comVisitas": return ufpa.atendimentos > 0;
+      case "semPoliticasSociais": return ufpa.politicasSociais === false;
+      case "semPoliticasProdutivas": return ufpa.politicasProdutivas === false;
+      default: return true;
+    }
+  }
+
+  if (tab === "organizacoes") {
+    const org = item as SiggaterOrganizacaoDashboardItem;
+    switch (key) {
+      case "indicadoresPendentes": return !org.indicadoresRegistrados;
+      case "semPraticasAmbientais": return org.praticasAmbientais === false;
+      case "semPoliticasPublicas": return org.politicasPublicas === false;
+      default: return true;
+    }
+  }
+
+  if (tab === "atendimentos") {
+    const at = item as SiggaterAtendimentoDashboardItem;
+    switch (key) {
+      case "mulheres": return at.numeroMulheres > 0;
+      case "jovens": return at.numeroJovens > 0;
+      case "emAnalise": return at.statusRelatorio === "EM_ANALISE";
+      case "reprovados": return at.statusRelatorio === "REPROVADO_GESTOR";
+      default: return true;
+    }
+  }
+
+  return true;
+}
+
+function getRisks(item: SiggaterDashboardItem) {
+  const risks = [];
+  if (!item.diagnosticoRegistrado) risks.push("Diagnóstico pendente");
+  if (item.aguaParaConsumo === false) risks.push("Sem água para consumo");
+  if (item.aguaTratada === false) risks.push("Água sem tratamento");
+  if (item.esgotoTratado === false) risks.push("Sem esgoto tratado");
+  if (item.insegurancaAlimentar === true) risks.push("Insegurança alimentar");
+  if (item.cadUnico === false) risks.push("Sem CadÚnico");
+  if (!item.temSga) risks.push("SGA pendente");
+  return risks;
+}
+
+function groupCount<T>(items: T[], getName: (item: T) => string | null | undefined) {
+  const map = new Map<string, number>();
+  items.forEach((item) => {
+    const name = normalized(getName(item)) || "Não informado";
+    map.set(name, (map.get(name) ?? 0) + 1);
+  });
+
+  return Array.from(map.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR"));
+}
+
+function groupArrayValues<T>(items: T[], getValues: (item: T) => string[]) {
+  const map = new Map<string, number>();
+  items.forEach((item) => {
+    getValues(item).forEach((value) => {
+      const name = normalized(value);
+      if (name) map.set(name, (map.get(name) ?? 0) + 1);
+    });
+  });
+
+  return Array.from(map.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR"));
+}
+
+function MetricCard({
+  label,
+  value,
+  description,
+  tone,
+  icon: Icon,
+  active,
+  onClick,
+}: {
+  label: string;
+  value: string | number;
+  description: string;
+  tone: "blue" | "green" | "amber" | "rose" | "zinc";
+  icon?: typeof Users;
+  active?: boolean;
+  onClick?: () => void;
+}) {
+  const colors = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    green: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    amber: "bg-amber-50 text-amber-600 border-amber-100",
+    rose: "bg-rose-50 text-rose-600 border-rose-100",
+    zinc: "bg-zinc-50 text-zinc-600 border-zinc-200",
+  }[tone];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "group block w-full text-left rounded-2xl border p-5 transition-all outline-none",
+        active
+          ? "border-zinc-950 bg-zinc-950 shadow-xl shadow-zinc-950/20"
+          : "border-zinc-200/60 bg-white hover:border-zinc-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-[0_2px_4px_rgba(0,0,0,0.02)]"
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className={cn(
+          "inline-flex rounded-xl border p-2",
+          active ? "bg-white/10 border-white/20 text-white" : colors
+        )}>
+          {Icon ? <Icon className="h-5 w-5" /> : <div className="h-5 w-5" />}
+        </div>
+        <div className="text-right">
+          <p className={cn("text-sm font-bold", active ? "text-zinc-400" : "text-zinc-500")}>{label}</p>
+          <p className={cn("mt-1 text-2xl font-bold tracking-tight", active ? "text-white" : "text-zinc-950")}>{value}</p>
+        </div>
+      </div>
+      <div className={cn("mt-4 border-t pt-4", active ? "border-white/10" : "border-zinc-50")}>
+        <p className={cn("text-xs leading-relaxed font-medium", active ? "text-zinc-500" : "text-zinc-500")}>{description}</p>
+      </div>
+    </button>
+  );
+}
+
+function TabButton({
+  active,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: typeof Users;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${
+        active
+          ? "bg-zinc-950 text-white shadow-lg shadow-zinc-950/20"
+          : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300"
+      }`}
+    >
+      <Icon className={`h-4 w-4 ${active ? "text-white" : "text-zinc-400"}`} />
+      {label}
+    </button>
+  );
+}
+
+function AlertButton({
+  label,
+  value,
+  description,
+  active,
+  onClick,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  description: string;
+  active: boolean;
+  onClick: () => void;
+  icon: typeof AlertCircle;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition-all ${
+        active
+          ? "border-zinc-900 bg-zinc-950 text-white shadow-xl shadow-zinc-950/20"
+          : "border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50/50"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className={`rounded-lg p-2 ${active ? "bg-white/10" : "bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200/50"}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <span className={`text-2xl font-bold ${active ? "text-white" : "text-zinc-950"}`}>{value}</span>
+      </div>
+      <div className="mt-4">
+        <span className={`text-sm font-bold ${active ? "text-zinc-100" : "text-zinc-900"}`}>{label}</span>
+        <p className={`mt-1 text-xs leading-relaxed ${active ? "text-zinc-400" : "text-zinc-500"}`}>{description}</p>
+      </div>
+    </button>
+  );
+}
+
+function SimpleBarList({
+  title,
+  data,
+  color = "bg-emerald-600",
+}: {
+  title: string;
+  data: { name: string; value: number }[];
+  color?: string;
+}) {
+  const max = Math.max(...data.map((item) => item.value), 1);
+
+  return (
+    <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+      <div className="mb-6 flex items-center gap-2">
+        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <h2 className="text-base font-bold text-zinc-900">{title}</h2>
+      </div>
+      <div className="space-y-4">
+        {data.length ? (
+          data.slice(0, 8).map((item) => (
+            <div key={item.name} className="group">
+              <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                <span className="font-bold text-zinc-700">{item.name}</span>
+                <span className="font-mono font-bold text-zinc-500">{item.value}</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ease-out ${color}`}
+                  style={{ width: `${Math.max(4, (item.value / max) * 100)}%` }}
+                />
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <div className="rounded-full bg-zinc-50 p-3">
+              <Search className="h-6 w-6 text-zinc-300" />
+            </div>
+            <p className="mt-3 text-sm font-bold text-zinc-400">Sem dados no recorte atual.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UfpaPanel({
+  items,
+  focus,
+  setFocus,
+  appendReturnHref,
+}: {
+  items: SiggaterDashboardItem[];
+  focus: FocusKey;
+  setFocus: (value: FocusKey) => void;
+  appendReturnHref: (href: string) => string;
+}) {
+  const metrics = useMemo(() => {
+    const total = items.length;
+    const diagnosticos = items.filter((item) => item.diagnosticoRegistrado).length;
+    const semDiagnostico = items.filter((item) => !item.diagnosticoRegistrado).length;
+    const semAgua = items.filter((item) => item.aguaTratada === false).length;
+    const semEsgoto = items.filter((item) => item.esgotoTratado === false).length;
+    const semInternet = items.filter((item) => item.possuiInternet === false).length;
+    const semCadUnico = items.filter((item) => item.cadUnico === false).length;
+    const inseguranca = items.filter((item) => item.insegurancaAlimentar === true).length;
+    const semPoliticasSociais = items.filter((item) => item.politicasSociais === false).length;
+    const semPoliticasProdutivas = items.filter((item) => item.politicasProdutivas === false).length;
+    const mulheres = items.reduce((sum, item) => sum + item.mulheres, 0);
+    const jovens = items.reduce((sum, item) => sum + item.jovens, 0);
+    const visitas = items.reduce((sum, item) => sum + item.atendimentos, 0);
+
+    return {
+      total,
+      diagnosticos,
+      semDiagnostico,
+      semAgua,
+      semEsgoto,
+      semInternet,
+      semCadUnico,
+      inseguranca,
+      semPoliticasSociais,
+      semPoliticasProdutivas,
+      mulheres,
+      jovens,
+      visitas,
+    };
+  }, [items]);
+
+  const priorities = useMemo(
+    () =>
+      items
+        .map((item) => ({ ...item, risks: getRisks(item) }))
+        .filter((item) => item.risks.length > 0)
+        .sort((a, b) => b.risks.length - a.risks.length || a.nomeFamilia.localeCompare(b.nomeFamilia, "pt-BR"))
+        .slice(0, 8),
+    [items],
+  );
+
+  const communityData = useMemo(() => groupCount(items, (item) => item.comunidade), [items]);
+  const orgData = useMemo(() => groupCount(items, (item) => item.organizacaoColetiva), [items]);
+  const biomaData = useMemo(() => groupCount(items, (item) => item.bioma), [items]);
+  const atividadeData = useMemo(() => groupArrayValues(items, (item) => item.atividades), [items]);
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Cobertura de diagnóstico"
+          value={`${ratio(metrics.diagnosticos, metrics.total)}%`}
+          description={`${metrics.diagnosticos} de ${metrics.total} UFPAs com diagnóstico ou indicadores.`}
+          tone="green"
+          icon={ClipboardCheck}
+        />
+        <MetricCard
+          label="Alertas socioambientais"
+          value={metrics.semAgua + metrics.semEsgoto + metrics.inseguranca}
+          description="Soma de UFPAs com água sem tratamento, sem esgoto tratado ou insegurança alimentar."
+          tone="rose"
+          icon={AlertTriangle}
+        />
+        <MetricCard
+          label="Sem internet"
+          value={metrics.semInternet}
+          description="UFPAs que declararam não possuir internet no diagnóstico."
+          tone="amber"
+          icon={Wifi}
+          active={focus === "semInternet"}
+          onClick={() => setFocus(focus === "semInternet" ? null : "semInternet")}
+        />
+        <MetricCard
+          label="Visitas (recorte)"
+          value={metrics.visitas}
+          description="Atendimentos válidos vinculados às UFPAs deste recorte."
+          tone="blue"
+          icon={ClipboardList}
+          active={focus === "comVisitas"}
+          onClick={() => setFocus(focus === "comVisitas" ? null : "comVisitas")}
+        />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Mulheres nas UFPAs"
+          value={metrics.mulheres}
+          description="Integrantes com sexo feminino registrados nas unidades familiares."
+          tone="rose"
+          icon={Users}
+          active={focus === "comMulheresUfpa"}
+          onClick={() => setFocus(focus === "comMulheresUfpa" ? null : "comMulheresUfpa")}
+        />
+        <MetricCard
+          label="Jovens nas UFPAs"
+          value={metrics.jovens}
+          description="Integrantes de 15 a 29 anos identificados nos cadastros."
+          tone="amber"
+          icon={Users}
+          active={focus === "comJovensUfpa"}
+          onClick={() => setFocus(focus === "comJovensUfpa" ? null : "comJovensUfpa")}
+        />
+        <MetricCard
+          label="Sem políticas sociais"
+          value={metrics.semPoliticasSociais}
+          description="UFPAs sem acesso informado a políticas públicas sociais."
+          tone="zinc"
+          icon={ClipboardList}
+          active={focus === "semPoliticasSociais"}
+          onClick={() => setFocus(focus === "semPoliticasSociais" ? null : "semPoliticasSociais")}
+        />
+        <MetricCard
+          label="Sem políticas produtivas"
+          value={metrics.semPoliticasProdutivas}
+          description="UFPAs sem acesso informado a políticas públicas produtivas."
+          tone="zinc"
+          icon={Leaf}
+          active={focus === "semPoliticasProdutivas"}
+          onClick={() => setFocus(focus === "semPoliticasProdutivas" ? null : "semPoliticasProdutivas")}
+        />
+      </section>
+
+      <div className="rounded-2xl border border-zinc-200/60 bg-zinc-50/50 p-6 shadow-inner">
+        <div className="mb-5 flex items-center gap-2">
+          <Filter className="h-4 w-4 text-zinc-500" />
+          <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Recortes rápidos de atenção (Clique para filtrar)</h3>
+        </div>
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <AlertButton
+            label="Diagnóstico pendente"
+            value={metrics.semDiagnostico}
+            description="Cadastro existe, mas ainda falta diagnóstico/indicadores."
+            active={focus === "semDiagnostico"}
+            onClick={() => setFocus(focus === "semDiagnostico" ? null : "semDiagnostico")}
+            icon={ClipboardList}
+          />
+          <AlertButton
+            label="Água sem tratamento"
+            value={metrics.semAgua}
+            description="UFPAs com água de consumo sem tratamento."
+            active={focus === "semAgua"}
+            onClick={() => setFocus(focus === "semAgua" ? null : "semAgua")}
+            icon={Droplets}
+          />
+          <AlertButton
+            label="Sem CadÚnico"
+            value={metrics.semCadUnico}
+            description="Famílias que não possuem CadÚnico informado."
+            active={focus === "semCadUnico"}
+            onClick={() => setFocus(focus === "semCadUnico" ? null : "semCadUnico")}
+            icon={Users}
+          />
+          <AlertButton
+            label="Insegurança alimentar"
+            value={metrics.inseguranca}
+            description="Falta de comida, refeição reduzida ou fome registrada."
+            active={focus === "inseguranca"}
+            onClick={() => setFocus(focus === "inseguranca" ? null : "inseguranca")}
+            icon={AlertCircle}
+          />
+        </section>
+      </div>
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-rose-500" />
+                <h2 className="text-base font-bold text-zinc-900">UFPAs prioritárias</h2>
+              </div>
+              <p className="mt-1 text-xs text-zinc-500 uppercase font-bold tracking-wider">Ranking por quantidade de riscos registrados</p>
+            </div>
+            <Link href="/ater-sociobio/familias" className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
+              Ver todas
+            </Link>
+          </div>
+
+          <div className="mt-6 divide-y divide-zinc-100">
+            {priorities.length ? (
+              priorities.map((item: SiggaterDashboardItem & { risks: string[] }) => (
+                <div key={item.id} className="grid gap-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                  <div>
+                    <p className="text-sm font-bold text-zinc-950">{item.nomeFamilia}</p>
+                    <p className="mt-1 text-xs font-bold text-zinc-400">{item.organizacaoColetiva || item.comunidade || "Sem vínculo informado"}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {item.risks.map((risk: string) => (
+                        <span key={`${item.id}-${risk}`} className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+                          {risk}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <Link href={appendReturnHref(`/ater-sociobio/familias/${item.id}`)} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100">
+                    <MousePointer2 className="h-3.5 w-3.5" />
+                    Abrir UFPA
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <div className="py-10 text-center">
+                <p className="text-sm font-bold text-zinc-400">Nenhuma prioridade no recorte atual.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <SimpleBarList title="UFPAs por comunidade" data={communityData} />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <SimpleBarList title="Distribuição por Bioma" data={biomaData} color="bg-zinc-800" />
+        <SimpleBarList title="Principais Cadeias Produtivas (SGA)" data={atividadeData} color="bg-emerald-600" />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <SimpleBarList title="UFPAs por organização coletiva" data={orgData} color="bg-blue-600" />
+        <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+          <div className="mb-4 flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4 text-emerald-500" />
+            <h2 className="text-base font-bold text-zinc-900">Leitura operacional rápida</h2>
+          </div>
+          <div className="mt-6 space-y-4">
+            <div className="flex gap-4 rounded-xl bg-zinc-50 p-4">
+              <Droplets className="h-5 w-5 shrink-0 text-rose-500" />
+              <div>
+                <p className="text-xs font-bold text-zinc-900 uppercase">Infraestrutura Básica</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
+                  Água, esgoto e internet são métricas diretamente acionáveis para o plano de atendimento técnico de curto prazo.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4 rounded-xl bg-zinc-50 p-4">
+              <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
+              <div>
+                <p className="text-xs font-bold text-zinc-900 uppercase">Ranking de Risco</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
+                  A lista de prioridade cruza vulnerabilidades sociais e produtivas para otimizar as rotas de visita técnica.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function OrganizacoesPanel({
+  items,
+  focus,
+  setFocus,
+  appendReturnHref,
+}: {
+  items: SiggaterOrganizacaoDashboardItem[];
+  focus: FocusKey;
+  setFocus: (v: FocusKey) => void;
+  appendReturnHref: (href: string) => string;
+}) {
+  const metrics = useMemo(() => {
+    const total = items.length;
+    const comIndicadores = items.filter((item) => item.indicadoresRegistrados).length;
+    const praticasAmbientais = items.filter((item) => item.praticasAmbientais === true).length;
+    const identidadeComercial = items.filter((item) => item.identidadeComercial === true).length;
+    const mulheresDiretoria = items.filter((item) => item.mulheresDiretoria === true).length;
+    const jovensDiretoria = items.filter((item) => item.jovensDiretoria === true).length;
+    const politicasPublicas = items.filter((item) => item.politicasPublicas === true).length;
+    const familiasVinculadas = items.reduce((sum, item) => sum + item.familiasVinculadas, 0);
+
+    return {
+      total,
+      comIndicadores,
+      praticasAmbientais,
+      identidadeComercial,
+      mulheresDiretoria,
+      jovensDiretoria,
+      politicasPublicas,
+      familiasVinculadas,
+    };
+  }, [items]);
+
+  const orgsByFamilies = useMemo(
+    () =>
+      [...items]
+        .map((item) => ({ name: item.denominacao, value: item.familiasVinculadas }))
+        .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR")),
+    [items],
+  );
+
+  const orgsByChannels = useMemo(
+    () =>
+      [...items]
+        .map((item) => ({ name: item.denominacao, value: item.canaisComercializacao }))
+        .filter((item) => item.value > 0)
+        .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR")),
+    [items],
+  );
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Organizações com indicadores"
+          value={`${ratio(metrics.comIndicadores, metrics.total)}%`}
+          description={`${metrics.comIndicadores} de ${metrics.total} organizações já possuem indicadores.`}
+          tone="green"
+          icon={ClipboardCheck}
+          active={focus === "indicadoresPendentes"}
+          onClick={() => setFocus(focus === "indicadoresPendentes" ? null : "indicadoresPendentes")}
+        />
+        <MetricCard
+          label="Famílias vinculadas"
+          value={metrics.familiasVinculadas}
+          description="Total de UFPAs vinculadas às organizações do recorte."
+          tone="blue"
+          icon={Users}
+        />
+        <MetricCard
+          label="Mulheres na direção"
+          value={metrics.mulheresDiretoria}
+          description="Organizações com mulheres na diretoria executiva ou conselho fiscal."
+          tone="rose"
+          icon={Users}
+        />
+        <MetricCard
+          label="Jovens na direção"
+          value={metrics.jovensDiretoria}
+          description="Organizações com jovens na diretoria executiva ou conselho fiscal."
+          tone="amber"
+          icon={Users}
+        />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Práticas ambientais"
+          value={metrics.praticasAmbientais}
+          description="Organizações que declararam uso de práticas ambientais."
+          tone="green"
+          icon={Leaf}
+          active={focus === "semPraticasAmbientais"}
+          onClick={() => setFocus(focus === "semPraticasAmbientais" ? null : "semPraticasAmbientais")}
+        />
+        <MetricCard
+          label="Identidade comercial"
+          value={metrics.identidadeComercial}
+          description="Organizações com marca, selo ou estratégia de identidade."
+          tone="blue"
+          icon={Globe}
+        />
+        <MetricCard
+          label="Políticas públicas"
+          value={metrics.politicasPublicas}
+          description="Organizações com acesso a políticas públicas no último ano."
+          tone="amber"
+          icon={ClipboardList}
+          active={focus === "semPoliticasPublicas"}
+          onClick={() => setFocus(focus === "semPoliticasPublicas" ? null : "semPoliticasPublicas")}
+        />
+        <MetricCard
+          label="Sem indicadores"
+          value={Math.max(0, metrics.total - metrics.comIndicadores)}
+          description="Organizações ainda sem formulário de indicadores preenchido."
+          tone="zinc"
+          icon={ClipboardList}
+          active={focus === "indicadoresPendentes"}
+          onClick={() => setFocus(focus === "indicadoresPendentes" ? null : "indicadoresPendentes")}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <SimpleBarList title="Organizações por UFPAs vinculadas" data={orgsByFamilies} color="bg-blue-600" />
+        <SimpleBarList title="Canais de comercialização por organização" data={orgsByChannels} color="bg-amber-500" />
+      </section>
+
+      <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+        <div className="mb-6 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-zinc-400" />
+          <h2 className="text-base font-bold text-zinc-900">Organizações que requerem atenção</h2>
+        </div>
+        <div className="divide-y divide-zinc-100">
+          {items
+            .filter((item) => {
+              if (focus === "indicadoresPendentes") return !item.indicadoresRegistrados;
+              if (focus === "semPraticasAmbientais") return item.praticasAmbientais === false;
+              if (focus === "semPoliticasPublicas") return item.politicasPublicas === false;
+              return !item.indicadoresRegistrados || item.praticasAmbientais === false || item.politicasPublicas === false;
+            })
+            .slice(0, 8)
+            .map((item) => (
+              <div key={item.id} className="grid gap-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                <div>
+                  <p className="text-sm font-bold text-zinc-950">{item.denominacao}</p>
+                  <p className="mt-1 text-xs font-bold text-zinc-400">{item.municipio || "Município não informado"}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {!item.indicadoresRegistrados && <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">Indicadores pendentes</span>}
+                    {item.praticasAmbientais === false && <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-700">Sem práticas ambientais</span>}
+                    {item.politicasPublicas === false && <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">Sem políticas públicas</span>}
+                  </div>
+                </div>
+                <Link href={appendReturnHref(`/ater-sociobio/organizacoes/${item.id}`)} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
+                  <MousePointer2 className="h-3.5 w-3.5" />
+                  Abrir detalhes
+                </Link>
+              </div>
+            ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function AtendimentosPanel({
+  items,
+  focus,
+  setFocus,
+  appendReturnHref,
+}: {
+  items: SiggaterAtendimentoDashboardItem[];
+  focus: FocusKey;
+  setFocus: (v: FocusKey) => void;
+  appendReturnHref: (href: string) => string;
+}) {
+  const metrics = useMemo(() => {
+    const total = items.length;
+    const mulheres = items.reduce((sum, item) => sum + item.numeroMulheres, 0);
+    const jovens = items.reduce((sum, item) => sum + item.numeroJovens, 0);
+    const comIndicadores = items.filter((item) => item.indicadoresTrabalhados.length > 0).length;
+    const emAnalise = items.filter((item) => item.statusRelatorio === "EM_ANALISE").length;
+    const reprovados = items.filter((item) => item.statusRelatorio === "REPROVADO_GESTOR").length;
+
+    return { total, mulheres, jovens, comIndicadores, emAnalise, reprovados };
+  }, [items]);
+
+  const statusData = useMemo(
+    () =>
+      groupCount(items, (item) => getAterSociobioStatusRelatorioLabel(item.statusRelatorio)),
+    [items],
+  );
+  const eixosData = useMemo(() => groupArrayValues(items, (item) => item.eixosTrabalhados), [items]);
+  const indicadoresData = useMemo(() => groupArrayValues(items, (item) => item.indicadoresTrabalhados), [items]);
+  const atendimentosPorTecnico = useMemo(() => groupCount(items, (item) => item.tecnico), [items]);
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Visitas válidas"
+          value={metrics.total}
+          description="Atendimentos que já entraram no fluxo operacional, sem contar rascunhos."
+          tone="blue"
+          icon={ClipboardList}
+        />
+        <MetricCard
+          label="Mulheres atendidas"
+          value={metrics.mulheres}
+          description="Soma do campo número de mulheres nos atendimentos."
+          tone="rose"
+          icon={Users}
+          active={focus === "mulheres"}
+          onClick={() => setFocus(focus === "mulheres" ? null : "mulheres")}
+        />
+        <MetricCard
+          label="Jovens atendidos"
+          value={metrics.jovens}
+          description="Soma do campo número de jovens nos atendimentos."
+          tone="amber"
+          icon={Users}
+          active={focus === "jovens"}
+          onClick={() => setFocus(focus === "jovens" ? null : "jovens")}
+        />
+        <MetricCard
+          label="Com indicadores trabalhados"
+          value={`${ratio(metrics.comIndicadores, metrics.total)}%`}
+          description={`${metrics.comIndicadores} visitas têm indicadores marcados no Documento 11.`}
+          tone="green"
+          icon={ClipboardCheck}
+        />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <MetricCard
+          label="Em análise"
+          value={metrics.emAnalise}
+          description="Relatórios aguardando análise da coordenação/gestão."
+          tone="blue"
+          icon={LayoutDashboard}
+          active={focus === "emAnalise"}
+          onClick={() => setFocus(focus === "emAnalise" ? null : "emAnalise")}
+        />
+        <MetricCard
+          label="Reprovado gestor"
+          value={metrics.reprovados}
+          description="Relatórios que precisam de correção antes de avançar."
+          tone="rose"
+          icon={AlertCircle}
+          active={focus === "reprovados"}
+          onClick={() => setFocus(focus === "reprovados" ? null : "reprovados")}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <SimpleBarList title="Atendimentos por status" data={statusData} color="bg-zinc-600" />
+        <SimpleBarList title="Atendimentos por eixo trabalhado" data={eixosData} color="bg-emerald-600" />
+        <SimpleBarList title="Atendimentos por técnico" data={atendimentosPorTecnico} color="bg-blue-600" />
+        <SimpleBarList title="Indicadores mais trabalhados nas visitas" data={indicadoresData} color="bg-amber-500" />
+      </section>
+
+      <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+        <div className="mb-6 flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-zinc-400" />
+          <h2 className="text-base font-bold text-zinc-900">Últimos atendimentos válidos</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead>
+              <tr className="border-b border-zinc-100 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                <th className="px-4 py-4">Visita</th>
+                <th className="px-4 py-4">Data</th>
+                <th className="px-4 py-4">UFPA</th>
+                <th className="px-4 py-4">Técnico</th>
+                <th className="px-4 py-4">Status</th>
+                <th className="px-4 py-4">Público</th>
+                <th className="px-4 py-4 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {items.slice(0, 10).map((item) => (
+                <tr key={item.id} className="group hover:bg-zinc-50/50">
+                  <td className="px-4 py-4 font-bold text-zinc-950">#{item.numeroVisita}</td>
+                  <td className="px-4 py-4 text-zinc-500 font-bold">{formatDate(item.data)}</td>
+                  <td className="px-4 py-4 font-bold text-zinc-700">{item.ufpa || "-"}</td>
+                  <td className="px-4 py-4 text-zinc-500 font-bold">{item.tecnico || "-"}</td>
+                  <td className="px-4 py-4">
+                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-bold text-zinc-600 uppercase">
+                      {getAterSociobioStatusRelatorioLabel(item.statusRelatorio)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-zinc-500">
+                    <div className="flex gap-2">
+                      <span className="flex items-center gap-1 rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">
+                        {item.numeroMulheres} M
+                      </span>
+                      <span className="flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+                        {item.numeroJovens} J
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <Link href={appendReturnHref(`/ater-sociobio/atendimentos/${item.id}`)} className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700">
+                      Abrir
+                      <MousePointer2 className="h-3 w-3" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const focusParam = searchParams.get("focus");
+  const initialTab = isDashboardTab(tabParam) ? tabParam : "ufpas";
+  const initialFocus = isFocusKey(focusParam) ? focusParam : null;
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
+  const [focus, setFocus] = useState<FocusKey>(initialFocus);
+
+  const queryNorm = query.trim().toLowerCase();
+  const buildDashboardHref = (tab: DashboardTab, nextFocus: FocusKey, nextQuery: string) => {
+    const params = new URLSearchParams();
+    if (tab !== "ufpas") params.set("tab", tab);
+    if (nextFocus) params.set("focus", nextFocus);
+    if (nextQuery.trim()) params.set("q", nextQuery.trim());
+
+    const search = params.toString();
+    return `${pathname}${search ? `?${search}` : ""}`;
+  };
+  const syncDashboardUrl = (tab: DashboardTab, nextFocus: FocusKey, nextQuery = query) => {
+    router.replace(buildDashboardHref(tab, nextFocus, nextQuery), { scroll: false });
+  };
+  const activateFocus = (tab: DashboardTab, key: FocusKey) => {
+    const nextFocus = activeTab === tab && focus === key ? null : key;
+    setActiveTab(tab);
+    setFocus(nextFocus);
+    syncDashboardUrl(tab, nextFocus);
+  };
+  const currentDashboardHref = buildDashboardHref(activeTab, focus, query);
+  const appendReturnHref = (href: string) => `${href}?from=${encodeURIComponent(currentDashboardHref)}`;
+  const setPanelFocus = (value: FocusKey) => {
+    setFocus(value);
+    syncDashboardUrl(activeTab, value);
+  };
+
+  const familias = useMemo(
+    () =>
+      data.familias.filter((item) => {
+        const matchQuery =
+          !queryNorm ||
+          [item.nomeFamilia, item.comunidade, item.organizacaoColetiva, item.grupoInteresse, item.municipio]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase().includes(queryNorm));
+
+        return matchQuery && focusFilter(focus, item, "ufpas");
+      }),
+    [data.familias, focus, queryNorm],
+  );
+
+  const organizacoes = useMemo(
+    () =>
+      data.organizacoes.filter((item) => {
+        const matchQuery =
+          !queryNorm ||
+          [item.denominacao, item.municipio]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase().includes(queryNorm));
+
+        return matchQuery && focusFilter(focus, item, "organizacoes");
+      }),
+    [data.organizacoes, focus, queryNorm],
+  );
+
+  const atendimentos = useMemo(
+    () =>
+      data.atendimentos.filter((item) => {
+        const matchQuery = !queryNorm ||
+          [item.ufpa, item.organizacaoColetiva, item.tecnico, item.statusRelatorio]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(queryNorm));
+
+        return matchQuery && focusFilter(focus, item, "atendimentos");
+      }),
+    [data.atendimentos, focus, queryNorm],
+  );
+
+  const executiveMetrics = useMemo(() => {
+    const ufpasComAlertas = data.familias.filter((item) => getRisks(item).length > 0).length;
+    const semAguaTratada = data.familias.filter((item) => item.aguaTratada === false).length;
+    const semCadUnico = data.familias.filter((item) => item.cadUnico === false).length;
+    const insegurancaAlimentar = data.familias.filter((item) => item.insegurancaAlimentar === true).length;
+    const organizacoesSemIndicadores = data.organizacoes.filter((item) => !item.indicadoresRegistrados).length;
+    const organizacoesSemPraticas = data.organizacoes.filter((item) => item.praticasAmbientais === false).length;
+    const relatoriosEmAnalise = data.atendimentos.filter((item) => item.statusRelatorio === "EM_ANALISE").length;
+    const relatoriosReprovados = data.atendimentos.filter((item) => item.statusRelatorio === "REPROVADO_GESTOR").length;
+    const mulheresAtendidas = data.atendimentos.reduce((sum, item) => sum + item.numeroMulheres, 0);
+    const jovensAtendidos = data.atendimentos.reduce((sum, item) => sum + item.numeroJovens, 0);
+
+    return {
+      ufpasComAlertas,
+      semAguaTratada,
+      semCadUnico,
+      insegurancaAlimentar,
+      organizacoesSemIndicadores,
+      organizacoesSemPraticas,
+      relatoriosEmAnalise,
+      relatoriosReprovados,
+      mulheresAtendidas,
+      jovensAtendidos,
+      totalPessoasAtendidas: mulheresAtendidas + jovensAtendidos,
+    };
+  }, [data]);
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-3xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)] sm:p-8">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] xl:items-center">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-emerald-600 p-2 shadow-lg shadow-emerald-600/20">
+                <LayoutDashboard className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-zinc-900">Métricas Operacionais</h2>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-500 font-bold">
+              Acompanhamento tático das UFPAs, organizações e visitas técnicas em tempo real.
+            </p>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                syncDashboardUrl(activeTab, focus, event.target.value);
+              }}
+              placeholder="Digite qualquer parte do nome, comunidade ou município..."
+              className="h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50/50 pl-11 pr-4 text-sm font-bold text-zinc-900 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <MetricCard label="UFPAs" value={data.familias.length} description="Unidades familiares cadastradas." tone="zinc" icon={Users} />
+          <MetricCard label="Organizações" value={data.organizacoes.length} description="Organizações coletivas cadastradas." tone="zinc" icon={Building2} />
+          <MetricCard label="Visitas" value={data.atendimentos.length} description="Atendimentos sem rascunhos." tone="zinc" icon={ClipboardList} />
+          <MetricCard label="Público Alcançado" value={executiveMetrics.totalPessoasAtendidas} description="Mulheres e jovens registrados." tone="zinc" icon={Users} />
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50/70 p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Filter className="h-4 w-4 text-zinc-500" />
+            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Indicadores de decisão</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <AlertButton
+              label="UFPAs com alerta"
+              value={executiveMetrics.ufpasComAlertas}
+              description="Famílias com uma ou mais pendências sociais, ambientais ou operacionais."
+              active={activeTab === "ufpas" && focus === "comAlertas"}
+              onClick={() => activateFocus("ufpas", "comAlertas")}
+              icon={AlertTriangle}
+            />
+            <AlertButton
+              label="Água sem tratamento"
+              value={executiveMetrics.semAguaTratada}
+              description="UFPAs com problema direto em água de consumo tratada."
+              active={activeTab === "ufpas" && focus === "semAgua"}
+              onClick={() => activateFocus("ufpas", "semAgua")}
+              icon={Droplets}
+            />
+            <AlertButton
+              label="Sem CadÚnico"
+              value={executiveMetrics.semCadUnico}
+              description="Famílias sem CadÚnico registrado nos indicadores."
+              active={activeTab === "ufpas" && focus === "semCadUnico"}
+              onClick={() => activateFocus("ufpas", "semCadUnico")}
+              icon={Users}
+            />
+            <AlertButton
+              label="Insegurança alimentar"
+              value={executiveMetrics.insegurancaAlimentar}
+              description="Famílias com alerta alimentar registrado no diagnóstico."
+              active={activeTab === "ufpas" && focus === "inseguranca"}
+              onClick={() => activateFocus("ufpas", "inseguranca")}
+              icon={AlertCircle}
+            />
+            <AlertButton
+              label="Org. sem indicadores"
+              value={executiveMetrics.organizacoesSemIndicadores}
+              description="Organizações coletivas sem indicadores preenchidos."
+              active={activeTab === "organizacoes" && focus === "indicadoresPendentes"}
+              onClick={() => activateFocus("organizacoes", "indicadoresPendentes")}
+              icon={Building2}
+            />
+            <AlertButton
+              label="Org. sem práticas ambientais"
+              value={executiveMetrics.organizacoesSemPraticas}
+              description="Organizações que declararam não usar práticas ambientais."
+              active={activeTab === "organizacoes" && focus === "semPraticasAmbientais"}
+              onClick={() => activateFocus("organizacoes", "semPraticasAmbientais")}
+              icon={Leaf}
+            />
+            <AlertButton
+              label="Relatórios em análise"
+              value={executiveMetrics.relatoriosEmAnalise}
+              description="Atendimentos aguardando avaliação da coordenação."
+              active={activeTab === "atendimentos" && focus === "emAnalise"}
+              onClick={() => activateFocus("atendimentos", "emAnalise")}
+              icon={LayoutDashboard}
+            />
+            <AlertButton
+              label="Relatórios reprovados"
+              value={executiveMetrics.relatoriosReprovados}
+              description="Atendimentos que precisam voltar para correção."
+              active={activeTab === "atendimentos" && focus === "reprovados"}
+              onClick={() => activateFocus("atendimentos", "reprovados")}
+              icon={AlertCircle}
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-zinc-100 pt-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <TabButton active={activeTab === "ufpas"} icon={Users} label="UFPAs" onClick={() => { setActiveTab("ufpas"); setFocus(null); syncDashboardUrl("ufpas", null); }} />
+            <TabButton active={activeTab === "organizacoes"} icon={Building2} label="Organizações" onClick={() => { setActiveTab("organizacoes"); setFocus(null); syncDashboardUrl("organizacoes", null); }} />
+            <TabButton active={activeTab === "atendimentos"} icon={ClipboardList} label="Atendimentos" onClick={() => { setActiveTab("atendimentos"); setFocus(null); syncDashboardUrl("atendimentos", null); }} />
+
+            {(query || focus) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setFocus(null);
+                  syncDashboardUrl(activeTab, null, "");
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-bold text-zinc-600 transition hover:bg-zinc-200"
+              >
+                <X className="h-4 w-4" />
+                Limpar filtros
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <ExportExcelButton
+              data={activeTab === "ufpas" ? familias : activeTab === "organizacoes" ? organizacoes : atendimentos}
+              fileName={`Exportacao_${activeTab}_SIGGATER_${new Date().toISOString().slice(0,10)}`}
+              label={`Exportar ${activeTab === "ufpas" ? "UFPAs" : activeTab === "organizacoes" ? "Organizações" : "Atendimentos"}`}
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="relative">
+        <div className="absolute inset-0 -top-4 rounded-[3rem] bg-zinc-100/30 shadow-inner" aria-hidden="true" />
+        <div className="relative space-y-6">
+          {activeTab === "ufpas" && <UfpaPanel items={familias} focus={focus} setFocus={setPanelFocus} appendReturnHref={appendReturnHref} />}
+          {activeTab === "organizacoes" && <OrganizacoesPanel items={organizacoes} focus={focus} setFocus={setPanelFocus} appendReturnHref={appendReturnHref} />}
+          {activeTab === "atendimentos" && <AtendimentosPanel items={atendimentos} focus={focus} setFocus={setPanelFocus} appendReturnHref={appendReturnHref} />}
+        </div>
+      </div>
+
+      <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+        <div className="mb-6 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-emerald-500" />
+          <h2 className="text-base font-bold text-zinc-900">Guia de Apoio à Reunião</h2>
+        </div>
+        <div className="grid gap-6 text-sm md:grid-cols-3">
+          <div className="rounded-xl bg-zinc-50 p-5">
+            <div className="flex items-center gap-2 text-blue-600">
+              <Users className="h-4 w-4" />
+              <span className="font-bold uppercase tracking-wider text-[10px]">Visão UFPAs</span>
+            </div>
+            <p className="mt-3 leading-relaxed text-zinc-600 font-bold">
+              Utilize para identificar vulnerabilidades e definir o plano de ação familiar individual.
+            </p>
+          </div>
+          <div className="rounded-xl bg-zinc-50 p-5">
+            <div className="flex items-center gap-2 text-emerald-600">
+              <Building2 className="h-4 w-4" />
+              <span className="font-bold uppercase tracking-wider text-[10px]">Visão Organizações</span>
+            </div>
+            <p className="mt-3 leading-relaxed text-zinc-600 font-bold">
+              Foque na capacidade coletiva, representação política e abertura de novos canais de mercado.
+            </p>
+          </div>
+          <div className="rounded-xl bg-zinc-50 p-5">
+            <div className="flex items-center gap-2 text-amber-600">
+              <Leaf className="h-4 w-4" />
+              <span className="font-bold uppercase tracking-wider text-[10px]">Visão Atendimentos</span>
+            </div>
+            <p className="mt-3 leading-relaxed text-zinc-600 font-bold">
+              Avalie a produtividade da equipe e o alcance real das metas de visitas e eixos trabalhados.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

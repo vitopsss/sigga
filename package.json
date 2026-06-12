@@ -6,7 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docs:acariquara:proposta": "tsx scripts/acariquara/generate-siggater-proposal-pdf.tsx",
+    "docs:acariquara:proposta-revisada": "tsx scripts/acariquara/generate-siggater-revised-proposal-pdf.tsx",
+    "docs:acariquara:proposta-parecer": "tsx scripts/acariquara/generate-siggater-revised-proposal-pdf.tsx",
+    "docs:acariquara:proposta-unificada": "tsx scripts/acariquara/generate-siggater-unified-proposal-pdf.tsx",
+    "docs:acariquara:baseline": "tsx scripts/acariquara/generate-siggater-baseline-campos-pdf.tsx",
+    "docs:acariquara:contrato": "tsx scripts/acariquara/generate-siggater-contract-pdf.tsx",
+    "docs:acariquara:contrato-parecer": "tsx scripts/acariquara/generate-siggater-contract-legal-adjusted-pdf.tsx",
+    "docs:acariquara:reuniao": "tsx scripts/acariquara/generate-acariquara-meeting-summary-pdf.tsx",
+    "docs:acariquara:roteiro": "tsx scripts/acariquara/generate-acariquara-presentation-script-pdf.tsx",
+    "docs:acariquara:roteiro-app": "tsx scripts/acariquara/generate-siggater-app-demo-roteiro-pdf.tsx",
+    "docs:acariquara:analise-escopo": "tsx scripts/acariquara/generate-acariquara-scope-analysis-pdf.tsx",
+    "demo:siggater": "tsx scripts/acariquara/reset-siggater-demo-data.ts",
+    "demo:siggater:clear": "tsx scripts/acariquara/clear-siggater-data.ts",
+    "siggater:user": "tsx scripts/acariquara/create-siggater-user.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

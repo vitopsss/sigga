@@ -75,7 +75,12 @@ export default async function EditarTecnicoPage({
                   </label>
 
                   <label className={labelClassName}>
-                    <span className="text-sm font-medium text-slate-700">Registro do conselho</span>
+                    <span className="text-sm font-medium text-slate-700">Conselho (Ex: CREA, CRF)</span>
+                    <input name="conselho" type="text" defaultValue={tecnico.conselho ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-slate-700">Número do Registro</span>
                     <input name="registroConselho" type="text" defaultValue={tecnico.registroConselho ?? ""} className={inputClassName} />
                   </label>
 

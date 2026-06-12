@@ -3,6 +3,7 @@ import { ProjetoService } from "@/lib/services/projeto.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { FormProjeto } from "../../form-projeto";
+import { salvarProjeto } from "../../actions";
 
 export default async function EditarProjetoPage({
   params,
@@ -16,6 +17,13 @@ export default async function EditarProjetoPage({
     notFound();
   }
 
+  const projetoProps = {
+    ...projeto,
+    valorTotal: projeto.valorTotal.toString(),
+    vigenciaInicial: projeto.vigenciaInicial.toISOString(),
+    vigenciaFinal: projeto.vigenciaFinal ? projeto.vigenciaFinal.toISOString() : null,
+  };
+
   return (
     <div className="flex min-h-screen bg-zinc-50">
       <Sidebar />
@@ -27,7 +35,7 @@ export default async function EditarProjetoPage({
         />
 
         <div className="p-6 lg:p-8 max-w-4xl">
-          <FormProjeto projeto={projeto} />
+          <FormProjeto projeto={projetoProps} action={salvarProjeto} />
         </div>
       </main>
     </div>

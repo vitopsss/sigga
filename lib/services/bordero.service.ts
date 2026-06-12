@@ -32,6 +32,10 @@ export interface LancamentoInputDTO {
   valor: number;
   dataVencimento: Date;
   formaPagamento: string | null;
+  // Campos passivos de classificação e histórico (46k)
+  idPgc?: string | null;
+  idOrc?: string | null;
+  observacao?: string | null;
 }
 
 export class BorderoService {
@@ -100,10 +104,21 @@ export class BorderoService {
     });
   }
 
-  static async listFavorecidos() {
+  static async listFavorecidos(busca?: string) {
+    const where: Prisma.CadastroUnicoWhereInput = {};
+
+    if (busca && busca.trim().length > 0) {
+      where.OR = [
+        { nome: { contains: busca.trim(), mode: "insensitive" } },
+        { documento: { contains: busca.trim() } }
+      ];
+    }
+
     return prisma.cadastroUnico.findMany({
+      where,
       select: { id: true, nome: true, documento: true, tipo: true },
       orderBy: { nome: "asc" },
+      take: 50,
     });
   }
 
@@ -180,6 +195,9 @@ export class BorderoService {
               valor: lancamento.valor,
               dataVencimento: lancamento.dataVencimento,
               formaPagamento: lancamento.formaPagamento,
+              idPgc: lancamento.idPgc,
+              idOrc: lancamento.idOrc,
+              observacao: lancamento.observacao,
               conciliado: false,
             },
           });
@@ -250,6 +268,9 @@ export class BorderoService {
             valor: lancamentoInput.valor,
             dataVencimento: lancamentoInput.dataVencimento,
             formaPagamento: lancamentoInput.formaPagamento,
+            idPgc: lancamentoInput.idPgc,
+            idOrc: lancamentoInput.idOrc,
+            observacao: lancamentoInput.observacao,
             autorizado: false,
             conciliado: false,
           },

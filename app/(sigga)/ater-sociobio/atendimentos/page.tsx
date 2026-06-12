@@ -4,20 +4,18 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Button, Card } from "@/components/ui";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
-import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
+import {
+  ATER_SOCIOBIO_STATUS_RELATORIO,
+  ATER_SOCIOBIO_STATUS_RELATORIO_COLORS,
+  ATER_SOCIOBIO_TERRITORY_NAME,
+  getAterSociobioStatusRelatorioLabel,
+} from "@/lib/constants/ater-sociobio";
 import { Header } from "@/components/dashboard/header";
 import { AterSociobioService, AtendimentoWithDetails } from "@/lib/services/ater-sociobio.service";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
-
-const statusColors: Record<string, string> = {
-  PENDENTE: "bg-amber-100 text-amber-700",
-  RASCUNHO: "bg-blue-100 text-blue-700",
-  CONCLUIDO: "bg-emerald-100 text-emerald-700",
-  ENVIADO_SGA: "bg-purple-100 text-purple-700",
-};
 
 type SearchParams = Promise<{ busca?: string; status?: string; pagina?: string }>;
 
@@ -67,6 +65,8 @@ export default async function AtendimentosPage({
   const atendimentosFiltrados = atendimentos.filter((at) => {
     const familiaNome = at.familia?.nomeFamilia?.toLowerCase() ?? "";
     const municipio = at.familia?.municipio?.toLowerCase() ?? "";
+    const dapCaf = at.familia?.dapCaf?.toLowerCase() ?? "";
+    const codigoSGA = at.familia?.codigoSGA?.toLowerCase() ?? "";
     const tecnicoNome = (at.tecnicoRef?.nome ?? at.tecnico ?? "").toLowerCase();
     const statusValue = (at.statusRelatorio ?? "").toUpperCase();
     const numeroVisita = String(at.numeroVisita ?? "");
@@ -75,6 +75,8 @@ export default async function AtendimentosPage({
       !buscaNorm ||
       familiaNome.includes(buscaNorm) ||
       municipio.includes(buscaNorm) ||
+      dapCaf.includes(buscaNorm) ||
+      codigoSGA.includes(buscaNorm) ||
       tecnicoNome.includes(buscaNorm) ||
       numeroVisita.includes(buscaNorm);
 
@@ -95,7 +97,7 @@ export default async function AtendimentosPage({
     <div className="min-h-screen bg-zinc-50/50">
       <Header
         title="Atendimentos"
-        description={`Histórico de visitas técnicas vinculadas a famílias do lote ${ATER_SOCIOBIO_TERRITORY_NAME}`}
+        description={`Histórico de visitas técnicas vinculadas às UFPAs acompanhadas em ${ATER_SOCIOBIO_TERRITORY_NAME}`}
         actions={
           <Link href="/ater-sociobio/atendimentos/nova" className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">
             Nova visita
@@ -111,7 +113,7 @@ export default async function AtendimentosPage({
             <div className="flex flex-col gap-4 border-b border-zinc-200/60 p-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-zinc-950">Filtrar atendimentos</h2>
-                <p className="text-sm text-zinc-500">Busque por família, município, técnico ou número da visita e refine por status.</p>
+                <p className="text-sm text-zinc-500">Busque por UFPA, município, DAP/CAF, SGA, técnico ou número da visita e refine por status.</p>
               </div>
 
               <form action="/ater-sociobio/atendimentos" method="GET" className="flex flex-col gap-3 md:flex-row">
@@ -132,10 +134,11 @@ export default async function AtendimentosPage({
                   className="h-11 rounded-xl border border-zinc-300 bg-zinc-50 px-4 text-sm text-zinc-700 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
                 >
                   <option value="">Todos os status</option>
-                  <option value="PENDENTE">Pendente</option>
-                  <option value="RASCUNHO">Rascunho</option>
-                  <option value="CONCLUIDO">Concluído</option>
-                  <option value="ENVIADO_SGA">Enviado SGA</option>
+                  {ATER_SOCIOBIO_STATUS_RELATORIO.map((status) => (
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
+                  ))}
                 </select>
 
                 <Button type="submit" variant="ghost">
@@ -158,7 +161,7 @@ export default async function AtendimentosPage({
                   <tr className="border-b border-slate-100 bg-slate-50 text-left">
                     <th className="px-6 py-4 font-medium text-slate-600">Visita</th>
                     <th className="px-6 py-4 font-medium text-slate-600">Data</th>
-                    <th className="px-6 py-4 font-medium text-slate-600">Família</th>
+                    <th className="px-6 py-4 font-medium text-slate-600">UFPA</th>
                     <th className="px-6 py-4 font-medium text-slate-600">Técnico</th>
                     <th className="px-6 py-4 font-medium text-slate-600">Status</th>
                     <th className="px-6 py-4 font-medium text-slate-600"></th>
@@ -169,6 +172,7 @@ export default async function AtendimentosPage({
                     const familiaNome = at.familia?.nomeFamilia;
                     const municipio = at.familia?.municipio;
                     const tecnicoNome = at.tecnicoRef?.nome ?? at.tecnico;
+                    const diagnosticoStatus = at.familia?.diagnostico ? "Diagnóstico registrado" : "Sem diagnóstico";
 
                     return (
                       <tr key={at.id} className="hover:bg-slate-50">
@@ -179,13 +183,14 @@ export default async function AtendimentosPage({
                         <td className="px-6 py-4">
                           <span className="font-medium text-slate-900">{familiaNome ?? "-"}</span>
                           {municipio && <span className="ml-2 text-slate-500">{municipio}</span>}
+                          <span className="block text-xs text-slate-500">{diagnosticoStatus}</span>
                         </td>
                         <td className="px-6 py-4 text-slate-600">{tecnicoNome ?? "-"}</td>
                         <td className="px-6 py-4">
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[at.statusRelatorio ?? ""] ?? "bg-slate-100 text-slate-600"}`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ATER_SOCIOBIO_STATUS_RELATORIO_COLORS[at.statusRelatorio ?? ""] ?? "bg-slate-100 text-slate-600"}`}
                           >
-                            {at.statusRelatorio}
+                            {getAterSociobioStatusRelatorioLabel(at.statusRelatorio)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">

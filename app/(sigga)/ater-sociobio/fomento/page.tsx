@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Badge, Card, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui";
 import { isAterMissingTableError } from "@/lib/ater-runtime";
-import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
+import { ATER_SOCIOBIO_MODULE_NAME, ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -51,11 +51,11 @@ export default async function FomentoAterSociobioPage() {
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
           <Badge variant="success" className="w-fit">
-            ATER Sociobio
+            {ATER_SOCIOBIO_MODULE_NAME}
           </Badge>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">Fomento</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-            Visão consolidada do fomento por família no lote {ATER_SOCIOBIO_TERRITORY_NAME}, incluindo situação, valor apoiado e contrapartida registrada.
+            Visão consolidada do fomento por família em {ATER_SOCIOBIO_TERRITORY_NAME}, incluindo situação, valor apoiado e contrapartida registrada.
           </p>
         </section>
 

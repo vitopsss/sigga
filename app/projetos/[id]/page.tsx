@@ -60,7 +60,7 @@ export default async function ProjetoDetalhePage({
               </div>
               <div>
                 <p className="text-2xl font-bold text-zinc-950">
-                  {projeto.vigenciaInicial.toLocaleDateString("pt-BR")} — 
+                  {projeto.vigenciaInicial.toLocaleDateString("pt-BR")} —
                   {projeto.vigenciaFinal?.toLocaleDateString("pt-BR") ?? "Indefinida"}
                 </p>
                 <p className="text-sm text-zinc-500 mt-1">Prazo contratual</p>
@@ -96,7 +96,7 @@ export default async function ProjetoDetalhePage({
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-zinc-950">Itens de Orçamento</h2>
             </div>
-            
+
             <Card>
               <Table>
                 <TableHeader>
@@ -108,14 +108,14 @@ export default async function ProjetoDetalhePage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {projeto.orcamentoItens.length === 0 ? (
+                  {projeto.orcamentos.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8 text-zinc-500">
                         Nenhum item de orçamento cadastrado.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    projeto.orcamentoItens.map((item) => (
+                    projeto.orcamentos.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-mono text-xs">{item.idOrc}</TableCell>
                         <TableCell className="text-zinc-700">{item.descricao ?? "—"}</TableCell>
@@ -151,7 +151,7 @@ export default async function ProjetoDetalhePage({
                 <Button variant="secondary" size="sm">Configurar Metas</Button>
               </Link>
             </div>
-            
+
             <Card>
               <Table>
                 <TableHeader>
@@ -163,19 +163,19 @@ export default async function ProjetoDetalhePage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {projeto.metas.length === 0 ? (
+                  {projeto.atividadesATER.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8 text-zinc-500">
                         Nenhuma meta configurada para este projeto.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    projeto.metas.map((meta) => (
+                    projeto.atividadesATER.map((meta) => (
                       <TableRow key={meta.id}>
-                        <TableCell className="font-medium text-zinc-950">{meta.titulo}</TableCell>
-                        <TableCell className="text-zinc-600 text-sm">{meta.descricao ?? "—"}</TableCell>
-                        <TableCell className="text-zinc-500 text-xs uppercase tracking-wider">{meta.unidade ?? "un"}</TableCell>
-                        <TableCell className="font-bold text-zinc-950">{meta.valorPrevisto}</TableCell>
+                        <TableCell className="font-medium text-zinc-950">Meta {meta.numMeta}</TableCell>
+                        <TableCell className="text-zinc-600 text-sm">{meta.descricao}</TableCell>
+                        <TableCell className="text-zinc-500 text-xs uppercase tracking-wider">{meta.status}</TableCell>
+                        <TableCell className="font-bold text-zinc-950">{currencyFormatter.format(Number(meta.valorUnitario))}</TableCell>
                       </TableRow>
                     ))
                   )}

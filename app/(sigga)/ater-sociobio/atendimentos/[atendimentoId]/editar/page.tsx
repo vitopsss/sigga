@@ -1,20 +1,40 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import {
+  AtendimentoDocumento11Fields,
+  type AtendimentoEixoDocumento11,
+} from "@/components/ater/atendimento-documento-11-fields";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { atualizarAtendimentoFamilia } from "@/lib/actions/atendimentos-familia";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import {
-  ATER_SOCIOBIO_ETAPAS,
   ATER_SOCIOBIO_PROJETOS_REFERENCIA,
-  ATER_SOCIOBIO_TIPOS_ACAO,
+  ATER_SOCIOBIO_STATUS_RELATORIO,
 } from "@/lib/constants/ater-sociobio";
-import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
+import {
+  AterSociobioService,
+  type AtendimentoWithDetails,
+  type FamiliaListItem,
+  type TecnicoAtivo,
+} from "@/lib/services/ater-sociobio.service";
 
 export const dynamic = "force-dynamic";
 
 const inputClassName =
   "mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getEixoData(value: unknown): AtendimentoEixoDocumento11 {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as AtendimentoEixoDocumento11;
+  }
+
+  return {};
+}
 
 export default async function EditarAtendimentoPage({
   params,
@@ -22,11 +42,10 @@ export default async function EditarAtendimentoPage({
   params: Promise<{ atendimentoId: string }>;
 }) {
   const { atendimentoId } = await params;
-  
-  let atendimento = null;
-  let familias: any[] = [];
-  let tecnicos: any[] = [];
-  let error: string | null = null;
+
+  let atendimento: AtendimentoWithDetails | null = null;
+  let familias: FamiliaListItem[] = [];
+  let tecnicos: TecnicoAtivo[] = [];
   let setupMissing = false;
 
   try {
@@ -38,12 +57,11 @@ export default async function EditarAtendimentoPage({
     atendimento = atendRes;
     familias = familiasRes.familias;
     tecnicos = tecnicosRes;
-  } catch (e: any) {
-    if (e.message === ATER_SETUP_ERROR) {
+  } catch (e: unknown) {
+    if (getErrorMessage(e) === ATER_SETUP_ERROR) {
       setupMissing = true;
     } else {
       console.error(e);
-      error = e.message;
     }
   }
 
@@ -61,17 +79,7 @@ export default async function EditarAtendimentoPage({
   }
 
   if (!atendimento) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-slate-900">Atendimento não encontrado</h2>
-          <p className="mt-2 text-sm text-slate-600">Não foi possível localizar o atendimento solicitado.</p>
-          <Link href="/ater-sociobio/atendimentos" className="mt-4 inline-block text-sm text-emerald-600 hover:underline">
-            Voltar para a listagem
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   async function submit(formData: FormData) {
@@ -82,11 +90,6 @@ export default async function EditarAtendimentoPage({
       redirect(`/ater-sociobio/atendimentos/${atendimentoId}`);
     }
   }
-
-  const getEixoData = (val: any): Record<string, any> => {
-    if (val && typeof val === "object" && !Array.isArray(val)) return val;
-    return {};
-  };
 
   const eixoProdutivo = getEixoData(atendimento.eixoProdutivo);
   const eixoSocial = getEixoData(atendimento.eixoSocial);
@@ -101,7 +104,7 @@ export default async function EditarAtendimentoPage({
               Voltar
             </Link>
             <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-              ATER Sociobio
+              SIGGATER Web
             </span>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
               Editar atendimento
@@ -120,12 +123,12 @@ export default async function EditarAtendimentoPage({
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <label className="block md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700">Família *</span>
+                  <span className="text-sm font-medium text-slate-700">UFPA *</span>
                   <select name="familiaId" required defaultValue={atendimento.familiaId ?? ""} className={inputClassName}>
-                    <option value="">Selecione a família</option>
+                    <option value="">Selecione a UFPA</option>
                     {familias.map((f) => (
                       <option key={f.id} value={f.id}>
-                        {f.nomeFamilia} - {f.municipio ?? "sem município"}
+                        {f.nomeFamilia} - {f.municipio ?? "sem município"} - {f.diagnostico ? "diagnóstico registrado" : "sem diagnóstico"}
                       </option>
                     ))}
                   </select>
@@ -157,10 +160,11 @@ export default async function EditarAtendimentoPage({
                 <label className="block">
                   <span className="text-sm font-medium text-slate-700">Status do relatório</span>
                   <select name="statusRelatorio" defaultValue={atendimento.statusRelatorio} className={inputClassName}>
-                    <option value="PENDENTE">Pendente</option>
-                    <option value="RASCUNHO">Rascunho</option>
-                    <option value="CONCLUIDO">Concluído</option>
-                    <option value="ENVIADO_SGA">Enviado SGA</option>
+                    {ATER_SOCIOBIO_STATUS_RELATORIO.map((status) => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </div>
@@ -208,66 +212,47 @@ export default async function EditarAtendimentoPage({
               </div>
             </section>
 
-            {(
-              [
-                ["produtivo", eixoProdutivo],
-                ["social", eixoSocial],
-                ["ambiental", eixoAmbiental],
-              ] as const
-            ).map(([eixo, vals]) => (
-              <section key={eixo} className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm">
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold capitalize text-slate-900">Eixo {eixo}</h2>
-                  <p className="mt-1 text-sm text-slate-600">Atualize os registros deste eixo.</p>
-                </div>
+            <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-6 shadow-sm">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-slate-900">Atividade e meta</h2>
+                <p className="mt-1 text-sm text-slate-600">Campos do Relatório Técnico de Visita Individual.</p>
+              </div>
 
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-slate-700">Tipo de ação</span>
-                    <select name={`eixo_${eixo}_tipoAcao`} defaultValue={vals.tipoAcao ?? ""} className={inputClassName}>
-                      <option value="">Selecione</option>
-                      {ATER_SOCIOBIO_TIPOS_ACAO[eixo].map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">Atividade número / total planejado</span>
+                  <input
+                    name="atividadeNumeroTotal"
+                    type="text"
+                    defaultValue={atendimento.atividadeNumeroTotal ?? ""}
+                    className={inputClassName}
+                    placeholder="Ex.: 1/16"
+                  />
+                </label>
 
-                  <label className="block">
-                    <span className="text-sm font-medium text-slate-700">Etapa</span>
-                    <select name={`eixo_${eixo}_etapa`} defaultValue={vals.etapa ?? ""} className={inputClassName}>
-                      <option value="">Selecione</option>
-                      {ATER_SOCIOBIO_ETAPAS[eixo].map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">Código da Meta</span>
+                  <input name="codigoMeta" type="text" defaultValue={atendimento.codigoMeta ?? ""} className={inputClassName} />
+                </label>
 
-                  <label className="block md:col-span-2">
-                    <span className="text-sm font-medium text-slate-700">Impactos anteriores</span>
-                    <input
-                      name={`eixo_${eixo}_impactosAnteriores`}
-                      type="text"
-                      defaultValue={vals.impactosAnteriores ?? ""}
-                      className={inputClassName}
-                    />
-                  </label>
+                <label className="block md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700">Descrição da Meta</span>
+                  <textarea name="descricaoMeta" rows={3} defaultValue={atendimento.descricaoMeta ?? ""} className={inputClassName} />
+                </label>
 
-                  <label className="block md:col-span-2">
-                    <span className="text-sm font-medium text-slate-700">Desenvolvimento</span>
-                    <textarea name={`eixo_${eixo}_desenvolvimento`} rows={3} defaultValue={vals.desenvolvimento ?? ""} className={inputClassName} />
-                  </label>
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">Nº Mulheres no atendimento</span>
+                  <input name="numeroMulheres" type="number" min={0} defaultValue={atendimento.numeroMulheres ?? ""} className={inputClassName} />
+                </label>
 
-                  <label className="block md:col-span-2">
-                    <span className="text-sm font-medium text-slate-700">Recomendações</span>
-                    <textarea name={`eixo_${eixo}_recomendacoes`} rows={2} defaultValue={vals.recomendacoes ?? ""} className={inputClassName} />
-                  </label>
-                </div>
-              </section>
-            ))}
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">Nº Jovens no atendimento</span>
+                  <input name="numeroJovens" type="number" min={0} defaultValue={atendimento.numeroJovens ?? ""} className={inputClassName} />
+                </label>
+              </div>
+            </section>
+
+            <AtendimentoDocumento11Fields produtivo={eixoProdutivo} social={eixoSocial} ambiental={eixoAmbiental} />
 
             <div className="flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="max-w-2xl text-sm leading-6 text-slate-500">

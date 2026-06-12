@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
-export type ProjetoListItem = Prisma.ProjetoGetPayload<{}>;
+export type ProjetoListItem = Prisma.ProjetoGetPayload<Prisma.ProjetoDefaultArgs>;
 
 export type ProjetoDetail = Prisma.ProjetoGetPayload<{
   include: {
-    orcamentoItens: true;
-    metas: true;
+    orcamentos: true;
+    atividadesATER: true;
   };
 }>;
 
@@ -54,8 +54,8 @@ export class ProjetoService {
     return prisma.projeto.findUnique({
       where: { id },
       include: {
-        orcamentoItens: true,
-        metas: true,
+        orcamentos: true,
+        atividadesATER: true,
       },
     });
   }
