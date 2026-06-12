@@ -12,7 +12,7 @@ Neste primeiro momento, farei a preparação do ambiente, a revisão do fluxo in
 
 Antes de encaminhar os acessos, vou consolidar internamente o ambiente e o fluxo inicial de homologação. Em seguida, enviarei as orientações de acesso, a proposta de agenda de alinhamento e os pontos que precisaremos validar com a equipe.
 
-Para adiantar essa organização, peço apenas que indiquem, por gentileza, quem será a pessoa de referência da Acariquara para acompanhar a implantação e validar o fluxo inicial do sistema.
+Para essa etapa inicial, seguirei considerando a Orlanda como pessoa de referência da Acariquara para acompanhar a implantação e validar o fluxo inicial do sistema.
 
 Permaneço à disposição e retorno na sequência com as orientações de partida.
 

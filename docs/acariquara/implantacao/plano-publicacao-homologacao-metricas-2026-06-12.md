@@ -10,7 +10,7 @@ A resposta externa deve apenas:
 
 - confirmar início da organização da implantação;
 - informar que o ambiente e o fluxo inicial serão consolidados antes do envio dos acessos;
-- pedir somente o ponto focal inicial;
+- registrar a Orlanda como pessoa de referência inicial;
 - prometer retorno com orientações de acesso, agenda e roteiro de validação.
 
 ## O que precisa estar pronto antes de liberar acesso externo
