@@ -236,7 +236,7 @@ function MetricCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "group block w-full text-left rounded-2xl border p-5 transition-all outline-none",
+        "group block w-full text-left rounded-xl border p-3 transition-all outline-none",
         active
           ? "border-zinc-950 bg-zinc-950 shadow-xl shadow-zinc-950/20"
           : "border-zinc-200/60 bg-white hover:border-zinc-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-[0_2px_4px_rgba(0,0,0,0.02)]"
@@ -244,18 +244,18 @@ function MetricCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className={cn(
-          "inline-flex rounded-xl border p-2",
+          "inline-flex rounded-lg border p-1.5",
           active ? "bg-white/10 border-white/20 text-white" : colors
         )}>
-          {Icon ? <Icon className="h-5 w-5" /> : <div className="h-5 w-5" />}
+          {Icon ? <Icon className="h-4 w-4" /> : <div className="h-4 w-4" />}
         </div>
         <div className="text-right">
-          <p className={cn("text-sm font-bold", active ? "text-zinc-400" : "text-zinc-500")}>{label}</p>
-          <p className={cn("mt-1 text-2xl font-bold tracking-tight", active ? "text-white" : "text-zinc-950")}>{value}</p>
+          <p className={cn("text-[11px] font-bold", active ? "text-zinc-400" : "text-zinc-500")}>{label}</p>
+          <p className={cn("mt-0.5 text-xl font-bold tracking-tight", active ? "text-white" : "text-zinc-950")}>{value}</p>
         </div>
       </div>
-      <div className={cn("mt-4 border-t pt-4", active ? "border-white/10" : "border-zinc-50")}>
-        <p className={cn("text-xs leading-relaxed font-medium", active ? "text-zinc-500" : "text-zinc-500")}>{description}</p>
+      <div className={cn("mt-3 border-t pt-3", active ? "border-white/10" : "border-zinc-50")}>
+        <p className={cn("text-[11px] leading-snug font-medium", active ? "text-zinc-500" : "text-zinc-500")}>{description}</p>
       </div>
     </button>
   );
@@ -307,21 +307,21 @@ function AlertButton({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition-all ${
+      className={`group relative overflow-hidden rounded-xl border p-3 text-left transition-all ${
         active
           ? "border-zinc-900 bg-zinc-950 text-white shadow-xl shadow-zinc-950/20"
           : "border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50/50"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className={`rounded-lg p-2 ${active ? "bg-white/10" : "bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200/50"}`}>
-          <Icon className="h-5 w-5" />
+        <div className={`rounded-lg p-1.5 ${active ? "bg-white/10" : "bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200/50"}`}>
+          <Icon className="h-4 w-4" />
         </div>
-        <span className={`text-2xl font-bold ${active ? "text-white" : "text-zinc-950"}`}>{value}</span>
+        <span className={`text-xl font-bold ${active ? "text-white" : "text-zinc-950"}`}>{value}</span>
       </div>
-      <div className="mt-4">
-        <span className={`text-sm font-bold ${active ? "text-zinc-100" : "text-zinc-900"}`}>{label}</span>
-        <p className={`mt-1 text-xs leading-relaxed ${active ? "text-zinc-400" : "text-zinc-500"}`}>{description}</p>
+      <div className="mt-3">
+        <span className={`text-xs font-bold ${active ? "text-zinc-100" : "text-zinc-900"}`}>{label}</span>
+        <p className={`mt-1 text-[11px] leading-snug ${active ? "text-zinc-400" : "text-zinc-500"}`}>{description}</p>
       </div>
     </button>
   );
@@ -389,6 +389,98 @@ function SimpleBarList({
   );
 }
 
+type BooleanMetric<T> = {
+  label: string;
+  getValue: (item: T) => boolean | null;
+};
+
+function countBooleanMetric<T>(items: T[], metric: BooleanMetric<T>) {
+  return items.reduce(
+    (acc, item) => {
+      const value = metric.getValue(item);
+      if (value === true) acc.sim += 1;
+      else if (value === false) acc.nao += 1;
+      else acc.semInfo += 1;
+      return acc;
+    },
+    { sim: 0, nao: 0, semInfo: 0 },
+  );
+}
+
+function BooleanMetricsTable<T>({
+  title,
+  metrics,
+  items,
+}: {
+  title: string;
+  metrics: BooleanMetric<T>[];
+  items: T[];
+}) {
+  return (
+    <div className="rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="text-sm font-bold text-zinc-900">{title}</h3>
+        <div className="grid w-32 grid-cols-3 text-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+          <span>Sim</span>
+          <span>Não</span>
+          <span>S/I</span>
+        </div>
+      </div>
+      <div className="divide-y divide-zinc-100">
+        {metrics.map((metric) => {
+          const count = countBooleanMetric(items, metric);
+
+          return (
+            <div key={metric.label} className="grid grid-cols-[minmax(0,1fr)_8rem] items-center gap-3 py-2">
+              <span className="truncate text-xs font-semibold text-zinc-700">{metric.label}</span>
+              <div className="grid grid-cols-3 text-center text-xs font-bold">
+                <span className="text-emerald-700">{count.sim}</span>
+                <span className="text-rose-700">{count.nao}</span>
+                <span className="text-zinc-400">{count.semInfo}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CompactRankList({
+  title,
+  data,
+  emptyLabel = "Sem dados no recorte atual.",
+}: {
+  title: string;
+  data: { name: string; value: number }[];
+  emptyLabel?: string;
+}) {
+  const max = Math.max(...data.map((item) => item.value), 1);
+
+  return (
+    <div className="rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+      <h3 className="mb-3 text-sm font-bold text-zinc-900">{title}</h3>
+      <div className="space-y-2">
+        {data.length ? (
+          data.slice(0, 8).map((item) => (
+            <div key={item.name}>
+              <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+                <span className="truncate font-semibold text-zinc-700">{item.name}</span>
+                <span className="font-mono font-bold text-zinc-500">{item.value}</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
+                <div className="h-full rounded-full bg-emerald-600" style={{ width: `${Math.max(5, (item.value / max) * 100)}%` }} />
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="py-3 text-xs font-semibold text-zinc-400">{emptyLabel}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function UfpaPanel({
   items,
   focus,
@@ -446,6 +538,87 @@ function UfpaPanel({
   const orgData = useMemo(() => groupCount(items, (item) => item.organizacaoColetiva), [items]);
   const biomaData = useMemo(() => groupCount(items, (item) => item.bioma), [items]);
   const atividadeData = useMemo(() => groupArrayValues(items, (item) => item.atividades), [items]);
+  const comunicacaoMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Rádio", getValue: (item) => item.possuiRadio },
+    { label: "Televisão", getValue: (item) => item.possuiTelevisao },
+    { label: "Celular", getValue: (item) => item.possuiCelular },
+    { label: "Internet", getValue: (item) => item.possuiInternet },
+    { label: "Redes sociais", getValue: (item) => item.usaRedesSociais },
+    { label: "Outros meios", getValue: (item) => item.possuiOutroMeioComunicacao },
+  ];
+  const saneamentoMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Água para consumo", getValue: (item) => item.aguaParaConsumo },
+    { label: "Água para consumo tratada", getValue: (item) => item.aguaTratada },
+    { label: "Água para produção", getValue: (item) => item.aguaParaProducao },
+    { label: "Captação de água da chuva", getValue: (item) => item.captacaoAguaChuva },
+    { label: "Esgoto tratado", getValue: (item) => item.esgotoTratado },
+    { label: "Fontes protegidas", getValue: (item) => item.fontesProtegidas },
+  ];
+  const segurancaAlimentarMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Alimentação variada comprometida", getValue: (item) => item.alimentacaoVariadaComprometida },
+    { label: "Comida terminou sem condição de comprar", getValue: (item) => item.comidaAcabouSemCondicao },
+    { label: "Deixou refeição por falta de condição", getValue: (item) => item.deixouRefeicaoSemCondicao },
+    { label: "Comeu menos do que deveria", getValue: (item) => item.comeuMenosSemCondicao },
+    { label: "Sentiu fome e não comeu", getValue: (item) => item.sentiuFomeENaoComeu },
+  ];
+  const servicosSociaisMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Documentação pessoal completa", getValue: (item) => item.documentacaoPessoalCompleta },
+    { label: "Cadastrada no CadÚnico", getValue: (item) => item.cadUnico },
+    { label: "Acessa políticas sociais", getValue: (item) => item.politicasSociais },
+    { label: "Participa de grupo comunitário", getValue: (item) => item.grupoComunitario },
+    { label: "Associação", getValue: (item) => item.participaAssociacao },
+    { label: "Cooperativa", getValue: (item) => item.participaCooperativa },
+    { label: "Grupo informal produtivo", getValue: (item) => item.participaGrupoInformalProdutivo },
+    { label: "Grupo informal social/político/cultural", getValue: (item) => item.participaGrupoInformalSocial },
+  ];
+  const praticasSustentaveisMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Usa práticas sustentáveis", getValue: (item) => item.praticasSustentaveis },
+    { label: "Integração de atividades", getValue: (item) => item.praticaIntegracaoAtividades },
+    { label: "Descarte correto de embalagens", getValue: (item) => item.praticaDescarteCorretoEmbalagens },
+    { label: "Controle das queimadas", getValue: (item) => item.praticaControleQueimadas },
+    { label: "Adubação verde", getValue: (item) => item.praticaAdubacaoVerde },
+    { label: "Recuperação de pastagens", getValue: (item) => item.praticaRecuperacaoPastagens },
+    { label: "Cobertura de solo/manejo de plantas", getValue: (item) => item.praticaCoberturaSolo },
+    { label: "Manejo integrado de pragas", getValue: (item) => item.praticaManejoIntegradoPragas },
+    { label: "Cordões de vegetação permanente", getValue: (item) => item.praticaCordoesVegetacao },
+    { label: "Rotação de culturas", getValue: (item) => item.praticaRotacaoCulturas },
+    { label: "Sistema plantio direto", getValue: (item) => item.praticaPlantioDireto },
+    { label: "Pousio", getValue: (item) => item.praticaPousio },
+    { label: "Proteção de nascentes", getValue: (item) => item.praticaProtecaoNascentes },
+    { label: "Preservação das APPs", getValue: (item) => item.praticaPreservacaoApps },
+    { label: "Manejo florestal", getValue: (item) => item.praticaManejoFlorestal },
+    { label: "Recomposição florestal", getValue: (item) => item.praticaRecomposicaoFlorestal },
+  ];
+  const praticasMotivosMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Motivo: questão financeira", getValue: (item) => item.motivoSemPraticaFinanceiro },
+    { label: "Motivo: falta de informação", getValue: (item) => item.motivoSemPraticaFaltaInformacao },
+    { label: "Motivo: questão tecnológica", getValue: (item) => item.motivoSemPraticaTecnologico },
+    { label: "Motivo: falta de interesse", getValue: (item) => item.motivoSemPraticaFaltaInteresse },
+  ];
+  const politicasProdutivasMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Acessa políticas produtivas", getValue: (item) => item.politicasProdutivas },
+    { label: "Acessou PAA", getValue: (item) => item.acessouPaa },
+    { label: "Acessou PNAE", getValue: (item) => item.acessouPnae },
+    { label: "Acessou PGPM-Bio", getValue: (item) => item.acessouPgpmBio },
+    { label: "Acessou PRONAF", getValue: (item) => item.acessouPronaf },
+  ];
+  const canaisMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Troca por produto/serviço", getValue: (item) => item.canalTrocaProdutoServico },
+    { label: "Venda na propriedade", getValue: (item) => item.canalVendaPropriedade },
+    { label: "Venda direta ao consumidor", getValue: (item) => item.canalVendaDiretaConsumidor },
+    { label: "Feira", getValue: (item) => item.canalFeira },
+    { label: "Mercado local", getValue: (item) => item.canalMercadoLocal },
+    { label: "Atravessador", getValue: (item) => item.canalAtravessador },
+    { label: "PAA", getValue: (item) => item.canalPaa },
+    { label: "PNAE", getValue: (item) => item.canalPnae },
+    { label: "Cooperativa/entreposto", getValue: (item) => item.canalCooperativaEntreposto },
+  ];
+  const potencialidadesProdutivo = useMemo(() => groupArrayValues(items, (item) => item.acoesPotenciaisProdutivo), [items]);
+  const potencialidadesSocial = useMemo(() => groupArrayValues(items, (item) => item.acoesPotenciaisSocial), [items]);
+  const potencialidadesAmbiental = useMemo(() => groupArrayValues(items, (item) => item.acoesPotenciaisAmbiental), [items]);
+  const limitacoesProdutivo = useMemo(() => groupArrayValues(items, (item) => item.limitacoesProdutivo), [items]);
+  const limitacoesSocial = useMemo(() => groupArrayValues(items, (item) => item.limitacoesSocial), [items]);
+  const limitacoesAmbiental = useMemo(() => groupArrayValues(items, (item) => item.limitacoesAmbiental), [items]);
 
   return (
     <div className="space-y-6">
@@ -523,7 +696,43 @@ function UfpaPanel({
         />
       </section>
 
-      <div className="rounded-2xl border border-zinc-200/60 bg-zinc-50/50 p-6 shadow-inner">
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-zinc-900">Indicadores do Documento 6</h2>
+          <p className="mt-1 text-xs font-semibold text-zinc-500">
+            Contagem de UFPAs por resposta. S/I indica registros ainda sem informação.
+          </p>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-2">
+          <BooleanMetricsTable title="Diversos: meios de comunicação" items={items} metrics={comunicacaoMetrics} />
+          <BooleanMetricsTable title="Saneamento rural" items={items} metrics={saneamentoMetrics} />
+          <BooleanMetricsTable title="Social: segurança alimentar" items={items} metrics={segurancaAlimentarMetrics} />
+          <BooleanMetricsTable title="Social: serviços e participação" items={items} metrics={servicosSociaisMetrics} />
+          <BooleanMetricsTable title="Ambiental: práticas sustentáveis" items={items} metrics={praticasSustentaveisMetrics} />
+          <BooleanMetricsTable title="Ambiental: motivos para não usar práticas" items={items} metrics={praticasMotivosMetrics} />
+          <BooleanMetricsTable title="Econômico: políticas produtivas" items={items} metrics={politicasProdutivasMetrics} />
+          <BooleanMetricsTable title="Econômico: canais de comercialização" items={items} metrics={canaisMetrics} />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-zinc-900">Potencialidades e limitações</h2>
+          <p className="mt-1 text-xs font-semibold text-zinc-500">
+            Frequência dos temas marcados por eixo para orientar plano de ação e relatórios.
+          </p>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-3">
+          <CompactRankList title="Potencialidades: eixo produtivo" data={potencialidadesProdutivo} />
+          <CompactRankList title="Potencialidades: eixo social" data={potencialidadesSocial} />
+          <CompactRankList title="Potencialidades: eixo ambiental" data={potencialidadesAmbiental} />
+          <CompactRankList title="Limitações: eixo produtivo" data={limitacoesProdutivo} />
+          <CompactRankList title="Limitações: eixo social" data={limitacoesSocial} />
+          <CompactRankList title="Limitações: eixo ambiental" data={limitacoesAmbiental} />
+        </div>
+      </section>
+
+      <div className="hidden">
         <div className="mb-5 flex items-center gap-2">
           <Filter className="h-4 w-4 text-zinc-500" />
           <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Recortes rápidos de atenção (Clique para filtrar)</h3>

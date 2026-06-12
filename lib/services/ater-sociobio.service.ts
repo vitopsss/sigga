@@ -56,16 +56,72 @@ export type SiggaterDashboardItem = {
   atividades: string[];
   mulheres: number;
   jovens: number;
+  possuiRadio: boolean | null;
+  possuiTelevisao: boolean | null;
+  possuiCelular: boolean | null;
+  usaRedesSociais: boolean | null;
+  possuiOutroMeioComunicacao: boolean | null;
   aguaParaConsumo: boolean | null;
   possuiInternet: boolean | null;
   aguaTratada: boolean | null;
+  aguaParaProducao: boolean | null;
+  captacaoAguaChuva: boolean | null;
   esgotoTratado: boolean | null;
+  fontesProtegidas: boolean | null;
+  alimentacaoVariadaComprometida: boolean | null;
+  comidaAcabouSemCondicao: boolean | null;
+  deixouRefeicaoSemCondicao: boolean | null;
+  comeuMenosSemCondicao: boolean | null;
+  sentiuFomeENaoComeu: boolean | null;
+  documentacaoPessoalCompleta: boolean | null;
   cadUnico: boolean | null;
   insegurancaAlimentar: boolean | null;
   politicasSociais: boolean | null;
   grupoComunitario: boolean | null;
+  participaAssociacao: boolean | null;
+  participaCooperativa: boolean | null;
+  participaGrupoInformalProdutivo: boolean | null;
+  participaGrupoInformalSocial: boolean | null;
   politicasProdutivas: boolean | null;
   praticasSustentaveis: boolean | null;
+  praticaIntegracaoAtividades: boolean | null;
+  praticaDescarteCorretoEmbalagens: boolean | null;
+  praticaControleQueimadas: boolean | null;
+  praticaAdubacaoVerde: boolean | null;
+  praticaRecuperacaoPastagens: boolean | null;
+  praticaCoberturaSolo: boolean | null;
+  praticaManejoIntegradoPragas: boolean | null;
+  praticaCordoesVegetacao: boolean | null;
+  praticaRotacaoCulturas: boolean | null;
+  praticaPlantioDireto: boolean | null;
+  praticaPousio: boolean | null;
+  praticaProtecaoNascentes: boolean | null;
+  praticaPreservacaoApps: boolean | null;
+  praticaManejoFlorestal: boolean | null;
+  praticaRecomposicaoFlorestal: boolean | null;
+  motivoSemPraticaFinanceiro: boolean | null;
+  motivoSemPraticaFaltaInformacao: boolean | null;
+  motivoSemPraticaTecnologico: boolean | null;
+  motivoSemPraticaFaltaInteresse: boolean | null;
+  acessouPaa: boolean | null;
+  acessouPnae: boolean | null;
+  acessouPgpmBio: boolean | null;
+  acessouPronaf: boolean | null;
+  canalTrocaProdutoServico: boolean | null;
+  canalVendaPropriedade: boolean | null;
+  canalVendaDiretaConsumidor: boolean | null;
+  canalFeira: boolean | null;
+  canalMercadoLocal: boolean | null;
+  canalAtravessador: boolean | null;
+  canalPaa: boolean | null;
+  canalPnae: boolean | null;
+  canalCooperativaEntreposto: boolean | null;
+  acoesPotenciaisProdutivo: string[];
+  acoesPotenciaisSocial: string[];
+  acoesPotenciaisAmbiental: string[];
+  limitacoesProdutivo: string[];
+  limitacoesSocial: string[];
+  limitacoesAmbiental: string[];
 };
 
 export type SiggaterOrganizacaoDashboardItem = {
@@ -583,10 +639,24 @@ export class AterSociobioService {
         },
         diagnostico: {
           select: {
+            possuiRadio: true,
+            possuiTelevisao: true,
+            possuiCelular: true,
+            usaRedesSociais: true,
+            possuiOutroMeioComunicacao: true,
             aguaParaConsumo: true,
             possuiInternet: true,
             aguaConsumoTratada: true,
+            aguaParaProducao: true,
+            captacaoAguaChuva: true,
             esgotoTratado: true,
+            fontesProtegidas: true,
+            acoesPotenciaisProdutivo: true,
+            acoesPotenciaisSocial: true,
+            acoesPotenciaisAmbiental: true,
+            limitacoesProdutivo: true,
+            limitacoesSocial: true,
+            limitacoesAmbiental: true,
           },
         },
         indicadores: {
@@ -596,11 +666,48 @@ export class AterSociobioService {
             deixouRefeicaoSemCondicao: true,
             comeuMenosSemCondicao: true,
             sentiuFomeENaoComeu: true,
+            documentacaoPessoalCompleta: true,
             cadastradoCadUnico: true,
             acessaPoliticasSociais: true,
             participaGrupoComunitario: true,
+            participaAssociacao: true,
+            participaCooperativa: true,
+            participaGrupoInformalProdutivo: true,
+            participaGrupoInformalSocial: true,
             acessaPoliticasProdutivas: true,
             possuiPraticasSustentaveis: true,
+            praticaIntegracaoAtividades: true,
+            praticaDescarteCorretoEmbalagens: true,
+            praticaControleQueimadas: true,
+            praticaAdubacaoVerde: true,
+            praticaRecuperacaoPastagens: true,
+            praticaCoberturaSolo: true,
+            praticaManejoIntegradoPragas: true,
+            praticaCordoesVegetacao: true,
+            praticaRotacaoCulturas: true,
+            praticaPlantioDireto: true,
+            praticaPousio: true,
+            praticaProtecaoNascentes: true,
+            praticaPreservacaoApps: true,
+            praticaManejoFlorestal: true,
+            praticaRecomposicaoFlorestal: true,
+            motivoSemPraticaFinanceiro: true,
+            motivoSemPraticaFaltaInformacao: true,
+            motivoSemPraticaTecnologico: true,
+            motivoSemPraticaFaltaInteresse: true,
+            acessouPaa: true,
+            acessouPnae: true,
+            acessouPgpmBio: true,
+            acessouPronaf: true,
+            canalTrocaProdutoServico: true,
+            canalVendaPropriedade: true,
+            canalVendaDiretaConsumidor: true,
+            canalFeira: true,
+            canalMercadoLocal: true,
+            canalAtravessador: true,
+            canalPaa: true,
+            canalPnae: true,
+            canalCooperativaEntreposto: true,
           },
         },
         _count: {
@@ -661,16 +768,72 @@ export class AterSociobioService {
         integrantes: familia._count.integrantes || familia.quantidadeMembros || 0,
         atendimentos: familia._count.atendimentos,
         diagnosticoRegistrado: Boolean(familia.diagnostico || familia.indicadores),
+        possuiRadio: familia.diagnostico?.possuiRadio ?? null,
+        possuiTelevisao: familia.diagnostico?.possuiTelevisao ?? null,
+        possuiCelular: familia.diagnostico?.possuiCelular ?? null,
+        usaRedesSociais: familia.diagnostico?.usaRedesSociais ?? null,
+        possuiOutroMeioComunicacao: familia.diagnostico?.possuiOutroMeioComunicacao ?? null,
         aguaParaConsumo: familia.diagnostico?.aguaParaConsumo ?? null,
         possuiInternet: familia.diagnostico?.possuiInternet ?? null,
         aguaTratada: familia.diagnostico?.aguaConsumoTratada ?? null,
+        aguaParaProducao: familia.diagnostico?.aguaParaProducao ?? null,
+        captacaoAguaChuva: familia.diagnostico?.captacaoAguaChuva ?? null,
         esgotoTratado: familia.diagnostico?.esgotoTratado ?? null,
+        fontesProtegidas: familia.diagnostico?.fontesProtegidas ?? null,
+        alimentacaoVariadaComprometida: indicadores?.alimentacaoVariadaComprometida ?? null,
+        comidaAcabouSemCondicao: indicadores?.comidaAcabouSemCondicao ?? null,
+        deixouRefeicaoSemCondicao: indicadores?.deixouRefeicaoSemCondicao ?? null,
+        comeuMenosSemCondicao: indicadores?.comeuMenosSemCondicao ?? null,
+        sentiuFomeENaoComeu: indicadores?.sentiuFomeENaoComeu ?? null,
+        documentacaoPessoalCompleta: indicadores?.documentacaoPessoalCompleta ?? null,
         cadUnico: indicadores?.cadastradoCadUnico ?? null,
         insegurancaAlimentar: indicadores ? indicadorAlimentar.some(Boolean) : null,
         politicasSociais: indicadores?.acessaPoliticasSociais ?? null,
         grupoComunitario: indicadores?.participaGrupoComunitario ?? null,
+        participaAssociacao: indicadores?.participaAssociacao ?? null,
+        participaCooperativa: indicadores?.participaCooperativa ?? null,
+        participaGrupoInformalProdutivo: indicadores?.participaGrupoInformalProdutivo ?? null,
+        participaGrupoInformalSocial: indicadores?.participaGrupoInformalSocial ?? null,
         politicasProdutivas: indicadores?.acessaPoliticasProdutivas ?? null,
         praticasSustentaveis: indicadores?.possuiPraticasSustentaveis ?? null,
+        praticaIntegracaoAtividades: indicadores?.praticaIntegracaoAtividades ?? null,
+        praticaDescarteCorretoEmbalagens: indicadores?.praticaDescarteCorretoEmbalagens ?? null,
+        praticaControleQueimadas: indicadores?.praticaControleQueimadas ?? null,
+        praticaAdubacaoVerde: indicadores?.praticaAdubacaoVerde ?? null,
+        praticaRecuperacaoPastagens: indicadores?.praticaRecuperacaoPastagens ?? null,
+        praticaCoberturaSolo: indicadores?.praticaCoberturaSolo ?? null,
+        praticaManejoIntegradoPragas: indicadores?.praticaManejoIntegradoPragas ?? null,
+        praticaCordoesVegetacao: indicadores?.praticaCordoesVegetacao ?? null,
+        praticaRotacaoCulturas: indicadores?.praticaRotacaoCulturas ?? null,
+        praticaPlantioDireto: indicadores?.praticaPlantioDireto ?? null,
+        praticaPousio: indicadores?.praticaPousio ?? null,
+        praticaProtecaoNascentes: indicadores?.praticaProtecaoNascentes ?? null,
+        praticaPreservacaoApps: indicadores?.praticaPreservacaoApps ?? null,
+        praticaManejoFlorestal: indicadores?.praticaManejoFlorestal ?? null,
+        praticaRecomposicaoFlorestal: indicadores?.praticaRecomposicaoFlorestal ?? null,
+        motivoSemPraticaFinanceiro: indicadores?.motivoSemPraticaFinanceiro ?? null,
+        motivoSemPraticaFaltaInformacao: indicadores?.motivoSemPraticaFaltaInformacao ?? null,
+        motivoSemPraticaTecnologico: indicadores?.motivoSemPraticaTecnologico ?? null,
+        motivoSemPraticaFaltaInteresse: indicadores?.motivoSemPraticaFaltaInteresse ?? null,
+        acessouPaa: indicadores?.acessouPaa ?? null,
+        acessouPnae: indicadores?.acessouPnae ?? null,
+        acessouPgpmBio: indicadores?.acessouPgpmBio ?? null,
+        acessouPronaf: indicadores?.acessouPronaf ?? null,
+        canalTrocaProdutoServico: indicadores?.canalTrocaProdutoServico ?? null,
+        canalVendaPropriedade: indicadores?.canalVendaPropriedade ?? null,
+        canalVendaDiretaConsumidor: indicadores?.canalVendaDiretaConsumidor ?? null,
+        canalFeira: indicadores?.canalFeira ?? null,
+        canalMercadoLocal: indicadores?.canalMercadoLocal ?? null,
+        canalAtravessador: indicadores?.canalAtravessador ?? null,
+        canalPaa: indicadores?.canalPaa ?? null,
+        canalPnae: indicadores?.canalPnae ?? null,
+        canalCooperativaEntreposto: indicadores?.canalCooperativaEntreposto ?? null,
+        acoesPotenciaisProdutivo: readStringArray(familia.diagnostico?.acoesPotenciaisProdutivo),
+        acoesPotenciaisSocial: readStringArray(familia.diagnostico?.acoesPotenciaisSocial),
+        acoesPotenciaisAmbiental: readStringArray(familia.diagnostico?.acoesPotenciaisAmbiental),
+        limitacoesProdutivo: readStringArray(familia.diagnostico?.limitacoesProdutivo),
+        limitacoesSocial: readStringArray(familia.diagnostico?.limitacoesSocial),
+        limitacoesAmbiental: readStringArray(familia.diagnostico?.limitacoesAmbiental),
         bioma: familia.bioma,
         atividades: readAtividadesList(familia.envioSGAPorAtividade),
         mulheres,
