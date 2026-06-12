@@ -189,7 +189,7 @@ export default async function FamiliasPage({
         title="UFPAs"
         description={`Unidades familiares acompanhadas nas atividades de ${ATER_SOCIOBIO_TERRITORY_NAME}`}
         actions={
-          <Link href="/ater-sociobio/dashboard">
+          <Link href="/ater-sociobio/dashboard/ufpas">
             <Button variant="secondary">
               <BarChart3 className="h-4 w-4" />
               Painel

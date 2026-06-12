@@ -31,7 +31,8 @@ import {
 import { getAterSociobioStatusRelatorioLabel } from "@/lib/constants/ater-sociobio";
 import { ExportExcelButton } from "@/components/system/export-excel-button";
 
-type DashboardTab = "ufpas" | "organizacoes" | "atendimentos";
+export type DashboardView = "ufpas" | "organizacoes" | "atendimentos";
+type DashboardTab = DashboardView;
 type FocusKey =
   | "comAlertas"
   | "semDiagnostico"
@@ -75,10 +76,6 @@ function formatDate(value?: string | null) {
   return value ? new Date(value).toLocaleDateString("pt-BR") : "-";
 }
 
-function isDashboardTab(value: string | null): value is DashboardTab {
-  return value === "ufpas" || value === "organizacoes" || value === "atendimentos";
-}
-
 function isFocusKey(value: string | null): value is Exclude<FocusKey, null> {
   return [
     "comAlertas",
@@ -112,7 +109,11 @@ function isFocusKey(value: string | null): value is Exclude<FocusKey, null> {
   ].includes(String(value));
 }
 
-function focusFilter(key: FocusKey, item: SiggaterDashboardItem | SiggaterAtendimentoDashboardItem | SiggaterOrganizacaoDashboardItem, tab: DashboardTab) {
+function isDashboardTab(value: string | null): value is DashboardTab {
+  return value === "ufpas" || value === "organizacoes" || value === "atendimentos";
+}
+
+function focusFilter(key: FocusKey, item: SiggaterDashboardItem | SiggaterAtendimentoDashboardItem | SiggaterOrganizacaoDashboardItem, tab: DashboardView) {
   if (!key) return true;
 
   if (tab === "ufpas") {
@@ -611,7 +612,7 @@ function UfpaPanel({
           <SimpleBarList
             title="UFPAs por comunidade"
             data={communityData}
-            getHref={(name) => `/ater-sociobio/familias?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Quantidade de UFPAs mapeadas em cada comunidade, útil para roteirização das visitas.
@@ -631,7 +632,7 @@ function UfpaPanel({
             title="Principais Cadeias Produtivas (SGA)"
             data={atividadeData}
             color="bg-emerald-600"
-            getHref={(name) => `/ater-sociobio/familias?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Quais atividades econômicas (ex: Açaí, Manejo Florestal) concentram o maior número de UFPAs.
@@ -645,7 +646,7 @@ function UfpaPanel({
             title="UFPAs por organização coletiva"
             data={orgData}
             color="bg-blue-600"
-            getHref={(name) => `/ater-sociobio/familias?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Mostra onde o esforço associativo está concentrado (Quais Associações/Cooperativas têm mais UFPAs).
@@ -861,7 +862,7 @@ function OrganizacoesPanel({
             title="Organizações por UFPAs vinculadas"
             data={orgsByFamilies}
             color="bg-blue-600"
-            getHref={(name) => `/ater-sociobio/organizacoes?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/organizacoes?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Mostra o volume real de UFPAs cadastradas no sistema que foram associadas a cada organização, medindo a força e alcance da entidade.
@@ -872,7 +873,7 @@ function OrganizacoesPanel({
             title="Canais de comercialização por organização"
             data={orgsByChannels}
             color="bg-amber-500"
-            getHref={(name) => `/ater-sociobio/organizacoes?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/organizacoes?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Soma a quantidade de canais de escoamento (Feira, PAA, PNAE, Mercado Local, etc.) que a organização declarou ter acesso nos indicadores.
@@ -1058,7 +1059,7 @@ function AtendimentosPanel({
             title="Atendimentos por status"
             data={statusData}
             color="bg-zinc-600"
-            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Mostra o volume de visitas em cada etapa de validação (Rascunho, Em Análise, Validado, etc.).
@@ -1069,7 +1070,7 @@ function AtendimentosPanel({
             title="Atendimentos por eixo trabalhado"
             data={eixosData}
             color="bg-emerald-600"
-            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Frequência em que os Eixos Produtivo, Ambiental e Social foram abordados nos Documentos 11.
@@ -1080,7 +1081,7 @@ function AtendimentosPanel({
             title="Atendimentos por técnico"
             data={atendimentosPorTecnico}
             color="bg-blue-600"
-            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Ranking de produtividade: número de relatórios de visitas preenchidos por cada técnico.
@@ -1091,7 +1092,7 @@ function AtendimentosPanel({
             title="Indicadores mais trabalhados nas visitas"
             data={indicadoresData}
             color="bg-amber-500"
-            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+            getHref={(name) => appendReturnHref(`/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
             Quais temas específicos (ex: Sementes, Quintais) estão sendo mais aplicados na prática de ATER.
@@ -1155,27 +1156,69 @@ function AtendimentosPanel({
   );
 }
 
-export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData }) {
+const dashboardViewMeta: Record<DashboardView, {
+  title: string;
+  description: string;
+  searchPlaceholder: string;
+  exportLabel: string;
+  exportName: string;
+  icon: typeof Users;
+}> = {
+  ufpas: {
+    title: "Métricas de UFPAs",
+    description: "Diagnóstico familiar, vulnerabilidades, infraestrutura, comunidades e cadeias produtivas.",
+    searchPlaceholder: "Buscar por UFPA, comunidade, organização ou município...",
+    exportLabel: "Exportar UFPAs",
+    exportName: "ufpas",
+    icon: Users,
+  },
+  organizacoes: {
+    title: "Métricas de Organizações",
+    description: "Capacidade coletiva, indicadores institucionais, diretoria, práticas ambientais e políticas públicas.",
+    searchPlaceholder: "Buscar por organização ou município...",
+    exportLabel: "Exportar organizações",
+    exportName: "organizacoes",
+    icon: Building2,
+  },
+  atendimentos: {
+    title: "Métricas de Atendimentos",
+    description: "Visitas válidas, status dos relatórios, equipe técnica, eixos trabalhados e público alcançado.",
+    searchPlaceholder: "Buscar por UFPA, organização, técnico ou status...",
+    exportLabel: "Exportar atendimentos",
+    exportName: "atendimentos",
+    icon: ClipboardList,
+  },
+};
+
+export function SiggaterDashboardClient({
+  data,
+  view,
+}: {
+  data: SiggaterDashboardData;
+  view: DashboardView;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const focusParam = searchParams.get("focus");
-  const initialTab = isDashboardTab(tabParam) ? tabParam : "ufpas";
+  const initialTab = isDashboardTab(tabParam) ? tabParam : view;
   const initialFocus = isFocusKey(focusParam) ? focusParam : null;
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
   const [focus, setFocus] = useState<FocusKey>(initialFocus);
 
   const queryNorm = query.trim().toLowerCase();
+  const meta = dashboardViewMeta[activeTab];
+  const ViewIcon = meta.icon;
+
   const buildDashboardHref = (tab: DashboardTab, nextFocus: FocusKey, nextQuery: string) => {
     const params = new URLSearchParams();
-    if (tab !== "ufpas") params.set("tab", tab);
     if (nextFocus) params.set("focus", nextFocus);
     if (nextQuery.trim()) params.set("q", nextQuery.trim());
 
     const search = params.toString();
-    return `${pathname}${search ? `?${search}` : ""}`;
+    return `/ater-sociobio/dashboard/${tab}${search ? `?${search}` : ""}`;
   };
   const syncDashboardUrl = (tab: DashboardTab, nextFocus: FocusKey, nextQuery = query) => {
     router.replace(buildDashboardHref(tab, nextFocus, nextQuery), { scroll: false });
@@ -1186,8 +1229,16 @@ export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData 
     setFocus(nextFocus);
     syncDashboardUrl(tab, nextFocus);
   };
-  const currentDashboardHref = buildDashboardHref(activeTab, focus, query);
-  const appendReturnHref = (href: string) => `${href}?from=${encodeURIComponent(currentDashboardHref)}`;
+  const currentDashboardHref = pathname.startsWith("/ater-sociobio/dashboard/")
+    ? `${pathname}${focus || query ? `?${new URLSearchParams([
+        ...(focus ? [["focus", focus] as [string, string]] : []),
+        ...(query.trim() ? [["q", query.trim()] as [string, string]] : []),
+      ]).toString()}` : ""}`
+    : buildDashboardHref(activeTab, focus, query);
+  const appendReturnHref = (href: string) => {
+    const connector = href.includes("?") ? "&" : "?";
+    return `${href}${connector}from=${encodeURIComponent(currentDashboardHref)}`;
+  };
   const setPanelFocus = (value: FocusKey) => {
     setFocus(value);
     syncDashboardUrl(activeTab, value);
@@ -1234,6 +1285,8 @@ export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData 
     [data.atendimentos, focus, queryNorm],
   );
 
+  const activeData = activeTab === "ufpas" ? familias : activeTab === "organizacoes" ? organizacoes : atendimentos;
+
   const executiveMetrics = useMemo(() => {
     const ufpasComAlertas = data.familias.filter((item) => getRisks(item).length > 0).length;
     const semAguaTratada = data.familias.filter((item) => item.aguaTratada === false).length;
@@ -1255,8 +1308,6 @@ export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData 
       organizacoesSemPraticas,
       relatoriosEmAnalise,
       relatoriosReprovados,
-      mulheresAtendidas,
-      jovensAtendidos,
       totalPessoasAtendidas: mulheresAtendidas + jovensAtendidos,
     };
   }, [data]);
@@ -1268,12 +1319,12 @@ export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData 
           <div>
             <div className="flex items-center gap-2">
               <div className="rounded-lg bg-emerald-600 p-2 shadow-lg shadow-emerald-600/20">
-                <LayoutDashboard className="h-5 w-5 text-white" />
+                <ViewIcon className="h-5 w-5 text-white" />
               </div>
-              <h2 className="text-xl font-bold tracking-tight text-zinc-900">Métricas Operacionais</h2>
+              <h2 className="text-xl font-bold tracking-tight text-zinc-900">{meta.title}</h2>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-zinc-500 font-bold">
-              Acompanhamento tático das UFPAs, organizações e visitas técnicas em tempo real.
+              {meta.description}
             </p>
           </div>
           <div className="relative">
@@ -1285,20 +1336,20 @@ export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData 
                 setQuery(event.target.value);
                 syncDashboardUrl(activeTab, focus, event.target.value);
               }}
-              placeholder="Digite qualquer parte do nome, comunidade ou município..."
+              placeholder={meta.searchPlaceholder}
               className="h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50/50 pl-11 pr-4 text-sm font-bold text-zinc-900 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
             />
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <div className="hidden">
           <MetricCard label="UFPAs" value={data.familias.length} description="Unidades familiares cadastradas." tone="zinc" icon={Users} />
           <MetricCard label="Organizações" value={data.organizacoes.length} description="Organizações coletivas cadastradas." tone="zinc" icon={Building2} />
           <MetricCard label="Visitas" value={data.atendimentos.length} description="Atendimentos sem rascunhos." tone="zinc" icon={ClipboardList} />
           <MetricCard label="Público Alcançado" value={executiveMetrics.totalPessoasAtendidas} description="Mulheres e jovens registrados." tone="zinc" icon={Users} />
         </div>
 
-        <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50/70 p-5">
+        <div className="hidden">
           <div className="mb-4 flex items-center gap-2">
             <Filter className="h-4 w-4 text-zinc-500" />
             <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Indicadores de decisão</h3>
@@ -1395,9 +1446,9 @@ export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData 
 
           <div className="flex items-center gap-2">
             <ExportExcelButton
-              data={activeTab === "ufpas" ? familias : activeTab === "organizacoes" ? organizacoes : atendimentos}
-              fileName={`Exportacao_${activeTab}_SIGGATER_${new Date().toISOString().slice(0,10)}`}
-              label={`Exportar ${activeTab === "ufpas" ? "UFPAs" : activeTab === "organizacoes" ? "Organizações" : "Atendimentos"}`}
+              data={activeData}
+              fileName={`Exportacao_${meta.exportName}_SIGGATER_${new Date().toISOString().slice(0,10)}`}
+              label={meta.exportLabel}
             />
           </div>
         </div>
@@ -1412,7 +1463,7 @@ export function SiggaterDashboardClient({ data }: { data: SiggaterDashboardData 
         </div>
       </div>
 
-      <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+      <section className="hidden">
         <div className="mb-6 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-emerald-500" />
           <h2 className="text-base font-bold text-zinc-900">Guia de Apoio à Reunião</h2>
