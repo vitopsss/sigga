@@ -26,7 +26,7 @@ import {
   type OrganizacaoColetivaListItem,
 } from "@/lib/services/ater-sociobio.service";
 
-type SearchParams = Promise<{ busca?: string }>;
+type SearchParams = Promise<{ busca?: string; from?: string }>;
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +35,9 @@ export default async function OrganizacoesColetivasPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { busca = "" } = await searchParams;
+  const { busca = "", from = "" } = await searchParams;
   const buscaNorm = busca.trim().toLowerCase();
+  const fromValue = from.trim();
 
   let organizacoes: OrganizacaoColetivaListItem[] = [];
   let setupMissing = false;
@@ -66,13 +67,19 @@ export default async function OrganizacoesColetivasPage({
       .some((value) => String(value).toLowerCase().includes(buscaNorm));
   });
 
+  const currentListUrl = `/ater-sociobio/organizacoes${buscaNorm ? `?busca=${encodeURIComponent(buscaNorm)}` : ""}${fromValue ? `${buscaNorm ? "&" : "?"}from=${encodeURIComponent(fromValue)}` : ""}`;
+  const appendFromList = (href: string) => {
+    const connector = href.includes("?") ? "&" : "?";
+    return `${href}${connector}from=${encodeURIComponent(currentListUrl)}`;
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50/50">
       <Header
         title="Organizações coletivas"
         description={`Associações, cooperativas e grupos vinculados às UFPAs acompanhadas em ${ATER_SOCIOBIO_TERRITORY_NAME}`}
         actions={
-          <Link href="/ater-sociobio/organizacoes/nova">
+          <Link href={appendFromList("/ater-sociobio/organizacoes/nova")}>
             <Button variant="primary">
               <Plus className="h-4 w-4" />
               Nova organização
@@ -112,6 +119,7 @@ export default async function OrganizacoesColetivasPage({
               </div>
 
               <form action="/ater-sociobio/organizacoes" method="GET" className="relative">
+                <input type="hidden" name="from" value={fromValue} />
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <input
                   type="search"
@@ -135,7 +143,7 @@ export default async function OrganizacoesColetivasPage({
                     : "Cadastre a primeira organização coletiva para agrupar UFPAs."}
                 </EmptyDescription>
                 <EmptyActions>
-                  <Link href="/ater-sociobio/organizacoes/nova">
+                  <Link href={appendFromList("/ater-sociobio/organizacoes/nova")}>
                     <Button variant="primary">Nova organização</Button>
                   </Link>
                 </EmptyActions>
@@ -146,8 +154,8 @@ export default async function OrganizacoesColetivasPage({
                   <TableRow>
                     <TableHead>Organização</TableHead>
                     <TableHead>Município</TableHead>
-                    <TableHead>Nº famílias</TableHead>
-                    <TableHead>UFPAs</TableHead>
+                    <TableHead>Famílias (Estimativa)</TableHead>
+                    <TableHead>UFPAs (Reais)</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -174,11 +182,11 @@ export default async function OrganizacoesColetivasPage({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-3">
-                          <Link href={`/ater-sociobio/organizacoes/${org.id}/editar`} className="inline-flex items-center gap-1 text-zinc-500 hover:underline">
+                          <Link href={appendFromList(`/ater-sociobio/organizacoes/${org.id}/editar`)} className="inline-flex items-center gap-1 text-zinc-500 hover:underline">
                             <PencilLine className="h-4 w-4" />
                             Editar
                           </Link>
-                          <Link href={`/ater-sociobio/organizacoes/${org.id}`} className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
+                          <Link href={appendFromList(`/ater-sociobio/organizacoes/${org.id}`)} className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
                             <Eye className="h-4 w-4" />
                             Ver
                           </Link>

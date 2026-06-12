@@ -211,7 +211,7 @@ export default async function EditarOrganizacaoColetivaPage({
                     <input name="denominacao" type="text" required defaultValue={organizacao.denominacao} className={inputClassName} />
                   </label>
                   <label className={labelClassName}>
-                    <span className="text-sm font-medium text-slate-700">Nº famílias</span>
+                    <span className="text-sm font-medium text-slate-700">Nº famílias (Previsão/Estimativa)</span>
                     <input name="numeroFamilias" type="number" min="0" defaultValue={organizacao.numeroFamilias ?? ""} className={inputClassName} />
                   </label>
                   <div className="md:col-span-2">

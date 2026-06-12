@@ -256,6 +256,16 @@ export default async function IndicadoresOrganizacaoColetivaPage({
                           />
                         ))}
                       </div>
+                      <div className="mt-4">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras práticas / Detalhes</label>
+                        <textarea
+                          name="praticasAmbientaisQuais"
+                          defaultValue={indicadores?.praticasAmbientaisQuais ?? ""}
+                          placeholder="Descreva aqui..."
+                          className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                          rows={2}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -280,6 +290,16 @@ export default async function IndicadoresOrganizacaoColetivaPage({
                             defaultValue={getBooleanValue(indicadores, item.name)}
                           />
                         ))}
+                      </div>
+                      <div className="mt-4">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras identidades / Detalhes</label>
+                        <textarea
+                          name="identidadeComercialQuais"
+                          defaultValue={indicadores?.identidadeComercialQuais ?? ""}
+                          placeholder="Descreva aqui..."
+                          className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                          rows={2}
+                        />
                       </div>
                     </div>
                   </div>
@@ -323,6 +343,16 @@ export default async function IndicadoresOrganizacaoColetivaPage({
                           />
                         ))}
                       </div>
+                      <div className="mt-4">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras filiações / Detalhes</label>
+                        <textarea
+                          name="representacaoPoliticaQuais"
+                          defaultValue={indicadores?.representacaoPoliticaQuais ?? ""}
+                          placeholder="Descreva aqui..."
+                          className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                          rows={2}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -347,6 +377,16 @@ export default async function IndicadoresOrganizacaoColetivaPage({
                             defaultValue={getBooleanValue(indicadores, item.name)}
                           />
                         ))}
+                      </div>
+                      <div className="mt-4">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras políticas / Detalhes</label>
+                        <textarea
+                          name="politicasPublicasQuais"
+                          defaultValue={indicadores?.politicasPublicasQuais ?? ""}
+                          placeholder="Descreva aqui..."
+                          className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                          rows={2}
+                        />
                       </div>
                     </div>
                   </div>

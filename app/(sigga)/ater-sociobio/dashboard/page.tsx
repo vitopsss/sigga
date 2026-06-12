@@ -36,7 +36,7 @@ export default async function SiggaterDashboardPage() {
         title="Painel ATERSOCIOBIO"
         description={`Leitura operacional de UFPAs, diagnostico e prioridades em ${ATER_SOCIOBIO_TERRITORY_NAME}`}
         actions={
-          <Link href="/ater-sociobio/familias">
+          <Link href="/ater-sociobio/familias?from=/ater-sociobio/dashboard">
             <Button variant="secondary">Ver UFPAs</Button>
           </Link>
         }

@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
 
-type SearchParams = Promise<{ busca?: string; status?: string; pagina?: string }>;
+type SearchParams = Promise<{ busca?: string; status?: string; pagina?: string; from?: string }>;
 
 function parsePage(value?: string) {
   const parsed = Number(value);
@@ -30,6 +30,7 @@ function buildHref(
     busca?: string;
     status?: string;
     pagina?: number;
+    from?: string;
   },
 ) {
   const query = new URLSearchParams();
@@ -37,6 +38,7 @@ function buildHref(
   if (params.busca) query.set("busca", params.busca);
   if (params.status) query.set("status", params.status);
   if (params.pagina && params.pagina > 1) query.set("pagina", String(params.pagina));
+  if (params.from) query.set("from", params.from);
 
   const queryString = query.toString();
   return queryString ? `${pathname}?${queryString}` : pathname;
@@ -47,10 +49,11 @@ export default async function AtendimentosPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { busca = "", status = "", pagina = "1" } = await searchParams;
+  const { busca = "", status = "", pagina = "1", from = "" } = await searchParams;
   const buscaNorm = busca.trim().toLowerCase();
   const statusNorm = status.trim().toUpperCase();
   const requestedPage = parsePage(pagina);
+  const fromValue = from.trim();
 
   let atendimentos: AtendimentoWithDetails[] = [];
   let error: string | null = null;
@@ -93,13 +96,20 @@ export default async function AtendimentosPage({
   const startItem = totalAtendimentos === 0 ? 0 : startIndex + 1;
   const endItem = totalAtendimentos === 0 ? 0 : Math.min(startIndex + PAGE_SIZE, totalAtendimentos);
 
+  const baseQuery = { busca: buscaNorm, status: statusNorm, from: fromValue };
+  const currentListUrl = buildHref("/ater-sociobio/atendimentos", { ...baseQuery, pagina: currentPage });
+  const appendFromList = (href: string) => {
+    const connector = href.includes("?") ? "&" : "?";
+    return `${href}${connector}from=${encodeURIComponent(currentListUrl)}`;
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50/50">
       <Header
         title="Atendimentos"
         description={`Histórico de visitas técnicas vinculadas às UFPAs acompanhadas em ${ATER_SOCIOBIO_TERRITORY_NAME}`}
         actions={
-          <Link href="/ater-sociobio/atendimentos/nova" className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">
+          <Link href={appendFromList("/ater-sociobio/atendimentos/nova")} className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">
             Nova visita
           </Link>
         }
@@ -117,6 +127,7 @@ export default async function AtendimentosPage({
               </div>
 
               <form action="/ater-sociobio/atendimentos" method="GET" className="flex flex-col gap-3 md:flex-row">
+                <input type="hidden" name="from" value={fromValue} />
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                   <input
@@ -195,10 +206,10 @@ export default async function AtendimentosPage({
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-3">
-                            <Link href={`/ater-sociobio/atendimentos/${at.id}/editar`} className="text-slate-500 hover:underline">
+                            <Link href={appendFromList(`/ater-sociobio/atendimentos/${at.id}/editar`)} className="text-slate-500 hover:underline">
                               Editar
                             </Link>
-                            <Link href={`/ater-sociobio/atendimentos/${at.id}`} className="text-emerald-600 hover:underline">
+                            <Link href={appendFromList(`/ater-sociobio/atendimentos/${at.id}`)} className="text-emerald-600 hover:underline">
                               Ver
                             </Link>
                           </div>

@@ -2,8 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Calendar, Hash, MapPin, User, Users } from "lucide-react";
 
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { DiagnosticoReportPdf } from "@/components/ater/diagnostico-report-pdf";
+import { DiagnosticoPdfLink } from "@/components/ater/diagnostico-pdf-link";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Button, Card, Badge } from "@/components/ui";
 import { ATER_SETUP_ERROR, isAterMissingTableError } from "@/lib/ater-runtime";
@@ -52,10 +51,14 @@ function booleanText(value?: boolean | null) {
 
 export default async function FamiliaDetailPage({
   params,
+  searchParams,
 }: {
   params: Params;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
+  const { from = "" } = await searchParams;
+  const fromValue = from.trim();
 
   let familia: FamiliaWithCadastro | null = null;
   let atendimentos: AtendimentoWithDetails[] = [];
@@ -98,6 +101,12 @@ export default async function FamiliaDetailPage({
     isAterSociobioAtendimentoValido(atendimento.statusRelatorio),
   );
 
+  const currentUrl = `/ater-sociobio/familias/${id}${fromValue ? `?from=${encodeURIComponent(fromValue)}` : ""}`;
+  const appendFromDetails = (href: string) => {
+    const connector = href.includes("?") ? "&" : "?";
+    return `${href}${connector}from=${encodeURIComponent(currentUrl)}`;
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50/50">
       <Header
@@ -105,25 +114,16 @@ export default async function FamiliaDetailPage({
         description={familia.nomeResponsavel ? `Responsável: ${familia.nomeResponsavel}` : "Detalhes da UFPA"}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Link href={`/ater-sociobio/familias/${familia.id}/editar`}>
+            <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/editar`)}>
               <Button variant="secondary" size="sm">Editar UFPA</Button>
             </Link>
-            <PDFDownloadLink
-              document={<DiagnosticoReportPdf familia={familia} />}
-              fileName={`Diagnostico_${familia.nomeFamilia.replace(/\s+/g, "_")}.pdf`}
-            >
-              {({ loading }) => (
-                <Button variant="secondary" size="sm" disabled={loading}>
-                  {loading ? "Gerando..." : "Baixar Diagnóstico PDF"}
-                </Button>
-              )}
-            </PDFDownloadLink>
-            <Link href={`/ater-sociobio/familias/${familia.id}/diagnostico`}>
+            <DiagnosticoPdfLink familia={familia} />
+            <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/diagnostico`)}>
               <Button variant="primary" size="sm">
                 {familia.diagnostico || familia.indicadores ? "Diagnóstico & Indicadores" : "Preencher Diagnóstico"}
               </Button>
             </Link>
-            <Link href={`/ater-sociobio/atendimentos/nova?familiaId=${familia.id}`}>
+            <Link href={appendFromDetails(`/ater-sociobio/atendimentos/nova?familiaId=${familia.id}`)}>
               <Button variant="secondary" size="sm">Novo atendimento</Button>
             </Link>
           </div>
@@ -228,12 +228,34 @@ export default async function FamiliaDetailPage({
                 <dt className="text-xs font-bold uppercase tracking-widest text-zinc-400">DAP/CAF</dt>
                 <dd className="mt-1">
                   {familia.dapCaf ? (
-                    <span className="inline-flex rounded-md bg-zinc-950 px-2.5 py-1 text-xs font-bold text-white">
-                      {familia.dapCaf}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className="inline-flex w-fit rounded-md bg-zinc-950 px-2.5 py-1 text-xs font-bold text-white">
+                        {familia.dapCaf}
+                      </span>
+                      {(familia.dapCafOrgaoEmissor || familia.dapCafValidade) && (
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                          {familia.dapCafOrgaoEmissor}{familia.dapCafOrgaoEmissor && familia.dapCafValidade ? " - " : ""}
+                          {familia.dapCafValidade ? `Val: ${formatDate(familia.dapCafValidade)}` : ""}
+                        </span>
+                      )}
+                    </div>
                   ) : (
                     <span className="text-zinc-400">-</span>
                   )}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-widest text-zinc-400">Endereço</dt>
+                <dd className="mt-1 text-base font-semibold text-zinc-900">
+                  {familia.enderecoUfpa || "-"}
+                  {familia.complementoUfpa ? ` (${familia.complementoUfpa})` : ""}
+                  {familia.cepUfpa ? ` - CEP: ${familia.cepUfpa}` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-widest text-zinc-400">Coordenadas</dt>
+                <dd className="mt-1 text-base font-semibold text-zinc-900">
+                  {familia.latitude && familia.longitude ? `${familia.latitude}, ${familia.longitude}` : "-"}
                 </dd>
               </div>
               <div>
@@ -357,30 +379,188 @@ export default async function FamiliaDetailPage({
                   Base estruturada para métricas e plano de ação da UFPA.
                 </p>
               </div>
-              <Link href={`/ater-sociobio/familias/${familia.id}/diagnostico`}>
-                <Button variant="secondary">{familia.diagnostico || familia.indicadores ? "Atualizar diagnóstico completo" : "Preencher diagnóstico completo"}</Button>
-              </Link>
+              {familia.diagnostico || familia.indicadores ? (
+                <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/diagnostico`)}>
+                  <Button variant="secondary">Atualizar diagnóstico completo</Button>
+                </Link>
+              ) : null}
             </div>
 
             {!familia.diagnostico && !familia.indicadores ? (
-              <p className="text-zinc-500">Nenhum diagnóstico estruturado registrado para esta UFPA.</p>
+              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-100 bg-emerald-50/50 py-12 text-center">
+                <div className="mb-4 rounded-full bg-emerald-100 p-3 text-emerald-600">
+                  <Calendar className="h-6 w-6" />
+                </div>
+                <h3 className="mb-2 text-base font-bold text-zinc-900">Nenhum diagnóstico registrado</h3>
+                <p className="mb-6 max-w-sm text-sm text-zinc-500">
+                  O diagnóstico estruturado é fundamental para traçar o plano de ação e gerar métricas para esta UFPA.
+                </p>
+                <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/diagnostico`)}>
+                  <Button variant="primary" className="h-11 px-8">Preencher diagnóstico completo</Button>
+                </Link>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Data do diagnóstico</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{formatDate(familia.diagnostico?.dataDiagnostico)}</p>
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Data do diagnóstico</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{formatDate(familia.diagnostico?.dataDiagnostico)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Internet</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.diagnostico?.possuiInternet)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Água tratada</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.diagnostico?.aguaConsumoTratada)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">CadÚnico</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.indicadores?.cadastradoCadUnico)}</p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Internet</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.diagnostico?.possuiInternet)}</p>
-                </div>
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Água tratada</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.diagnostico?.aguaConsumoTratada)}</p>
-                </div>
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">CadÚnico</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.indicadores?.cadastradoCadUnico)}</p>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="rounded-2xl border border-zinc-100 p-6">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-400">Contexto Social e Político</h3>
+                    <dl className="space-y-3 text-sm">
+                      <div className="flex justify-between border-b border-zinc-50 pb-2">
+                        <dt className="text-zinc-600 font-medium">Insegurança alimentar</dt>
+                        <dd className="font-bold text-zinc-900">
+                          {familia.indicadores
+                            ? booleanText(
+                                [
+                                  familia.indicadores.alimentacaoVariadaComprometida,
+                                  familia.indicadores.comidaAcabouSemCondicao,
+                                  familia.indicadores.deixouRefeicaoSemCondicao,
+                                  familia.indicadores.comeuMenosSemCondicao,
+                                  familia.indicadores.sentiuFomeENaoComeu,
+                                ].some(Boolean),
+                              )
+                            : "-"}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between border-b border-zinc-50 pb-2">
+                        <dt className="text-zinc-600 font-medium">Políticas Sociais</dt>
+                        <dd className="font-bold text-zinc-900">{booleanText(familia.indicadores?.acessaPoliticasSociais)}</dd>
+                      </div>
+                      <div className="flex justify-between border-b border-zinc-50 pb-2">
+                        <dt className="text-zinc-600 font-medium">Participação Coletiva</dt>
+                        <dd className="font-bold text-zinc-900">
+                          {booleanText(
+                            [
+                              familia.indicadores?.participaGrupoComunitario,
+                              familia.indicadores?.participaAssociacao,
+                              familia.indicadores?.participaCooperativa,
+                            ].some(Boolean),
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  <div className="rounded-2xl border border-zinc-100 p-6">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-400">Canais de Comercialização</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {familia.indicadores?.canalTrocaProdutoServico && <Badge variant="secondary">Troca</Badge>}
+                      {familia.indicadores?.canalVendaPropriedade && <Badge variant="secondary">Venda na Propriedade</Badge>}
+                      {familia.indicadores?.canalVendaDiretaConsumidor && <Badge variant="secondary">Venda Direta</Badge>}
+                      {familia.indicadores?.canalFeira && <Badge variant="secondary">Feira</Badge>}
+                      {familia.indicadores?.canalMercadoLocal && <Badge variant="secondary">Mercado Local</Badge>}
+                      {familia.indicadores?.canalAtravessador && <Badge variant="secondary">Atravessador</Badge>}
+                      {familia.indicadores?.canalPaa && <Badge variant="secondary">PAA</Badge>}
+                      {familia.indicadores?.canalPnae && <Badge variant="secondary">PNAE</Badge>}
+                      {familia.indicadores?.canalCooperativaEntreposto && <Badge variant="secondary">Cooperativa</Badge>}
+                      {![
+                        familia.indicadores?.canalTrocaProdutoServico,
+                        familia.indicadores?.canalVendaPropriedade,
+                        familia.indicadores?.canalVendaDiretaConsumidor,
+                        familia.indicadores?.canalFeira,
+                        familia.indicadores?.canalMercadoLocal,
+                        familia.indicadores?.canalAtravessador,
+                        familia.indicadores?.canalPaa,
+                        familia.indicadores?.canalPnae,
+                        familia.indicadores?.canalCooperativaEntreposto,
+                      ].some(Boolean) && <span className="text-zinc-400 italic">Nenhum canal registrado</span>}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-zinc-100 p-6 md:col-span-2">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-400">Ações Potenciais e Limitações</h3>
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      <div>
+                        <p className="mb-3 font-semibold text-emerald-700">Ações Potenciais (Identificadas)</p>
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Produtivo</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(familia.diagnostico?.acoesPotenciaisProdutivo as string[])?.length ? (
+                                (familia.diagnostico?.acoesPotenciaisProdutivo as string[]).map((item) => (
+                                  <Badge key={item} variant="secondary" className="text-xs font-normal text-zinc-700">{item}</Badge>
+                                ))
+                              ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Social</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(familia.diagnostico?.acoesPotenciaisSocial as string[])?.length ? (
+                                (familia.diagnostico?.acoesPotenciaisSocial as string[]).map((item) => (
+                                  <Badge key={item} variant="secondary" className="text-xs font-normal text-zinc-700">{item}</Badge>
+                                ))
+                              ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Ambiental</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(familia.diagnostico?.acoesPotenciaisAmbiental as string[])?.length ? (
+                                (familia.diagnostico?.acoesPotenciaisAmbiental as string[]).map((item) => (
+                                  <Badge key={item} variant="secondary" className="text-xs font-normal text-zinc-700">{item}</Badge>
+                                ))
+                              ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="mb-3 font-semibold text-rose-700">Limitações (Identificadas)</p>
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Produtivo</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(familia.diagnostico?.limitacoesProdutivo as string[])?.length ? (
+                                (familia.diagnostico?.limitacoesProdutivo as string[]).map((item) => (
+                                  <Badge key={item} variant="destructive-subtle" className="text-xs font-normal text-zinc-700">{item}</Badge>
+                                ))
+                              ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Social</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(familia.diagnostico?.limitacoesSocial as string[])?.length ? (
+                                (familia.diagnostico?.limitacoesSocial as string[]).map((item) => (
+                                  <Badge key={item} variant="destructive-subtle" className="text-xs font-normal text-zinc-700">{item}</Badge>
+                                ))
+                              ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Ambiental</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {(familia.diagnostico?.limitacoesAmbiental as string[])?.length ? (
+                                (familia.diagnostico?.limitacoesAmbiental as string[]).map((item) => (
+                                  <Badge key={item} variant="destructive-subtle" className="text-xs font-normal text-zinc-700">{item}</Badge>
+                                ))
+                              ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

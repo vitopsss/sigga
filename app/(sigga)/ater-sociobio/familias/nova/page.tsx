@@ -74,7 +74,13 @@ export default async function NovaFamiliaPage() {
                 </label>
 
                 <Field label="Grupo de Interesse" name="grupoInteresse" />
-                <Field label="DAP/CAF" name="dapCaf" />
+                <div className="grid grid-cols-1 gap-2">
+                  <Field label="DAP/CAF" name="dapCaf" />
+                  <div className="flex gap-2">
+                    <Field label="Órgão Emissor" name="dapCafOrgaoEmissor" className="w-1/2" />
+                    <Field label="Validade" name="dapCafValidade" type="date" className="w-1/2" />
+                  </div>
+                </div>
                 <Field label="Código SGA" name="codigoSGA" />
               </div>
             </Section>
@@ -89,7 +95,10 @@ export default async function NovaFamiliaPage() {
                 <Field label="Programa de Fomento" name="programaFomento" />
                 <Field label="Classificação da UFPA" name="classificacaoUfpa" />
                 <Field label="Endereço/Acesso" name="enderecoUfpa" className="lg:col-span-2" />
+                <Field label="Complemento" name="complementoUfpa" />
                 <Field label="CEP" name="cepUfpa" />
+                <Field label="Latitude (decimal)" name="latitude" placeholder="-3.123456" />
+                <Field label="Longitude (decimal)" name="longitude" placeholder="-60.123456" />
               </div>
             </Section>
 

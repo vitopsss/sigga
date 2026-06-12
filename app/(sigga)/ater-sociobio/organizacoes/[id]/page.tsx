@@ -72,6 +72,12 @@ export default async function OrganizacaoColetivaDetailPage({
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const returnHref = getSafeReturnHref(resolvedSearchParams.from) ?? "/ater-sociobio/organizacoes";
 
+  const currentUrl = `/ater-sociobio/organizacoes/${id}${resolvedSearchParams.from ? `?from=${encodeURIComponent(resolvedSearchParams.from)}` : ""}`;
+  const appendFromDetails = (href: string) => {
+    const connector = href.includes("?") ? "&" : "?";
+    return `${href}${connector}from=${encodeURIComponent(currentUrl)}`;
+  };
+
   let organizacao: OrganizacaoColetivaWithFamilias | null = null;
   let error: string | null = null;
   let setupMissing = false;
@@ -117,13 +123,13 @@ export default async function OrganizacaoColetivaDetailPage({
             <Link href={returnHref}>
               <Button variant="secondary" size="sm">Voltar para a lista</Button>
             </Link>
-            <Link href={`/ater-sociobio/organizacoes/${organizacao.id}/indicadores`}>
+            <Link href={appendFromDetails(`/ater-sociobio/organizacoes/${organizacao.id}/indicadores`)}>
               <Button variant="secondary" size="sm">
                 <ClipboardList className="h-4 w-4 text-emerald-600" />
                 Indicadores
               </Button>
             </Link>
-            <Link href={`/ater-sociobio/organizacoes/${organizacao.id}/editar`}>
+            <Link href={appendFromDetails(`/ater-sociobio/organizacoes/${organizacao.id}/editar`)}>
               <Button variant="primary" size="sm">Editar organização</Button>
             </Link>
           </div>
@@ -150,7 +156,7 @@ export default async function OrganizacaoColetivaDetailPage({
             <Card className="p-5">
               <p className="flex items-center gap-1 text-sm font-semibold text-zinc-500 uppercase tracking-wider">
                 <Building2 className="h-4 w-4" />
-                Famílias previstas
+                Famílias (Estimativa)
               </p>
               <p className="mt-2 text-3xl font-bold text-zinc-950">{organizacao.numeroFamilias ?? "-"}</p>
             </Card>
@@ -236,7 +242,7 @@ export default async function OrganizacaoColetivaDetailPage({
                 <h2 className="text-lg font-bold text-zinc-900">Indicadores Coletivos</h2>
                 <p className="mt-1 text-sm text-zinc-500 font-medium">Monitoramento do Documento 6 - Indicadores da Organização.</p>
               </div>
-              <Link href={`/ater-sociobio/organizacoes/${organizacao.id}/indicadores`}>
+              <Link href={appendFromDetails(`/ater-sociobio/organizacoes/${organizacao.id}/indicadores`)}>
                 <Button variant={indicadores ? "secondary" : "primary"} size="sm">{indicadores ? "Atualizar indicadores" : "Preencher indicadores"}</Button>
               </Link>
             </div>
@@ -244,23 +250,75 @@ export default async function OrganizacaoColetivaDetailPage({
             {!indicadores ? (
               <p className="text-sm text-zinc-500">Indicadores coletivos ainda não preenchidos.</p>
             ) : (
-              <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Práticas ambientais</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.possuiPraticasAmbientais)}</p>
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Práticas ambientais</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.possuiPraticasAmbientais)}</p>
+                    {indicadores.praticasAmbientaisQuais && <p className="mt-2 text-[10px] text-zinc-500 italic">{indicadores.praticasAmbientaisQuais}</p>}
+                  </div>
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Identidade comercial</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.usaIdentidadeComercial)}</p>
+                    {indicadores.identidadeComercialQuais && <p className="mt-2 text-[10px] text-zinc-500 italic">{indicadores.identidadeComercialQuais}</p>}
+                  </div>
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Mulheres na direção</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.possuiMulheresDiretoriaConselho)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
+                    <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Políticas públicas</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.acessaPoliticasPublicas)}</p>
+                    {indicadores.politicasPublicasQuais && <p className="mt-2 text-[10px] text-zinc-500 italic">{indicadores.politicasPublicasQuais}</p>}
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Identidade comercial</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.usaIdentidadeComercial)}</p>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="rounded-2xl border border-zinc-100 p-6">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-400">Detalhamento Social</h3>
+                    <dl className="space-y-3 text-sm">
+                      <div className="flex justify-between border-b border-zinc-50 pb-2">
+                        <dt className="text-zinc-600 font-medium">Jovens na diretoria/conselho</dt>
+                        <dd className="font-bold text-zinc-900">{formatBoolean(indicadores.possuiJovensDiretoriaConselho)}</dd>
+                      </div>
+                      <div className="flex justify-between border-b border-zinc-50 pb-2">
+                        <dt className="text-zinc-600 font-medium">Filiada a organização</dt>
+                        <dd className="font-bold text-zinc-900">{formatBoolean(indicadores.filiadaOrganizacao)}</dd>
+                      </div>
+                      {indicadores.representacaoPoliticaQuais && (
+                        <div className="pt-1">
+                          <dt className="text-[10px] font-bold uppercase text-zinc-400">Outras filiações</dt>
+                          <dd className="mt-1 text-zinc-700 italic">{indicadores.representacaoPoliticaQuais}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
+
+                  <div className="rounded-2xl border border-zinc-100 p-6">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-400">Canais de Comercialização</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {indicadores.canalTrocaProdutoServico && <Badge variant="secondary">Troca</Badge>}
+                      {indicadores.canalVendaOrganizacao && <Badge variant="secondary">Venda na Org</Badge>}
+                      {indicadores.canalVendaDiretaConsumidor && <Badge variant="secondary">Venda Direta</Badge>}
+                      {indicadores.canalFeira && <Badge variant="secondary">Feira</Badge>}
+                      {indicadores.canalMercadoLocal && <Badge variant="secondary">Mercado Local</Badge>}
+                      {indicadores.canalAtravessador && <Badge variant="secondary">Atravessador</Badge>}
+                      {indicadores.canalPaa && <Badge variant="secondary">PAA</Badge>}
+                      {indicadores.canalPnae && <Badge variant="secondary">PNAE</Badge>}
+                      {indicadores.canalMercadoJustoSolidario && <Badge variant="secondary">Mercado Justo</Badge>}
+                      {![indicadores.canalTrocaProdutoServico, indicadores.canalVendaOrganizacao, indicadores.canalVendaDiretaConsumidor, indicadores.canalFeira, indicadores.canalMercadoLocal, indicadores.canalAtravessador, indicadores.canalPaa, indicadores.canalPnae, indicadores.canalMercadoJustoSolidario].some(Boolean) && (
+                        <span className="text-zinc-400 italic">Nenhum canal registrado</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Mulheres na direção</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.possuiMulheresDiretoriaConselho)}</p>
-                </div>
-                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
-                  <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Políticas públicas</p>
-                  <p className="mt-1 font-semibold text-zinc-900">{formatBoolean(indicadores.acessaPoliticasPublicas)}</p>
-                </div>
+
+                {indicadores.observacoes && (
+                  <div className="rounded-2xl bg-zinc-50 p-6">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">Observações dos Indicadores</h3>
+                    <p className="mt-2 text-sm text-zinc-700 whitespace-pre-wrap font-medium">{indicadores.observacoes}</p>
+                  </div>
+                )}
               </div>
             )}
           </section>

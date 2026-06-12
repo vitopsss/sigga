@@ -67,6 +67,12 @@ export default async function AtendimentoDetailPage({
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const returnHref = getSafeReturnHref(resolvedSearchParams.from) ?? "/ater-sociobio/atendimentos";
 
+  const currentUrl = `/ater-sociobio/atendimentos/${atendimentoId}${resolvedSearchParams.from ? `?from=${encodeURIComponent(resolvedSearchParams.from)}` : ""}`;
+  const appendFromDetails = (href: string) => {
+    const connector = href.includes("?") ? "&" : "?";
+    return `${href}${connector}from=${encodeURIComponent(currentUrl)}`;
+  };
+
   let atendimento: AtendimentoWithDetails | null = null;
   let error: string | null = null;
 
@@ -250,7 +256,7 @@ export default async function AtendimentoDetailPage({
               <Link href={`/ater-sociobio/atendimentos/${atendimentoId}/pdf`} target="_blank">
                 <Button variant="primary">Baixar PDF</Button>
               </Link>
-              <Link href={`/ater-sociobio/atendimentos/${atendimentoId}/editar`}>
+              <Link href={appendFromDetails(`/ater-sociobio/atendimentos/${atendimentoId}/editar`)}>
                 <Button variant="ghost">Editar atendimento</Button>
               </Link>
             </div>
@@ -340,7 +346,7 @@ export default async function AtendimentoDetailPage({
           {atendimento.familia && (
             <div className="mt-6 border-t border-slate-100 pt-4">
               <Link
-                href={`/ater-sociobio/familias/${atendimento.familia.id}/diagnostico`}
+                href={appendFromDetails(`/ater-sociobio/familias/${atendimento.familia.id}/diagnostico`)}
                 className="text-sm font-medium text-emerald-700 hover:underline"
               >
                 Abrir diagnóstico da UFPA

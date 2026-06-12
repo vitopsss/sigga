@@ -8,7 +8,17 @@ import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Header } from "@/components/dashboard/header";
 import { ATER_SETUP_ERROR, isAterMissingTableError } from "@/lib/ater-runtime";
 import { salvarDiagnosticoUfpa } from "@/lib/actions/diagnosticos";
-import { PRONAF_LINHAS_UFPA } from "@/lib/constants/ater-sociobio-official";
+import {
+  PRONAF_LINHAS_UFPA,
+} from "@/lib/constants/ater-sociobio-official";
+import {
+  ATER_SOCIOBIO_POTENCIALIDADES_PRODUTIVO,
+  ATER_SOCIOBIO_POTENCIALIDADES_SOCIAL,
+  ATER_SOCIOBIO_POTENCIALIDADES_AMBIENTAL,
+  ATER_SOCIOBIO_LIMITACOES_PRODUTIVO,
+  ATER_SOCIOBIO_LIMITACOES_SOCIAL,
+  ATER_SOCIOBIO_LIMITACOES_AMBIENTAL,
+} from "@/lib/constants/ater-sociobio";
 import { AterSociobioService, type FamiliaWithCadastro } from "@/lib/services/ater-sociobio.service";
 
 type Params = Promise<{ id: string }>;
@@ -51,6 +61,39 @@ function getPronafDefault(value: unknown, label: string): boolean | null {
   if (!row || typeof row !== "object" || Array.isArray(row)) return null;
   const acessou = (row as { acessou?: unknown }).acessou;
   return typeof acessou === "boolean" ? acessou : null;
+}
+
+function CheckboxGroup({
+  label,
+  name,
+  options,
+  defaultValues,
+}: {
+  label: string;
+  name: string;
+  options: readonly string[];
+  defaultValues?: string[] | null;
+}) {
+  const selected = new Set(defaultValues ?? []);
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-semibold text-slate-900">{label}</h3>
+      <div className="space-y-2">
+        {options.map((option) => (
+          <label key={option} className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              name={name}
+              value={option}
+              defaultChecked={selected.has(option)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            />
+            <span className="text-sm text-slate-700">{option}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function Section({
@@ -471,12 +514,13 @@ export default async function DiagnosticoUfpaPage({ params }: { params: Params }
                   <tr className="border-t border-slate-300">
                     <td className="border-r border-slate-200 px-4 py-4">
                       <label className="block">
-                        <span className="font-medium text-slate-700">Outros__________________________</span>
+                        <span className="font-medium text-slate-700">Outros meios de comunicação</span>
                         <input
                           name="outroMeioComunicacao"
                           type="text"
                           defaultValue={diagnostico?.outroMeioComunicacao ?? ""}
-                          className="mt-2 w-full border-0 border-b border-slate-300 bg-transparent px-0 py-1 text-sm outline-none focus:border-emerald-500"
+                          placeholder="Especifique..."
+                          className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                         />
                       </label>
                     </td>
@@ -601,18 +645,48 @@ export default async function DiagnosticoUfpaPage({ params }: { params: Params }
             </Section>
 
             <Section title="Ações Potenciais">
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                <TextArea label="Eixo Produtivo" name="acoesPotenciaisProdutivo" defaultValue={diagnostico?.acoesPotenciaisProdutivo} />
-                <TextArea label="Eixo Social" name="acoesPotenciaisSocial" defaultValue={diagnostico?.acoesPotenciaisSocial} />
-                <TextArea label="Eixo Ambiental" name="acoesPotenciaisAmbiental" defaultValue={diagnostico?.acoesPotenciaisAmbiental} />
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <CheckboxGroup
+                  label="Eixo Produtivo"
+                  name="acoesPotenciaisProdutivo"
+                  options={ATER_SOCIOBIO_POTENCIALIDADES_PRODUTIVO}
+                  defaultValues={diagnostico?.acoesPotenciaisProdutivo as string[] | undefined}
+                />
+                <CheckboxGroup
+                  label="Eixo Social"
+                  name="acoesPotenciaisSocial"
+                  options={ATER_SOCIOBIO_POTENCIALIDADES_SOCIAL}
+                  defaultValues={diagnostico?.acoesPotenciaisSocial as string[] | undefined}
+                />
+                <CheckboxGroup
+                  label="Eixo Ambiental"
+                  name="acoesPotenciaisAmbiental"
+                  options={ATER_SOCIOBIO_POTENCIALIDADES_AMBIENTAL}
+                  defaultValues={diagnostico?.acoesPotenciaisAmbiental as string[] | undefined}
+                />
               </div>
             </Section>
 
             <Section title="Limitações" muted>
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                <TextArea label="Eixo Produtivo" name="limitacoesProdutivo" defaultValue={diagnostico?.limitacoesProdutivo} />
-                <TextArea label="Eixo Social" name="limitacoesSocial" defaultValue={diagnostico?.limitacoesSocial} />
-                <TextArea label="Eixo Ambiental" name="limitacoesAmbiental" defaultValue={diagnostico?.limitacoesAmbiental} />
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <CheckboxGroup
+                  label="Eixo Produtivo"
+                  name="limitacoesProdutivo"
+                  options={ATER_SOCIOBIO_LIMITACOES_PRODUTIVO}
+                  defaultValues={diagnostico?.limitacoesProdutivo as string[] | undefined}
+                />
+                <CheckboxGroup
+                  label="Eixo Social"
+                  name="limitacoesSocial"
+                  options={ATER_SOCIOBIO_LIMITACOES_SOCIAL}
+                  defaultValues={diagnostico?.limitacoesSocial as string[] | undefined}
+                />
+                <CheckboxGroup
+                  label="Eixo Ambiental"
+                  name="limitacoesAmbiental"
+                  options={ATER_SOCIOBIO_LIMITACOES_AMBIENTAL}
+                  defaultValues={diagnostico?.limitacoesAmbiental as string[] | undefined}
+                />
               </div>
             </Section>
 
@@ -752,12 +826,9 @@ export default async function DiagnosticoUfpaPage({ params }: { params: Params }
 
             <Section title="AMBIENTAL - Propriedade com práticas sustentáveis" muted>
               <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <BooleanField label="1. A UFPA faz uso de práticas sustentáveis de conservação?" name="possuiPraticasSustentaveis" defaultValue={indicadores?.possuiPraticasSustentaveis} />
-                  <TextArea label="2. Se sim na questão 1, qual?" name="praticasSustentaveisQuais" defaultValue={indicadores?.praticasSustentaveisQuais} />
-                </div>
+                <BooleanField label="1. A UFPA faz uso de práticas sustentáveis de conservação?" name="possuiPraticasSustentaveis" defaultValue={indicadores?.possuiPraticasSustentaveis} />
                 <div>
-                  <p className="mb-4 text-sm font-bold text-zinc-900">Quais práticas são realizadas?</p>
+                  <p className="mb-4 text-sm font-bold text-zinc-900">2. Se sim, quais práticas são realizadas?</p>
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                     <TernaryField label="a. Integração de atividades" name="praticaIntegracaoAtividades" defaultValue={indicadores?.praticaIntegracaoAtividades} />
                     <TernaryField label="b. Descarte correto de embalagens" name="praticaDescarteCorretoEmbalagens" defaultValue={indicadores?.praticaDescarteCorretoEmbalagens} />
@@ -775,8 +846,11 @@ export default async function DiagnosticoUfpaPage({ params }: { params: Params }
                     <TernaryField label="n. Manejo florestal de áreas de extrativismo" name="praticaManejoFlorestal" defaultValue={indicadores?.praticaManejoFlorestal} />
                     <TernaryField label="o. Recomposição florestal" name="praticaRecomposicaoFlorestal" defaultValue={indicadores?.praticaRecomposicaoFlorestal} />
                   </div>
+                  <div className="mt-5">
+                    <TextArea label="Outras práticas sustentáveis (Quais?)" name="praticasSustentaveisQuais" defaultValue={indicadores?.praticasSustentaveisQuais} />
+                  </div>
                 </div>
-                <div>
+                <div className="border-t border-slate-200 pt-6">
                   <p className="mb-4 text-sm font-semibold text-slate-900">3. Se não na questão 1, qual o motivo?</p>
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <TernaryField label="a. Questão financeira" name="motivoSemPraticaFinanceiro" defaultValue={indicadores?.motivoSemPraticaFinanceiro} />

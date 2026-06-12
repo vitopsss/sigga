@@ -23,7 +23,16 @@ import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { Header } from "@/components/dashboard/header";
 import { AterSociobioService, FamiliaListItem } from "@/lib/services/ater-sociobio.service";
 
-type SearchParams = Promise<{ busca?: string; municipio?: string; sga?: string; indicador?: string; pagina?: string }>;
+type SearchParams = Promise<{
+  busca?: string;
+  municipio?: string;
+  comunidade?: string;
+  organizacao?: string;
+  sga?: string;
+  indicador?: string;
+  pagina?: string;
+  from?: string;
+}>;
 
 const PAGE_SIZE = 10;
 
@@ -37,18 +46,24 @@ function buildHref(
   params: {
     busca?: string;
     municipio?: string;
+    comunidade?: string;
+    organizacao?: string;
     sga?: string;
     indicador?: string;
     pagina?: number;
+    from?: string;
   },
 ) {
   const query = new URLSearchParams();
 
   if (params.busca) query.set("busca", params.busca);
   if (params.municipio) query.set("municipio", params.municipio);
+  if (params.comunidade) query.set("comunidade", params.comunidade);
+  if (params.organizacao) query.set("organizacao", params.organizacao);
   if (params.sga) query.set("sga", params.sga);
   if (params.indicador) query.set("indicador", params.indicador);
   if (params.pagina && params.pagina > 1) query.set("pagina", String(params.pagina));
+  if (params.from) query.set("from", params.from);
 
   const queryString = query.toString();
   return queryString ? `${pathname}?${queryString}` : pathname;
@@ -61,12 +76,24 @@ export default async function FamiliasPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { busca = "", municipio = "", sga = "", indicador = "", pagina = "1" } = await searchParams;
+  const {
+    busca = "",
+    municipio = "",
+    comunidade = "",
+    organizacao = "",
+    sga = "",
+    indicador = "",
+    pagina = "1",
+    from = "",
+  } = await searchParams;
   const buscaNorm = busca.trim();
   const municipioNorm = municipio.trim();
+  const comunidadeNorm = comunidade.trim();
+  const organizacaoNorm = organizacao.trim();
   const sgaNorm = sga.trim().toLowerCase();
   const indicadorNorm = indicador.trim().toLowerCase();
   const requestedPage = parsePage(pagina);
+  const fromValue = from.trim();
 
   let familias: FamiliaListItem[] = [];
   let totalFamilias = 0;
@@ -95,6 +122,8 @@ export default async function FamiliasPage({
       filtros: {
         busca: buscaNorm,
         municipio: municipioNorm,
+        comunidade: comunidadeNorm,
+        organizacaoId: organizacaoNorm,
         sgaIncompleto: sgaNorm === "incompleto",
         indicador: indicadorNorm,
       },
@@ -117,8 +146,24 @@ export default async function FamiliasPage({
   const currentPage = Math.min(requestedPage, totalPages);
   const startItem = totalFamilias === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const endItem = totalFamilias === 0 ? 0 : Math.min(currentPage * PAGE_SIZE, totalFamilias);
-  const hasFilters = Boolean(buscaNorm || municipioNorm || sgaNorm || indicadorNorm);
-  const baseQuery = { busca: buscaNorm, municipio: municipioNorm, sga: sgaNorm, indicador: indicadorNorm };
+  const hasFilters = Boolean(
+    buscaNorm || municipioNorm || comunidadeNorm || organizacaoNorm || sgaNorm || indicadorNorm,
+  );
+  const baseQuery = {
+    busca: buscaNorm,
+    municipio: municipioNorm,
+    comunidade: comunidadeNorm,
+    organizacao: organizacaoNorm,
+    sga: sgaNorm,
+    indicador: indicadorNorm,
+    from: fromValue,
+  };
+
+  const currentListUrl = buildHref("/ater-sociobio/familias", { ...baseQuery, pagina: currentPage });
+  const appendFromList = (href: string) => {
+    const connector = href.includes("?") ? "&" : "?";
+    return `${href}${connector}from=${encodeURIComponent(currentListUrl)}`;
+  };
   const indicatorOptions = [
     ["", "Todos os indicadores"],
     ["com-diagnostico", "Com diagnóstico"],
@@ -164,7 +209,7 @@ export default async function FamiliasPage({
                   <h2 className="text-lg font-semibold text-zinc-950">Lista de UFPAs</h2>
                   <p className="text-sm text-zinc-500">Busque por denominação, responsável, DAP/CAF, NIS, SGA ou comunidade e refine pelos municípios cadastrados.</p>
                 </div>
-                <Link href="/ater-sociobio/familias/nova">
+                <Link href={appendFromList("/ater-sociobio/familias/nova")}>
                   <Button variant="primary">
                     <Plus className="h-4 w-4" />
                     Nova UFPA
@@ -173,6 +218,7 @@ export default async function FamiliasPage({
               </div>
 
               <form action="/ater-sociobio/familias" method="GET" className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_220px_220px_260px_auto_auto]">
+                <input type="hidden" name="from" value={fromValue} />
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                   <input
@@ -225,7 +271,7 @@ export default async function FamiliasPage({
                 </Button>
 
                 {hasFilters ? (
-                  <Link href="/ater-sociobio/familias">
+                  <Link href={buildHref("/ater-sociobio/familias", { from: fromValue })}>
                     <Button variant="secondary" className="w-full">
                       Limpar
                     </Button>
@@ -249,11 +295,11 @@ export default async function FamiliasPage({
                 </EmptyDescription>
                 <EmptyActions>
                   {hasFilters ? (
-                    <Link href="/ater-sociobio/familias">
+                    <Link href={appendFromList("/ater-sociobio/familias")}>
                       <Button variant="secondary">Limpar filtros</Button>
                     </Link>
                   ) : null}
-                  <Link href="/ater-sociobio/familias/nova">
+                  <Link href={appendFromList("/ater-sociobio/familias/nova")}>
                     <Button variant="primary">Nova UFPA</Button>
                   </Link>
                 </EmptyActions>
@@ -312,11 +358,11 @@ export default async function FamiliasPage({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-3">
-                          <Link href={`/ater-sociobio/familias/${f.id}/editar`} className="inline-flex items-center gap-1 text-zinc-500 hover:underline">
+                          <Link href={appendFromList(`/ater-sociobio/familias/${f.id}/editar`)} className="inline-flex items-center gap-1 text-zinc-500 hover:underline">
                             <PencilLine className="h-4 w-4" />
                             Editar
                           </Link>
-                          <Link href={`/ater-sociobio/familias/${f.id}`} className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
+                          <Link href={appendFromList(`/ater-sociobio/familias/${f.id}`)} className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
                             <Eye className="h-4 w-4" />
                             Ver
                           </Link>

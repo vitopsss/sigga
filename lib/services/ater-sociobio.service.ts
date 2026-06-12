@@ -130,6 +130,8 @@ export interface FamiliaFilterDTO {
   busca?: string;
   sgaIncompleto?: boolean;
   indicador?: string;
+  organizacaoId?: string;
+  atividade?: string;
 }
 
 export type FamiliaAterInput = {
@@ -288,6 +290,16 @@ export class AterSociobioService {
     }
     if (filtros?.comunidade) {
       and.push({ comunidade: { equals: filtros.comunidade, mode: "insensitive" } });
+    }
+    if (filtros?.organizacaoId) {
+      and.push({ organizacaoColetivaId: { equals: filtros.organizacaoId } });
+    }
+    if (filtros?.atividade) {
+      and.push({
+        envioSGAPorAtividade: {
+          array_contains: { atividade: filtros.atividade },
+        },
+      });
     }
     if (filtros?.busca) {
       const b = filtros.busca;

@@ -11,6 +11,8 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "SIGGA v5",
   description: "Plataforma integrada de gestao institucional - Instituto Acariquara",

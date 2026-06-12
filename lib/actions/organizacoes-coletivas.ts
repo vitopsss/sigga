@@ -86,6 +86,10 @@ const indicadorOrganizacaoKeys = [
   "canalPaa",
   "canalPnae",
   "canalMercadoJustoSolidario",
+  "praticasAmbientaisQuais",
+  "identidadeComercialQuais",
+  "representacaoPoliticaQuais",
+  "politicasPublicasQuais",
   "observacoesIndicadoresOrganizacao",
 ];
 
@@ -190,6 +194,10 @@ function readIndicadoresOrganizacaoColetivaPayload(formData: FormData) {
     canalPaa: getOptionalBoolean(formData, "canalPaa"),
     canalPnae: getOptionalBoolean(formData, "canalPnae"),
     canalMercadoJustoSolidario: getOptionalBoolean(formData, "canalMercadoJustoSolidario"),
+    praticasAmbientaisQuais: getText(formData.get("praticasAmbientaisQuais")) || null,
+    identidadeComercialQuais: getText(formData.get("identidadeComercialQuais")) || null,
+    representacaoPoliticaQuais: getText(formData.get("representacaoPoliticaQuais")) || null,
+    politicasPublicasQuais: getText(formData.get("politicasPublicasQuais")) || null,
     observacoes: getText(formData.get("observacoesIndicadoresOrganizacao")) || null,
   };
 }

@@ -96,6 +96,45 @@ export const ATER_SOCIOBIO_MUNICIPIOS = [
   "Urucurituba",
 ] as const;
 
+export const ATER_SOCIOBIO_POTENCIALIDADES_PRODUTIVO = [
+  "Sistemas agroflorestais – SAF’s",
+  "Diversificação produtiva",
+  "Quintal produtivo (galinha caipira e horta)",
+  "Apoio a Comercialização",
+  "Apoio ao mercado institucional (PAA e PNAE)",
+  "Produção e produtividade",
+  "Transporte para a produção",
+  "Faz venda direta",
+  "Acesso a crédito",
+  "Faz rotação de cultivos",
+  "Faz consorciação",
+  "Banco de sementes crioulas",
+] as const;
+
+export const ATER_SOCIOBIO_POTENCIALIDADES_SOCIAL = [
+  "Cadastro da Agricultura Familiar - CAF",
+  "Cadastro Ambiental Rural - CAR",
+  "Acesso às políticas públicas - PAA e PNAE",
+  "Segurança Alimentar",
+  "Cidadania de acesso às políticas de crédito e de habitação rural",
+  "Documentação da propriedade (CCIR, CAR e CAF)",
+  "Documentação familiar (CPF, RG, Título de eleitor e CadÚnico)",
+  "Estímulo para atividades de cultura, lazer, esporte e inclusão digital",
+] as const;
+
+export const ATER_SOCIOBIO_POTENCIALIDADES_AMBIENTAL = [
+  "Saneamento rural",
+  "Gestão da propriedade integrando os aspectos produtivos, ambientais, sociais, culturais e econômicos",
+  "Integração entre atividades produtivas",
+  "Produções consorciadas, integradas e sistemas agroflorestais",
+  "Proteção de nascentes",
+  "Poço artesiano",
+] as const;
+
+export const ATER_SOCIOBIO_LIMITACOES_PRODUTIVO = ATER_SOCIOBIO_POTENCIALIDADES_PRODUTIVO;
+export const ATER_SOCIOBIO_LIMITACOES_SOCIAL = ATER_SOCIOBIO_POTENCIALIDADES_SOCIAL;
+export const ATER_SOCIOBIO_LIMITACOES_AMBIENTAL = ATER_SOCIOBIO_POTENCIALIDADES_AMBIENTAL;
+
 export const ATER_SOCIOBIO_ATIVIDADES_PRODUTIVAS = [
   "SAF - Sistema Agroflorestal",
   "Quintais agroecológicos",

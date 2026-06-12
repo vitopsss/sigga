@@ -153,6 +153,26 @@ export default async function EditarFamiliaPage({
                   </label>
 
                   <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Complemento</span>
+                    <input name="complementoUfpa" type="text" defaultValue={familia.complementoUfpa ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">CEP</span>
+                    <input name="cepUfpa" type="text" defaultValue={familia.cepUfpa ?? ""} className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Latitude (decimal)</span>
+                    <input name="latitude" type="text" defaultValue={familia.latitude?.toString() ?? ""} placeholder="-3.123456" className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
+                    <span className="text-sm font-medium text-zinc-700">Longitude (decimal)</span>
+                    <input name="longitude" type="text" defaultValue={familia.longitude?.toString() ?? ""} placeholder="-60.123456" className={inputClassName} />
+                  </label>
+
+                  <label className={labelClassName}>
                     <span className="text-sm font-medium text-zinc-700">Comunidade</span>
                     <input name="comunidade" type="text" defaultValue={familia.comunidade ?? ""} className={inputClassName} />
                   </label>

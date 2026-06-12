@@ -51,8 +51,16 @@ type FocusKey =
   | "emAnalise"
   | "reprovados"
   | "indicadoresPendentes"
+  | "praticasAmbientais"
   | "semPraticasAmbientais"
+  | "politicasPublicas"
   | "semPoliticasPublicas"
+  | "identidadeComercial"
+  | "semIdentidadeComercial"
+  | "filiadaOrganizacao"
+  | "semFiliadaOrganizacao"
+  | "mulheresDiretoria"
+  | "jovensDiretoria"
   | null;
 
 function normalized(value?: string | null) {
@@ -91,8 +99,16 @@ function isFocusKey(value: string | null): value is Exclude<FocusKey, null> {
     "emAnalise",
     "reprovados",
     "indicadoresPendentes",
+    "praticasAmbientais",
     "semPraticasAmbientais",
+    "politicasPublicas",
     "semPoliticasPublicas",
+    "identidadeComercial",
+    "semIdentidadeComercial",
+    "filiadaOrganizacao",
+    "semFiliadaOrganizacao",
+    "mulheresDiretoria",
+    "jovensDiretoria",
   ].includes(String(value));
 }
 
@@ -123,8 +139,16 @@ function focusFilter(key: FocusKey, item: SiggaterDashboardItem | SiggaterAtendi
     const org = item as SiggaterOrganizacaoDashboardItem;
     switch (key) {
       case "indicadoresPendentes": return !org.indicadoresRegistrados;
+      case "praticasAmbientais": return org.praticasAmbientais === true;
       case "semPraticasAmbientais": return org.praticasAmbientais === false;
+      case "politicasPublicas": return org.politicasPublicas === true;
       case "semPoliticasPublicas": return org.politicasPublicas === false;
+      case "identidadeComercial": return org.identidadeComercial === true;
+      case "semIdentidadeComercial": return org.identidadeComercial === false;
+      case "filiadaOrganizacao": return org.representacaoPolitica === true;
+      case "semFiliadaOrganizacao": return org.representacaoPolitica === false;
+      case "mulheresDiretoria": return org.mulheresDiretoria === true;
+      case "jovensDiretoria": return org.jovensDiretoria === true;
       default: return true;
     }
   }
@@ -306,10 +330,12 @@ function SimpleBarList({
   title,
   data,
   color = "bg-emerald-600",
+  getHref,
 }: {
   title: string;
   data: { name: string; value: number }[];
   color?: string;
+  getHref?: (name: string) => string;
 }) {
   const max = Math.max(...data.map((item) => item.value), 1);
 
@@ -321,20 +347,34 @@ function SimpleBarList({
       </div>
       <div className="space-y-4">
         {data.length ? (
-          data.slice(0, 8).map((item) => (
-            <div key={item.name} className="group">
-              <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
-                <span className="font-bold text-zinc-700">{item.name}</span>
-                <span className="font-mono font-bold text-zinc-500">{item.value}</span>
+          data.slice(0, 8).map((item) => {
+            const Content = (
+              <div key={item.name} className="group">
+                <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                  <span className={`font-bold transition-colors ${getHref ? "text-emerald-700 hover:text-emerald-600" : "text-zinc-700"}`}>
+                    {item.name}
+                  </span>
+                  <span className="font-mono font-bold text-zinc-500">{item.value}</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ease-out ${color}`}
+                    style={{ width: `${Math.max(4, (item.value / max) * 100)}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
-                <div
-                  className={`h-full rounded-full transition-all duration-1000 ease-out ${color}`}
-                  style={{ width: `${Math.max(4, (item.value / max) * 100)}%` }}
-                />
-              </div>
-            </div>
-          ))
+            );
+
+            if (getHref) {
+              return (
+                <Link key={item.name} href={getHref(item.name)}>
+                  {Content}
+                </Link>
+              );
+            }
+
+            return Content;
+          })
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="rounded-full bg-zinc-50 p-3">
@@ -533,7 +573,7 @@ function UfpaPanel({
               </div>
               <p className="mt-1 text-xs text-zinc-500 uppercase font-bold tracking-wider">Ranking por quantidade de riscos registrados</p>
             </div>
-            <Link href="/ater-sociobio/familias" className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
+            <Link href={appendReturnHref("/ater-sociobio/familias")} className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
               Ver todas
             </Link>
           </div>
@@ -567,16 +607,50 @@ function UfpaPanel({
           </div>
         </div>
 
-        <SimpleBarList title="UFPAs por comunidade" data={communityData} />
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="UFPAs por comunidade"
+            data={communityData}
+            getHref={(name) => `/ater-sociobio/familias?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Quantidade de UFPAs mapeadas em cada comunidade, útil para roteirização das visitas.
+          </p>
+        </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <SimpleBarList title="Distribuição por Bioma" data={biomaData} color="bg-zinc-800" />
-        <SimpleBarList title="Principais Cadeias Produtivas (SGA)" data={atividadeData} color="bg-emerald-600" />
+        <div className="flex flex-col">
+          <SimpleBarList title="Distribuição por Bioma" data={biomaData} color="bg-zinc-800" />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Distribuição ambiental das UFPAs, essencial para relatórios de impacto de conservação.
+          </p>
+        </div>
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="Principais Cadeias Produtivas (SGA)"
+            data={atividadeData}
+            color="bg-emerald-600"
+            getHref={(name) => `/ater-sociobio/familias?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Quais atividades econômicas (ex: Açaí, Manejo Florestal) concentram o maior número de UFPAs.
+          </p>
+        </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <SimpleBarList title="UFPAs por organização coletiva" data={orgData} color="bg-blue-600" />
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="UFPAs por organização coletiva"
+            data={orgData}
+            color="bg-blue-600"
+            getHref={(name) => `/ater-sociobio/familias?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Mostra onde o esforço associativo está concentrado (Quais Associações/Cooperativas têm mais UFPAs).
+          </p>
+        </div>
         <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
           <div className="mb-4 flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4 text-emerald-500" />
@@ -627,16 +701,18 @@ function OrganizacoesPanel({
     const mulheresDiretoria = items.filter((item) => item.mulheresDiretoria === true).length;
     const jovensDiretoria = items.filter((item) => item.jovensDiretoria === true).length;
     const politicasPublicas = items.filter((item) => item.politicasPublicas === true).length;
+    const filiadaOrganizacao = items.filter((item) => item.representacaoPolitica === true).length;
     const familiasVinculadas = items.reduce((sum, item) => sum + item.familiasVinculadas, 0);
 
     return {
       total,
       comIndicadores,
       praticasAmbientais,
-      identidadeComercial,
+      politicasPublicas,
       mulheresDiretoria,
       jovensDiretoria,
-      politicasPublicas,
+      identidadeComercial,
+      filiadaOrganizacao,
       familiasVinculadas,
     };
   }, [items]);
@@ -660,13 +736,20 @@ function OrganizacoesPanel({
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <MetricCard
           label="Organizações com indicadores"
           value={`${ratio(metrics.comIndicadores, metrics.total)}%`}
           description={`${metrics.comIndicadores} de ${metrics.total} organizações já possuem indicadores.`}
           tone="green"
           icon={ClipboardCheck}
+        />
+        <MetricCard
+          label="Sem indicadores"
+          value={Math.max(0, metrics.total - metrics.comIndicadores)}
+          description="Organizações ainda sem formulário preenchido."
+          tone="zinc"
+          icon={ClipboardList}
           active={focus === "indicadoresPendentes"}
           onClick={() => setFocus(focus === "indicadoresPendentes" ? null : "indicadoresPendentes")}
         />
@@ -683,6 +766,8 @@ function OrganizacoesPanel({
           description="Organizações com mulheres na diretoria executiva ou conselho fiscal."
           tone="rose"
           icon={Users}
+          active={focus === "mulheresDiretoria"}
+          onClick={() => setFocus(focus === "mulheresDiretoria" ? null : "mulheresDiretoria")}
         />
         <MetricCard
           label="Jovens na direção"
@@ -690,6 +775,8 @@ function OrganizacoesPanel({
           description="Organizações com jovens na diretoria executiva ou conselho fiscal."
           tone="amber"
           icon={Users}
+          active={focus === "jovensDiretoria"}
+          onClick={() => setFocus(focus === "jovensDiretoria" ? null : "jovensDiretoria")}
         />
       </section>
 
@@ -697,53 +784,113 @@ function OrganizacoesPanel({
         <MetricCard
           label="Práticas ambientais"
           value={metrics.praticasAmbientais}
-          description="Organizações que declararam uso de práticas ambientais."
+          description="Fazem uso de práticas ambientais."
           tone="green"
           icon={Leaf}
+          active={focus === "praticasAmbientais"}
+          onClick={() => setFocus(focus === "praticasAmbientais" ? null : "praticasAmbientais")}
+        />
+        <MetricCard
+          label="Sem Práticas amb."
+          value={Math.max(0, metrics.comIndicadores - metrics.praticasAmbientais)}
+          description="Não fazem uso de práticas ambientais."
+          tone="rose"
+          icon={AlertCircle}
           active={focus === "semPraticasAmbientais"}
           onClick={() => setFocus(focus === "semPraticasAmbientais" ? null : "semPraticasAmbientais")}
         />
         <MetricCard
           label="Identidade comercial"
           value={metrics.identidadeComercial}
-          description="Organizações com marca, selo ou estratégia de identidade."
+          description="Utilizam estratégias de identidade."
           tone="blue"
           icon={Globe}
+          active={focus === "identidadeComercial"}
+          onClick={() => setFocus(focus === "identidadeComercial" ? null : "identidadeComercial")}
+        />
+        <MetricCard
+          label="Sem Identidade com."
+          value={Math.max(0, metrics.comIndicadores - metrics.identidadeComercial)}
+          description="Não utilizam estratégias de identidade."
+          tone="zinc"
+          icon={AlertCircle}
+          active={focus === "semIdentidadeComercial"}
+          onClick={() => setFocus(focus === "semIdentidadeComercial" ? null : "semIdentidadeComercial")}
+        />
+        <MetricCard
+          label="Filiadas"
+          value={metrics.filiadaOrganizacao}
+          description="Filiadas a outras organizações (Representação)."
+          tone="blue"
+          icon={Globe}
+          active={focus === "filiadaOrganizacao"}
+          onClick={() => setFocus(focus === "filiadaOrganizacao" ? null : "filiadaOrganizacao")}
+        />
+        <MetricCard
+          label="Não filiadas"
+          value={Math.max(0, metrics.comIndicadores - metrics.filiadaOrganizacao)}
+          description="Não possuem filiação a outras organizações."
+          tone="zinc"
+          icon={AlertCircle}
+          active={focus === "semFiliadaOrganizacao"}
+          onClick={() => setFocus(focus === "semFiliadaOrganizacao" ? null : "semFiliadaOrganizacao")}
         />
         <MetricCard
           label="Políticas públicas"
           value={metrics.politicasPublicas}
-          description="Organizações com acesso a políticas públicas no último ano."
+          description="Acessaram políticas públicas no último ano."
+          tone="green"
+          icon={ClipboardCheck}
+          active={focus === "politicasPublicas"}
+          onClick={() => setFocus(focus === "politicasPublicas" ? null : "politicasPublicas")}
+        />
+        <MetricCard
+          label="Sem Políticas púb."
+          value={Math.max(0, metrics.comIndicadores - metrics.politicasPublicas)}
+          description="Não acessaram políticas públicas no último ano."
           tone="amber"
-          icon={ClipboardList}
+          icon={AlertCircle}
           active={focus === "semPoliticasPublicas"}
           onClick={() => setFocus(focus === "semPoliticasPublicas" ? null : "semPoliticasPublicas")}
         />
-        <MetricCard
-          label="Sem indicadores"
-          value={Math.max(0, metrics.total - metrics.comIndicadores)}
-          description="Organizações ainda sem formulário de indicadores preenchido."
-          tone="zinc"
-          icon={ClipboardList}
-          active={focus === "indicadoresPendentes"}
-          onClick={() => setFocus(focus === "indicadoresPendentes" ? null : "indicadoresPendentes")}
-        />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <SimpleBarList title="Organizações por UFPAs vinculadas" data={orgsByFamilies} color="bg-blue-600" />
-        <SimpleBarList title="Canais de comercialização por organização" data={orgsByChannels} color="bg-amber-500" />
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="Organizações por UFPAs vinculadas"
+            data={orgsByFamilies}
+            color="bg-blue-600"
+            getHref={(name) => `/ater-sociobio/organizacoes?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Mostra o volume real de UFPAs cadastradas no sistema que foram associadas a cada organização, medindo a força e alcance da entidade.
+          </p>
+        </div>
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="Canais de comercialização por organização"
+            data={orgsByChannels}
+            color="bg-amber-500"
+            getHref={(name) => `/ater-sociobio/organizacoes?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Soma a quantidade de canais de escoamento (Feira, PAA, PNAE, Mercado Local, etc.) que a organização declarou ter acesso nos indicadores.
+          </p>
+        </div>
       </section>
 
       <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
         <div className="mb-6 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-zinc-400" />
-          <h2 className="text-base font-bold text-zinc-900">Organizações que requerem atenção</h2>
+          <h2 className="text-base font-bold text-zinc-900">Listagem das organizações</h2>
         </div>
         <div className="divide-y divide-zinc-100">
           {items
             .filter((item) => {
               if (focus === "indicadoresPendentes") return !item.indicadoresRegistrados;
+              if (focus === "praticasAmbientais") return item.praticasAmbientais === true;
+              if (focus === "politicasPublicas") return item.politicasPublicas === true;
               if (focus === "semPraticasAmbientais") return item.praticasAmbientais === false;
               if (focus === "semPoliticasPublicas") return item.politicasPublicas === false;
               return !item.indicadoresRegistrados || item.praticasAmbientais === false || item.politicasPublicas === false;
@@ -792,6 +939,19 @@ function AtendimentosPanel({
     const reprovados = items.filter((item) => item.statusRelatorio === "REPROVADO_GESTOR").length;
 
     return { total, mulheres, jovens, comIndicadores, emAnalise, reprovados };
+  }, [items]);
+
+  const monthlyTrend = useMemo(() => {
+    const months: Record<string, number> = {};
+    items.forEach((item) => {
+      if (!item.data) return;
+      const date = new Date(item.data);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      months[key] = (months[key] || 0) + 1;
+    });
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, value]) => ({ name, value }));
   }, [items]);
 
   const statusData = useMemo(
@@ -861,11 +1021,82 @@ function AtendimentosPanel({
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <SimpleBarList title="Atendimentos por status" data={statusData} color="bg-zinc-600" />
-        <SimpleBarList title="Atendimentos por eixo trabalhado" data={eixosData} color="bg-emerald-600" />
-        <SimpleBarList title="Atendimentos por técnico" data={atendimentosPorTecnico} color="bg-blue-600" />
-        <SimpleBarList title="Indicadores mais trabalhados nas visitas" data={indicadoresData} color="bg-amber-500" />
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SimpleBarList title="Tendência mensal de visitas" data={monthlyTrend} color="bg-emerald-500" />
+        <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+          <div className="mb-4 flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4 text-emerald-500" />
+            <h2 className="text-base font-bold text-zinc-900">Métricas de impacto</h2>
+          </div>
+          <p className="text-sm leading-relaxed text-zinc-500 font-medium">
+            O acompanhamento do público feminino e jovem é prioridade transversal na Fase 1.
+          </p>
+          <div className="mt-6 space-y-4">
+            <div className="flex gap-4 rounded-xl bg-zinc-50 p-4">
+              <Users className="h-5 w-5 shrink-0 text-rose-500" />
+              <div>
+                <p className="text-xs font-bold text-zinc-900 uppercase">Foco em Gênero</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
+                  {metrics.mulheres} mulheres foram alcançadas nas visitas técnicas registradas até agora.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4 rounded-xl bg-zinc-50 p-4">
+              <Users className="h-5 w-5 shrink-0 text-amber-500" />
+              <div>
+                <p className="text-xs font-bold text-zinc-900 uppercase">Protagonismo Juvenil</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
+                  {metrics.jovens} jovens participaram ativamente das atividades de extensão rural.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="Atendimentos por status"
+            data={statusData}
+            color="bg-zinc-600"
+            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Mostra o volume de visitas em cada etapa de validação (Rascunho, Em Análise, Validado, etc.).
+          </p>
+        </div>
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="Atendimentos por eixo trabalhado"
+            data={eixosData}
+            color="bg-emerald-600"
+            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Frequência em que os Eixos Produtivo, Ambiental e Social foram abordados nos Documentos 11.
+          </p>
+        </div>
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="Atendimentos por técnico"
+            data={atendimentosPorTecnico}
+            color="bg-blue-600"
+            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Ranking de produtividade: número de relatórios de visitas preenchidos por cada técnico.
+          </p>
+        </div>
+        <div className="flex flex-col">
+          <SimpleBarList
+            title="Indicadores mais trabalhados nas visitas"
+            data={indicadoresData}
+            color="bg-amber-500"
+            getHref={(name) => `/ater-sociobio/atendimentos?busca=${encodeURIComponent(name)}&from=/ater-sociobio/dashboard`}
+          />
+          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+            Quais temas específicos (ex: Sementes, Quintais) estão sendo mais aplicados na prática de ATER.
+          </p>
+        </div>
       </section>
 
       <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">

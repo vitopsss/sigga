@@ -115,6 +115,16 @@ export function OrganizacaoColetivaIndicadoresForm({
                 />
               ))}
             </div>
+            <div className="mt-4">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras práticas / Detalhes</label>
+              <textarea
+                name="praticasAmbientaisQuais"
+                defaultValue={defaultValues?.praticasAmbientaisQuais as string}
+                placeholder="Descreva aqui..."
+                className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                rows={2}
+              />
+            </div>
           </div>
         </IndicatorCard>
 
@@ -135,6 +145,16 @@ export function OrganizacaoColetivaIndicadoresForm({
                   defaultValue={getValue(defaultValues, item.name)}
                 />
               ))}
+            </div>
+            <div className="mt-4">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras identidades / Detalhes</label>
+              <textarea
+                name="identidadeComercialQuais"
+                defaultValue={defaultValues?.identidadeComercialQuais as string}
+                placeholder="Descreva aqui..."
+                className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                rows={2}
+              />
             </div>
           </div>
         </IndicatorCard>
@@ -172,6 +192,16 @@ export function OrganizacaoColetivaIndicadoresForm({
                 />
               ))}
             </div>
+            <div className="mt-4">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras filiações / Detalhes</label>
+              <textarea
+                name="representacaoPoliticaQuais"
+                defaultValue={defaultValues?.representacaoPoliticaQuais as string}
+                placeholder="Descreva aqui..."
+                className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                rows={2}
+              />
+            </div>
           </div>
         </IndicatorCard>
 
@@ -192,6 +222,16 @@ export function OrganizacaoColetivaIndicadoresForm({
                   defaultValue={getValue(defaultValues, item.name)}
                 />
               ))}
+            </div>
+            <div className="mt-4">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Outras políticas / Detalhes</label>
+              <textarea
+                name="politicasPublicasQuais"
+                defaultValue={defaultValues?.politicasPublicasQuais as string}
+                placeholder="Descreva aqui..."
+                className="mt-2 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                rows={2}
+              />
             </div>
           </div>
         </IndicatorCard>

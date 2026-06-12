@@ -199,12 +199,12 @@ export default async function TecnicosPage({
                   tecnicosPagina.map((tecnico) => (
                     <TableRow key={tecnico.id}>
                       <TableCell className="font-medium text-slate-900">{tecnico.nome}</TableCell>
-                      <TableCell className="font-mono text-sm">{tecnico.cpf}</TableCell>
+                      <TableCell className="font-mono text-sm font-medium text-slate-800">{tecnico.cpf}</TableCell>
                       <TableCell>
                         <span className="font-bold text-zinc-950">{tecnico.conselho ?? "-"}</span>
                       </TableCell>
-                      <TableCell>{tecnico.registroConselho ?? "-"}</TableCell>
-                      <TableCell>{tecnico.uf ?? "-"}</TableCell>
+                      <TableCell className="font-medium text-slate-800">{tecnico.registroConselho ?? "-"}</TableCell>
+                      <TableCell className="font-medium text-slate-800">{tecnico.uf ?? "-"}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{tecnico._count.atendimentos}</Badge>
                       </TableCell>
