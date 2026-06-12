@@ -943,6 +943,62 @@ function OrganizacoesPanel({
         .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR")),
     [items],
   );
+  const praticasAmbientaisMetrics: BooleanMetric<SiggaterOrganizacaoDashboardItem>[] = [
+    { label: "Faz uso de práticas ambientais", getValue: (item) => item.praticasAmbientais },
+    { label: "Separação de lixo", getValue: (item) => item.praticaSeparacaoLixo },
+    { label: "Descarte correto de lixo", getValue: (item) => item.praticaDescarteCorretoLixo },
+    { label: "Manutenção de acessos", getValue: (item) => item.praticaManutencaoAcessos },
+    { label: "Tratamento de dejetos", getValue: (item) => item.praticaTratamentoDejetos },
+    { label: "Captação de água das chuvas", getValue: (item) => item.praticaCaptacaoAguaChuva },
+    { label: "Educação ambiental", getValue: (item) => item.praticaEducacaoAmbiental },
+    { label: "Avaliação e prevenção de riscos", getValue: (item) => item.praticaAvaliacaoPrevencaoRiscos },
+  ];
+  const identidadeMetrics: BooleanMetric<SiggaterOrganizacaoDashboardItem>[] = [
+    { label: "Usa identidade comercial", getValue: (item) => item.identidadeComercial },
+    { label: "Marca própria", getValue: (item) => item.identidadeMarcaPropria },
+    { label: "Selo Arte", getValue: (item) => item.identidadeSeloArte },
+    { label: "Selo Nacional da Agricultura Familiar", getValue: (item) => item.identidadeSenaf },
+    { label: "SENAF Sociobiodiversidade", getValue: (item) => item.identidadeSenafSociobiodiversidade },
+    { label: "Selo Quilombos do Brasil", getValue: (item) => item.identidadeSeloQuilombos },
+    { label: "Selo Indígenas do Brasil", getValue: (item) => item.identidadeSeloIndigenas },
+    { label: "Selo Povos e Comunidades Tradicionais", getValue: (item) => item.identidadeSeloPovosTradicionais },
+  ];
+  const generoJuventudeMetrics: BooleanMetric<SiggaterOrganizacaoDashboardItem>[] = [
+    { label: "Mulheres na diretoria/conselho", getValue: (item) => item.mulheresDiretoria },
+    { label: "Jovens na diretoria/conselho", getValue: (item) => item.jovensDiretoria },
+  ];
+  const representacaoMetrics: BooleanMetric<SiggaterOrganizacaoDashboardItem>[] = [
+    { label: "Filiada a uma organização", getValue: (item) => item.representacaoPolitica },
+    { label: "UNICAFES", getValue: (item) => item.filiadaUnicafes },
+    { label: "UNICOPAS", getValue: (item) => item.filiadaUnicopas },
+    { label: "Sistema OCB", getValue: (item) => item.filiadaSistemaOcb },
+  ];
+  const politicasPublicasMetrics: BooleanMetric<SiggaterOrganizacaoDashboardItem>[] = [
+    { label: "Acessa/acessou políticas públicas", getValue: (item) => item.politicasPublicas },
+    { label: "CAF jurídica", getValue: (item) => item.possuiCafJuridica },
+    { label: "Pronaf Custeio", getValue: (item) => item.acessouPronafCusteio },
+    { label: "Pronaf Capital de Giro", getValue: (item) => item.acessouPronafCapitalGiro },
+    { label: "Pronaf Mais Alimentos", getValue: (item) => item.acessouPronafMaisAlimentos },
+    { label: "Pronaf Industrialização", getValue: (item) => item.acessouPronafIndustrializacao },
+    { label: "Pronaf Agroindústria", getValue: (item) => item.acessouPronafAgroindustria },
+    { label: "Pronaf Cotas Partes", getValue: (item) => item.acessouPronafCotasPartes },
+    { label: "PAA", getValue: (item) => item.acessouPaa },
+    { label: "PNAE", getValue: (item) => item.acessouPnae },
+    { label: "PGPM", getValue: (item) => item.acessouPgpm },
+    { label: "PGPM Sociobiodiversidade", getValue: (item) => item.acessouPgpmSociobiodiversidade },
+    { label: "Coopera Mais Brasil", getValue: (item) => item.acessouCooperaMaisBrasil },
+  ];
+  const canaisComercializacaoMetrics: BooleanMetric<SiggaterOrganizacaoDashboardItem>[] = [
+    { label: "Troca por produto/serviço", getValue: (item) => item.canalTrocaProdutoServico },
+    { label: "Venda na organização coletiva", getValue: (item) => item.canalVendaOrganizacao },
+    { label: "Venda direta ao consumidor", getValue: (item) => item.canalVendaDiretaConsumidor },
+    { label: "Feira", getValue: (item) => item.canalFeira },
+    { label: "Mercado local", getValue: (item) => item.canalMercadoLocal },
+    { label: "Atravessador", getValue: (item) => item.canalAtravessador },
+    { label: "PAA", getValue: (item) => item.canalPaa },
+    { label: "PNAE", getValue: (item) => item.canalPnae },
+    { label: "Mercado justo/solidário", getValue: (item) => item.canalMercadoJustoSolidario },
+  ];
 
   return (
     <div className="space-y-6">
@@ -1063,6 +1119,23 @@ function OrganizacoesPanel({
           active={focus === "semPoliticasPublicas"}
           onClick={() => setFocus(focus === "semPoliticasPublicas" ? null : "semPoliticasPublicas")}
         />
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-zinc-900">Indicadores de organizações coletivas</h2>
+          <p className="mt-1 text-xs font-semibold text-zinc-500">
+            Contagem por organização coletiva. S/I indica registros ainda sem informação ou não aplicável.
+          </p>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-2">
+          <BooleanMetricsTable title="Ambiental: práticas ambientais" items={items} metrics={praticasAmbientaisMetrics} />
+          <BooleanMetricsTable title="Social: identidade comercial" items={items} metrics={identidadeMetrics} />
+          <BooleanMetricsTable title="Social: gênero e juventude" items={items} metrics={generoJuventudeMetrics} />
+          <BooleanMetricsTable title="Social: representação política" items={items} metrics={representacaoMetrics} />
+          <BooleanMetricsTable title="Econômico: políticas públicas" items={items} metrics={politicasPublicasMetrics} />
+          <BooleanMetricsTable title="Econômico: canais de comercialização" items={items} metrics={canaisComercializacaoMetrics} />
+        </div>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">

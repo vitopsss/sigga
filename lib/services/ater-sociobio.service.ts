@@ -132,11 +132,49 @@ export type SiggaterOrganizacaoDashboardItem = {
   familiasVinculadas: number;
   indicadoresRegistrados: boolean;
   praticasAmbientais: boolean | null;
+  praticaSeparacaoLixo: boolean | null;
+  praticaDescarteCorretoLixo: boolean | null;
+  praticaManutencaoAcessos: boolean | null;
+  praticaTratamentoDejetos: boolean | null;
+  praticaCaptacaoAguaChuva: boolean | null;
+  praticaEducacaoAmbiental: boolean | null;
+  praticaAvaliacaoPrevencaoRiscos: boolean | null;
   identidadeComercial: boolean | null;
+  identidadeMarcaPropria: boolean | null;
+  identidadeSeloArte: boolean | null;
+  identidadeSenaf: boolean | null;
+  identidadeSenafSociobiodiversidade: boolean | null;
+  identidadeSeloQuilombos: boolean | null;
+  identidadeSeloIndigenas: boolean | null;
+  identidadeSeloPovosTradicionais: boolean | null;
   mulheresDiretoria: boolean | null;
   jovensDiretoria: boolean | null;
   representacaoPolitica: boolean | null;
+  filiadaUnicafes: boolean | null;
+  filiadaUnicopas: boolean | null;
+  filiadaSistemaOcb: boolean | null;
   politicasPublicas: boolean | null;
+  possuiCafJuridica: boolean | null;
+  acessouPronafCusteio: boolean | null;
+  acessouPronafCapitalGiro: boolean | null;
+  acessouPronafMaisAlimentos: boolean | null;
+  acessouPronafIndustrializacao: boolean | null;
+  acessouPronafAgroindustria: boolean | null;
+  acessouPronafCotasPartes: boolean | null;
+  acessouPaa: boolean | null;
+  acessouPnae: boolean | null;
+  acessouPgpm: boolean | null;
+  acessouPgpmSociobiodiversidade: boolean | null;
+  acessouCooperaMaisBrasil: boolean | null;
+  canalTrocaProdutoServico: boolean | null;
+  canalVendaOrganizacao: boolean | null;
+  canalVendaDiretaConsumidor: boolean | null;
+  canalFeira: boolean | null;
+  canalMercadoLocal: boolean | null;
+  canalAtravessador: boolean | null;
+  canalPaa: boolean | null;
+  canalPnae: boolean | null;
+  canalMercadoJustoSolidario: boolean | null;
   canaisComercializacao: number;
 };
 
@@ -892,11 +930,49 @@ export class AterSociobioService {
           familiasVinculadas: organizacao._count.familias,
           indicadoresRegistrados: Boolean(indicadores),
           praticasAmbientais: indicadores?.possuiPraticasAmbientais ?? null,
+          praticaSeparacaoLixo: indicadores?.praticaSeparacaoLixo ?? null,
+          praticaDescarteCorretoLixo: indicadores?.praticaDescarteCorretoLixo ?? null,
+          praticaManutencaoAcessos: indicadores?.praticaManutencaoAcessos ?? null,
+          praticaTratamentoDejetos: indicadores?.praticaTratamentoDejetos ?? null,
+          praticaCaptacaoAguaChuva: indicadores?.praticaCaptacaoAguaChuva ?? null,
+          praticaEducacaoAmbiental: indicadores?.praticaEducacaoAmbiental ?? null,
+          praticaAvaliacaoPrevencaoRiscos: indicadores?.praticaAvaliacaoPrevencaoRiscos ?? null,
           identidadeComercial: indicadores?.usaIdentidadeComercial ?? null,
+          identidadeMarcaPropria: indicadores?.identidadeMarcaPropria ?? null,
+          identidadeSeloArte: indicadores?.identidadeSeloArte ?? null,
+          identidadeSenaf: indicadores?.identidadeSenaf ?? null,
+          identidadeSenafSociobiodiversidade: indicadores?.identidadeSenafSociobiodiversidade ?? null,
+          identidadeSeloQuilombos: indicadores?.identidadeSeloQuilombos ?? null,
+          identidadeSeloIndigenas: indicadores?.identidadeSeloIndigenas ?? null,
+          identidadeSeloPovosTradicionais: indicadores?.identidadeSeloPovosTradicionais ?? null,
           mulheresDiretoria: indicadores?.possuiMulheresDiretoriaConselho ?? null,
           jovensDiretoria: indicadores?.possuiJovensDiretoriaConselho ?? null,
           representacaoPolitica: indicadores?.filiadaOrganizacao ?? null,
+          filiadaUnicafes: indicadores?.filiadaUnicafes ?? null,
+          filiadaUnicopas: indicadores?.filiadaUnicopas ?? null,
+          filiadaSistemaOcb: indicadores?.filiadaSistemaOcb ?? null,
           politicasPublicas: indicadores?.acessaPoliticasPublicas ?? null,
+          possuiCafJuridica: indicadores?.possuiCafJuridica ?? null,
+          acessouPronafCusteio: indicadores?.acessouPronafCusteio ?? null,
+          acessouPronafCapitalGiro: indicadores?.acessouPronafCapitalGiro ?? null,
+          acessouPronafMaisAlimentos: indicadores?.acessouPronafMaisAlimentos ?? null,
+          acessouPronafIndustrializacao: indicadores?.acessouPronafIndustrializacao ?? null,
+          acessouPronafAgroindustria: indicadores?.acessouPronafAgroindustria ?? null,
+          acessouPronafCotasPartes: indicadores?.acessouPronafCotasPartes ?? null,
+          acessouPaa: indicadores?.acessouPaa ?? null,
+          acessouPnae: indicadores?.acessouPnae ?? null,
+          acessouPgpm: indicadores?.acessouPgpm ?? null,
+          acessouPgpmSociobiodiversidade: indicadores?.acessouPgpmSociobiodiversidade ?? null,
+          acessouCooperaMaisBrasil: indicadores?.acessouCooperaMaisBrasil ?? null,
+          canalTrocaProdutoServico: indicadores?.canalTrocaProdutoServico ?? null,
+          canalVendaOrganizacao: indicadores?.canalVendaOrganizacao ?? null,
+          canalVendaDiretaConsumidor: indicadores?.canalVendaDiretaConsumidor ?? null,
+          canalFeira: indicadores?.canalFeira ?? null,
+          canalMercadoLocal: indicadores?.canalMercadoLocal ?? null,
+          canalAtravessador: indicadores?.canalAtravessador ?? null,
+          canalPaa: indicadores?.canalPaa ?? null,
+          canalPnae: indicadores?.canalPnae ?? null,
+          canalMercadoJustoSolidario: indicadores?.canalMercadoJustoSolidario ?? null,
           canaisComercializacao,
         };
       }),
