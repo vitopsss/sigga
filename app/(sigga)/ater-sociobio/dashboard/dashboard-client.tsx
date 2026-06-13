@@ -606,10 +606,6 @@ function UfpaPanel({
     [items],
   );
 
-  const communityData = useMemo(() => groupCount(items, (item) => item.comunidade), [items]);
-  const orgData = useMemo(() => groupCount(items, (item) => item.organizacaoColetiva), [items]);
-  const biomaData = useMemo(() => groupCount(items, (item) => item.bioma), [items]);
-  const atividadeData = useMemo(() => groupArrayValues(items, (item) => item.atividades), [items]);
   const comunicacaoMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
     { label: "Rádio", getValue: (item) => item.possuiRadio },
     { label: "Televisão", getValue: (item) => item.possuiTelevisao },
@@ -865,83 +861,6 @@ function UfpaPanel({
         </section>
       </div>
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-base font-bold text-zinc-900">Distribuição do cadastro</h2>
-          <p className="mt-1 text-xs font-semibold text-zinc-500">
-            Mostra onde as UFPAs estão concentradas. Não é indicador de desempenho; é leitura de cobertura territorial e produtiva.
-          </p>
-        </div>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <div className="flex flex-col">
-            <SimpleBarList
-              title="UFPAs por comunidade"
-              data={communityData}
-              getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
-            />
-            <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-              Conta quantas UFPAs cadastradas estão em cada comunidade.
-            </p>
-          </div>
-        <div className="flex flex-col">
-          <SimpleBarList title="Distribuição por Bioma" data={biomaData} color="bg-zinc-800" />
-          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-            Conta quantas UFPAs cadastradas estão em cada bioma.
-          </p>
-        </div>
-        <div className="flex flex-col">
-          <SimpleBarList
-            title="Principais Cadeias Produtivas (SGA)"
-            data={atividadeData}
-            color="bg-emerald-600"
-            getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
-          />
-          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-            Conta quantas UFPAs informaram cada atividade produtiva principal.
-          </p>
-        </div>
-        <div className="flex flex-col">
-          <SimpleBarList
-            title="UFPAs por organização coletiva"
-            data={orgData}
-            color="bg-blue-600"
-            getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
-          />
-          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-            Conta quantas UFPAs estão vinculadas a cada organização coletiva.
-          </p>
-        </div>
-        </div>
-      </section>
-
-      <section>
-        <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
-          <div className="mb-4 flex items-center gap-2">
-            <LayoutDashboard className="h-4 w-4 text-emerald-500" />
-            <h2 className="text-base font-bold text-zinc-900">Leitura operacional rápida</h2>
-          </div>
-          <div className="mt-6 space-y-4">
-            <div className="flex gap-4 rounded-xl bg-zinc-50 p-4">
-              <Droplets className="h-5 w-5 shrink-0 text-rose-500" />
-              <div>
-                <p className="text-xs font-bold text-zinc-900 uppercase">Infraestrutura Básica</p>
-                <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
-                  Use os indicadores do Documento 6 para localizar UFPAs sem água tratada, esgoto tratado ou internet.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 rounded-xl bg-zinc-50 p-4">
-              <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
-              <div>
-                <p className="text-xs font-bold text-zinc-900 uppercase">Ranking de Risco</p>
-                <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
-                  A lista de UFPAs prioritárias soma pendências como diagnóstico ausente, água, esgoto, CadÚnico, SGA e segurança alimentar.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
