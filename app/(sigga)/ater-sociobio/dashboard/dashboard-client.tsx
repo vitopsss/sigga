@@ -181,16 +181,38 @@ function focusFilter(key: FocusKey, item: SiggaterDashboardItem | SiggaterAtendi
   return true;
 }
 
+/**
+ * Regras de risco com pesos ponderados.
+ * Pesos definidos em reunião 2026-06-13:
+ *   diagnóstico ausente      : 3 (impede todas as outras análises)
+ *   água sem tratamento      : 3 (saúde básica)
+ *   esgoto sem tratamento    : 3 (saneamento básico)
+ *   insegurança alimentar    : 4 (vulnerabilidade mais crítica)
+ *   sem CadÚnico             : 2 (acesso a políticas sociais bloqueado)
+ *   sem políticas produtivas : 2 (potencial econômico não aproveitado)
+ *   SGA pendente             : 1 (pendência operacional)
+ */
+const RISK_WEIGHTS: Array<{
+  label: string;
+  weight: number;
+  condition: (item: SiggaterDashboardItem) => boolean;
+}> = [
+  { label: "Diagnóstico pendente",      weight: 3, condition: (i) => !i.diagnosticoRegistrado },
+  { label: "Água sem tratamento",       weight: 3, condition: (i) => i.aguaTratada === false },
+  { label: "Sem esgoto tratado",        weight: 3, condition: (i) => i.esgotoTratado === false },
+  { label: "Insegurança alimentar",     weight: 4, condition: (i) => i.insegurancaAlimentar === true },
+  { label: "Sem CadÚnico",             weight: 2, condition: (i) => i.cadUnico === false },
+  { label: "Sem políticas produtivas", weight: 2, condition: (i) => i.politicasProdutivas === false },
+  { label: "SGA pendente",             weight: 1, condition: (i) => !i.temSga },
+];
+
 function getRisks(item: SiggaterDashboardItem) {
-  const risks = [];
-  if (!item.diagnosticoRegistrado) risks.push("Diagnóstico pendente");
-  if (item.aguaParaConsumo === false) risks.push("Sem água para consumo");
-  if (item.aguaTratada === false) risks.push("Água sem tratamento");
-  if (item.esgotoTratado === false) risks.push("Sem esgoto tratado");
-  if (item.insegurancaAlimentar === true) risks.push("Insegurança alimentar");
-  if (item.cadUnico === false) risks.push("Sem CadÚnico");
-  if (!item.temSga) risks.push("SGA pendente");
-  return risks;
+  return RISK_WEIGHTS.filter((r) => r.condition(item)).map((r) => r.label);
+}
+
+/** Soma dos pesos dos riscos ativos. Usada para ordenar as UFPAs prioritárias. */
+function getRiskScore(item: SiggaterDashboardItem) {
+  return RISK_WEIGHTS.filter((r) => r.condition(item)).reduce((sum, r) => sum + r.weight, 0);
 }
 
 function groupCount<T>(items: T[], getName: (item: T) => string | null | undefined) {
@@ -529,7 +551,7 @@ function UfpaPrioritiesCard({
   priorities,
   appendReturnHref,
 }: {
-  priorities: Array<SiggaterDashboardItem & { risks: string[] }>;
+  priorities: Array<SiggaterDashboardItem & { risks: string[]; score: number }>;
   appendReturnHref: (href: string) => string;
 }) {
   return (
@@ -541,7 +563,7 @@ function UfpaPrioritiesCard({
             <h2 className="text-base font-bold text-zinc-900">UFPAs prioritárias</h2>
           </div>
           <p className="mt-1 text-xs font-bold uppercase tracking-wider text-zinc-500">
-            Ranking das unidades com mais pendências acionáveis.
+            Ranking ponderado por severidade das pendências.
           </p>
         </div>
         <Link href={appendReturnHref("/ater-sociobio/familias")} className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
@@ -554,7 +576,12 @@ function UfpaPrioritiesCard({
           priorities.map((item) => (
             <div key={item.id} className="grid gap-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <div>
-                <p className="text-sm font-bold text-zinc-950">{item.nomeFamilia}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-zinc-950">{item.nomeFamilia}</p>
+                  <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700" title="Score ponderado de prioridade">
+                    {item.score}pts
+                  </span>
+                </div>
                 <p className="mt-1 text-xs font-bold text-zinc-400">{item.organizacaoColetiva || item.comunidade || "Sem vínculo informado"}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {item.risks.map((risk) => (
@@ -680,9 +707,10 @@ function UfpaPanel({
   const priorities = useMemo(
     () =>
       items
-        .map((item) => ({ ...item, risks: getRisks(item) }))
+        .map((item) => ({ ...item, risks: getRisks(item), score: getRiskScore(item) }))
         .filter((item) => item.risks.length > 0)
-        .sort((a, b) => b.risks.length - a.risks.length || a.nomeFamilia.localeCompare(b.nomeFamilia, "pt-BR"))
+        // Ordena pelo score ponderado (maior = mais crítica), desempate alfabético
+        .sort((a, b) => b.score - a.score || a.nomeFamilia.localeCompare(b.nomeFamilia, "pt-BR"))
         .slice(0, 8),
     [items],
   );
