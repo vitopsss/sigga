@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint",
     "docs:acariquara:proposta": "tsx scripts/acariquara/generate-siggater-proposal-pdf.tsx",
