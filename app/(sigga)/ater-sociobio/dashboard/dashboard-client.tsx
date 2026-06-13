@@ -28,7 +28,15 @@ import {
   type SiggaterDashboardItem,
   type SiggaterOrganizacaoDashboardItem,
 } from "@/lib/services/ater-sociobio.service";
-import { getAterSociobioStatusRelatorioLabel } from "@/lib/constants/ater-sociobio";
+import {
+  ATER_SOCIOBIO_LIMITACOES_AMBIENTAL,
+  ATER_SOCIOBIO_LIMITACOES_PRODUTIVO,
+  ATER_SOCIOBIO_LIMITACOES_SOCIAL,
+  ATER_SOCIOBIO_POTENCIALIDADES_AMBIENTAL,
+  ATER_SOCIOBIO_POTENCIALIDADES_PRODUTIVO,
+  ATER_SOCIOBIO_POTENCIALIDADES_SOCIAL,
+  getAterSociobioStatusRelatorioLabel,
+} from "@/lib/constants/ater-sociobio";
 import { ExportExcelButton } from "@/components/system/export-excel-button";
 
 export type DashboardView = "ufpas" | "organizacoes" | "atendimentos";
@@ -192,8 +200,10 @@ function groupCount<T>(items: T[], getName: (item: T) => string | null | undefin
     .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR"));
 }
 
-function groupArrayValues<T>(items: T[], getValues: (item: T) => string[]) {
-  const map = new Map<string, number>();
+function groupArrayValues<T>(items: T[], getValues: (item: T) => string[], officialValues: readonly string[] = []) {
+  const officialOrder = new Map(officialValues.map((value, index) => [normalized(value), index]));
+  const map = new Map<string, number>(officialValues.map((value) => [normalized(value), 0]));
+
   items.forEach((item) => {
     getValues(item).forEach((value) => {
       const name = normalized(value);
@@ -203,7 +213,14 @@ function groupArrayValues<T>(items: T[], getValues: (item: T) => string[]) {
 
   return Array.from(map.entries())
     .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR"));
+    .sort((a, b) => {
+      const valueCompare = b.value - a.value;
+      if (valueCompare !== 0) return valueCompare;
+
+      const orderA = officialOrder.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+      const orderB = officialOrder.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB || a.name.localeCompare(b.name, "pt-BR");
+    });
 }
 
 function MetricCard({
@@ -462,7 +479,7 @@ function CompactRankList({
       <h3 className="mb-3 text-sm font-bold text-zinc-900">{title}</h3>
       <div className="space-y-2">
         {data.length ? (
-          data.slice(0, 8).map((item) => (
+          data.map((item) => (
             <div key={item.name}>
               <div className="mb-1 flex items-center justify-between gap-3 text-xs">
                 <span className="truncate font-semibold text-zinc-700">{item.name}</span>
@@ -613,12 +630,30 @@ function UfpaPanel({
     { label: "PNAE", getValue: (item) => item.canalPnae },
     { label: "Cooperativa/entreposto", getValue: (item) => item.canalCooperativaEntreposto },
   ];
-  const potencialidadesProdutivo = useMemo(() => groupArrayValues(items, (item) => item.acoesPotenciaisProdutivo), [items]);
-  const potencialidadesSocial = useMemo(() => groupArrayValues(items, (item) => item.acoesPotenciaisSocial), [items]);
-  const potencialidadesAmbiental = useMemo(() => groupArrayValues(items, (item) => item.acoesPotenciaisAmbiental), [items]);
-  const limitacoesProdutivo = useMemo(() => groupArrayValues(items, (item) => item.limitacoesProdutivo), [items]);
-  const limitacoesSocial = useMemo(() => groupArrayValues(items, (item) => item.limitacoesSocial), [items]);
-  const limitacoesAmbiental = useMemo(() => groupArrayValues(items, (item) => item.limitacoesAmbiental), [items]);
+  const potencialidadesProdutivo = useMemo(
+    () => groupArrayValues(items, (item) => item.acoesPotenciaisProdutivo, ATER_SOCIOBIO_POTENCIALIDADES_PRODUTIVO),
+    [items],
+  );
+  const potencialidadesSocial = useMemo(
+    () => groupArrayValues(items, (item) => item.acoesPotenciaisSocial, ATER_SOCIOBIO_POTENCIALIDADES_SOCIAL),
+    [items],
+  );
+  const potencialidadesAmbiental = useMemo(
+    () => groupArrayValues(items, (item) => item.acoesPotenciaisAmbiental, ATER_SOCIOBIO_POTENCIALIDADES_AMBIENTAL),
+    [items],
+  );
+  const limitacoesProdutivo = useMemo(
+    () => groupArrayValues(items, (item) => item.limitacoesProdutivo, ATER_SOCIOBIO_LIMITACOES_PRODUTIVO),
+    [items],
+  );
+  const limitacoesSocial = useMemo(
+    () => groupArrayValues(items, (item) => item.limitacoesSocial, ATER_SOCIOBIO_LIMITACOES_SOCIAL),
+    [items],
+  );
+  const limitacoesAmbiental = useMemo(
+    () => groupArrayValues(items, (item) => item.limitacoesAmbiental, ATER_SOCIOBIO_LIMITACOES_AMBIENTAL),
+    [items],
+  );
 
   return (
     <div className="space-y-6">
