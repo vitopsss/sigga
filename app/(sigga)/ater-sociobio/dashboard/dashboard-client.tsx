@@ -553,6 +553,54 @@ function UfpaPrioritiesCard({
   );
 }
 
+function UfpaSampleProfile({
+  total,
+  communities,
+  organizations,
+  activities,
+  biomes,
+}: {
+  total: number;
+  communities: { name: string; value: number }[];
+  organizations: { name: string; value: number }[];
+  activities: { name: string; value: number }[];
+  biomes: { name: string; value: number }[];
+}) {
+  const visibleBiomes = biomes.length > 1 ? biomes : [];
+  const singleBiome = biomes.length === 1 ? biomes[0].name : null;
+
+  return (
+    <details className="group rounded-2xl border border-zinc-200/70 bg-zinc-50/80 p-4">
+      <summary className="cursor-pointer list-none">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-zinc-900">Perfil da amostra</h2>
+            <p className="mt-1 text-xs font-semibold text-zinc-500">
+              Composição das {total} UFPAs do recorte. Não mede desempenho; ajuda a interpretar se a amostra está concentrada.
+            </p>
+          </div>
+          <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-bold text-zinc-600">
+            Ver composição
+          </span>
+        </div>
+      </summary>
+      <div className="mt-4 space-y-4">
+        {singleBiome && (
+          <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-xs font-semibold text-zinc-600">
+            Bioma único no recorte: <span className="font-bold text-zinc-900">{singleBiome}</span>.
+          </p>
+        )}
+        <div className="grid gap-4 xl:grid-cols-3">
+          <CompactRankList title="Comunidades representadas" data={communities} />
+          <CompactRankList title="Organizações vinculadas" data={organizations} />
+          <CompactRankList title="Atividades produtivas informadas" data={activities} />
+          {visibleBiomes.length > 0 && <CompactRankList title="Biomas representados" data={visibleBiomes} />}
+        </div>
+      </div>
+    </details>
+  );
+}
+
 function UfpaPanel({
   items,
   focus,
@@ -605,6 +653,11 @@ function UfpaPanel({
         .slice(0, 8),
     [items],
   );
+
+  const communityData = useMemo(() => groupCount(items, (item) => item.comunidade), [items]);
+  const orgData = useMemo(() => groupCount(items, (item) => item.organizacaoColetiva), [items]);
+  const atividadeData = useMemo(() => groupArrayValues(items, (item) => item.atividades), [items]);
+  const biomaData = useMemo(() => groupCount(items, (item) => item.bioma), [items]);
 
   const comunicacaoMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
     { label: "Rádio", getValue: (item) => item.possuiRadio },
@@ -819,6 +872,14 @@ function UfpaPanel({
           <CompactRankList title="Limitações: eixo ambiental" data={limitacoesAmbiental} />
         </div>
       </section>
+
+      <UfpaSampleProfile
+        total={metrics.total}
+        communities={communityData}
+        organizations={orgData}
+        activities={atividadeData}
+        biomes={biomaData}
+      />
 
       <div className="hidden">
         <div className="mb-5 flex items-center gap-2">
