@@ -498,6 +498,61 @@ function CompactRankList({
   );
 }
 
+function UfpaPrioritiesCard({
+  priorities,
+  appendReturnHref,
+}: {
+  priorities: Array<SiggaterDashboardItem & { risks: string[] }>;
+  appendReturnHref: (href: string) => string;
+}) {
+  return (
+    <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-rose-500" />
+            <h2 className="text-base font-bold text-zinc-900">UFPAs prioritárias</h2>
+          </div>
+          <p className="mt-1 text-xs font-bold uppercase tracking-wider text-zinc-500">
+            Ranking das unidades com mais pendências acionáveis.
+          </p>
+        </div>
+        <Link href={appendReturnHref("/ater-sociobio/familias")} className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
+          Ver todas
+        </Link>
+      </div>
+
+      <div className="mt-6 divide-y divide-zinc-100">
+        {priorities.length ? (
+          priorities.map((item) => (
+            <div key={item.id} className="grid gap-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+              <div>
+                <p className="text-sm font-bold text-zinc-950">{item.nomeFamilia}</p>
+                <p className="mt-1 text-xs font-bold text-zinc-400">{item.organizacaoColetiva || item.comunidade || "Sem vínculo informado"}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {item.risks.map((risk) => (
+                    <span key={`${item.id}-${risk}`} className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+                      {risk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <Link href={appendReturnHref(`/ater-sociobio/familias/${item.id}`)} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100">
+                <MousePointer2 className="h-3.5 w-3.5" />
+                Abrir UFPA
+              </Link>
+            </div>
+          ))
+        ) : (
+          <div className="py-10 text-center">
+            <p className="text-sm font-bold text-zinc-400">Nenhuma prioridade no recorte atual.</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function UfpaPanel({
   items,
   focus,
@@ -731,6 +786,8 @@ function UfpaPanel({
         />
       </section>
 
+      <UfpaPrioritiesCard priorities={priorities} appendReturnHref={appendReturnHref} />
+
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-bold text-zinc-900">Indicadores do Documento 6</h2>
@@ -754,7 +811,7 @@ function UfpaPanel({
         <div>
           <h2 className="text-base font-bold text-zinc-900">Potencialidades e limitações</h2>
           <p className="mt-1 text-xs font-semibold text-zinc-500">
-            Frequência dos temas marcados por eixo para orientar plano de ação e relatórios.
+            Frequência dos temas marcados no diagnóstico. Itens em 0 ainda não foram selecionados nas UFPAs do recorte.
           </p>
         </div>
         <div className="grid gap-4 xl:grid-cols-3">
@@ -808,67 +865,28 @@ function UfpaPanel({
         </section>
       </div>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-rose-500" />
-                <h2 className="text-base font-bold text-zinc-900">UFPAs prioritárias</h2>
-              </div>
-              <p className="mt-1 text-xs text-zinc-500 uppercase font-bold tracking-wider">Ranking por quantidade de riscos registrados</p>
-            </div>
-            <Link href={appendReturnHref("/ater-sociobio/familias")} className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
-              Ver todas
-            </Link>
-          </div>
-
-          <div className="mt-6 divide-y divide-zinc-100">
-            {priorities.length ? (
-              priorities.map((item: SiggaterDashboardItem & { risks: string[] }) => (
-                <div key={item.id} className="grid gap-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                  <div>
-                    <p className="text-sm font-bold text-zinc-950">{item.nomeFamilia}</p>
-                    <p className="mt-1 text-xs font-bold text-zinc-400">{item.organizacaoColetiva || item.comunidade || "Sem vínculo informado"}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {item.risks.map((risk: string) => (
-                        <span key={`${item.id}-${risk}`} className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
-                          {risk}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <Link href={appendReturnHref(`/ater-sociobio/familias/${item.id}`)} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100">
-                    <MousePointer2 className="h-3.5 w-3.5" />
-                    Abrir UFPA
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <div className="py-10 text-center">
-                <p className="text-sm font-bold text-zinc-400">Nenhuma prioridade no recorte atual.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col">
-          <SimpleBarList
-            title="UFPAs por comunidade"
-            data={communityData}
-            getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
-          />
-          <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-            Quantidade de UFPAs mapeadas em cada comunidade, útil para roteirização das visitas.
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-zinc-900">Distribuição do cadastro</h2>
+          <p className="mt-1 text-xs font-semibold text-zinc-500">
+            Mostra onde as UFPAs estão concentradas. Não é indicador de desempenho; é leitura de cobertura territorial e produtiva.
           </p>
         </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-2">
+          <div className="flex flex-col">
+            <SimpleBarList
+              title="UFPAs por comunidade"
+              data={communityData}
+              getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
+            />
+            <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
+              Conta quantas UFPAs cadastradas estão em cada comunidade.
+            </p>
+          </div>
         <div className="flex flex-col">
           <SimpleBarList title="Distribuição por Bioma" data={biomaData} color="bg-zinc-800" />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-            Distribuição ambiental das UFPAs, essencial para relatórios de impacto de conservação.
+            Conta quantas UFPAs cadastradas estão em cada bioma.
           </p>
         </div>
         <div className="flex flex-col">
@@ -879,12 +897,9 @@ function UfpaPanel({
             getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-            Quais atividades econômicas (ex: Açaí, Manejo Florestal) concentram o maior número de UFPAs.
+            Conta quantas UFPAs informaram cada atividade produtiva principal.
           </p>
         </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-2">
         <div className="flex flex-col">
           <SimpleBarList
             title="UFPAs por organização coletiva"
@@ -893,9 +908,13 @@ function UfpaPanel({
             getHref={(name) => appendReturnHref(`/ater-sociobio/familias?busca=${encodeURIComponent(name)}`)}
           />
           <p className="mt-2 px-2 text-xs font-medium leading-relaxed text-zinc-500">
-            Mostra onde o esforço associativo está concentrado (Quais Associações/Cooperativas têm mais UFPAs).
+            Conta quantas UFPAs estão vinculadas a cada organização coletiva.
           </p>
         </div>
+        </div>
+      </section>
+
+      <section>
         <div className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
           <div className="mb-4 flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4 text-emerald-500" />
@@ -907,7 +926,7 @@ function UfpaPanel({
               <div>
                 <p className="text-xs font-bold text-zinc-900 uppercase">Infraestrutura Básica</p>
                 <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
-                  Água, esgoto e internet são métricas diretamente acionáveis para o plano de atendimento técnico de curto prazo.
+                  Use os indicadores do Documento 6 para localizar UFPAs sem água tratada, esgoto tratado ou internet.
                 </p>
               </div>
             </div>
@@ -916,7 +935,7 @@ function UfpaPanel({
               <div>
                 <p className="text-xs font-bold text-zinc-900 uppercase">Ranking de Risco</p>
                 <p className="mt-1 text-xs leading-relaxed text-zinc-500 font-medium">
-                  A lista de prioridade cruza vulnerabilidades sociais e produtivas para otimizar as rotas de visita técnica.
+                  A lista de UFPAs prioritárias soma pendências como diagnóstico ausente, água, esgoto, CadÚnico, SGA e segurança alimentar.
                 </p>
               </div>
             </div>
