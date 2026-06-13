@@ -1306,30 +1306,55 @@ function OrganizacoesPanel({
       </section>
 
       <section className="rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
-        <div className="mb-6 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-zinc-400" />
-          <h2 className="text-base font-bold text-zinc-900">Listagem das organizações</h2>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-zinc-400" />
+            <h2 className="text-base font-bold text-zinc-900">Listagem das organizações</h2>
+          </div>
+          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-bold text-zinc-500">
+            {items.length} {items.length === 1 ? "organização" : "organizações"}
+          </span>
         </div>
         <div className="divide-y divide-zinc-100">
-          {items
-            .filter((item) => {
-              if (focus === "indicadoresPendentes") return !item.indicadoresRegistrados;
-              if (focus === "praticasAmbientais") return item.praticasAmbientais === true;
-              if (focus === "politicasPublicas") return item.politicasPublicas === true;
-              if (focus === "semPraticasAmbientais") return item.praticasAmbientais === false;
-              if (focus === "semPoliticasPublicas") return item.politicasPublicas === false;
-              return !item.indicadoresRegistrados || item.praticasAmbientais === false || item.politicasPublicas === false;
-            })
-            .slice(0, 8)
-            .map((item) => (
+          {items.length === 0 ? (
+            <p className="py-10 text-center text-sm font-bold text-zinc-400">Nenhuma organização no recorte atual.</p>
+          ) : (
+            items.map((item) => (
               <div key={item.id} className="grid gap-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                 <div>
                   <p className="text-sm font-bold text-zinc-950">{item.denominacao}</p>
                   <p className="mt-1 text-xs font-bold text-zinc-400">{item.municipio || "Município não informado"}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {!item.indicadoresRegistrados && <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">Indicadores pendentes</span>}
-                    {item.praticasAmbientais === false && <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-700">Sem práticas ambientais</span>}
-                    {item.politicasPublicas === false && <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">Sem políticas públicas</span>}
+                    {/* Indicadores Doc 6 */}
+                    {!item.indicadoresRegistrados && (
+                      <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600">Indicadores pendentes</span>
+                    )}
+                    {item.praticasAmbientais === true && (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">Práticas ambientais</span>
+                    )}
+                    {item.praticasAmbientais === false && (
+                      <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-700">Sem práticas ambientais</span>
+                    )}
+                    {item.politicasPublicas === true && (
+                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-700">Políticas públicas</span>
+                    )}
+                    {item.politicasPublicas === false && (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">Sem políticas públicas</span>
+                    )}
+                    {item.identidadeComercial === true && (
+                      <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-700">Identidade comercial</span>
+                    )}
+                    {item.mulheresDiretoria === true && (
+                      <span className="rounded-full bg-pink-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-pink-700">Mulheres na direção</span>
+                    )}
+                    {item.jovensDiretoria === true && (
+                      <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-700">Jovens na direção</span>
+                    )}
+                    {item.familiasVinculadas > 0 && (
+                      <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-semibold text-zinc-500">
+                        {item.familiasVinculadas} {item.familiasVinculadas === 1 ? "UFPA" : "UFPAs"}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <Link href={appendReturnHref(`/ater-sociobio/organizacoes/${item.id}`)} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-700 transition hover:bg-zinc-50">
@@ -1337,7 +1362,8 @@ function OrganizacoesPanel({
                   Abrir detalhes
                 </Link>
               </div>
-            ))}
+            ))
+          )}
         </div>
       </section>
     </div>
