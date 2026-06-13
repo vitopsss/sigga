@@ -61,12 +61,19 @@ export async function SiggaterDashboardViewPage({ view }: { view: DashboardView 
         title={meta.title}
         description={meta.description}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href="/ater-sociobio/dashboard">
-              <Button variant="secondary">Central de métricas</Button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/ater-sociobio/dashboard"
+              className="whitespace-nowrap rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-50"
+            >
+              ← Central de métricas
             </Link>
-            <Link href={meta.listHref}>
-              <Button variant="secondary">{meta.listLabel}</Button>
+            <span className="hidden h-4 w-px bg-zinc-200 sm:block" aria-hidden />
+            <Link
+              href={meta.listHref}
+              className="whitespace-nowrap rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-50"
+            >
+              {meta.listLabel} →
             </Link>
           </div>
         }
