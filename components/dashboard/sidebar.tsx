@@ -63,8 +63,9 @@ export function Sidebar({
 
   return (
     <aside
+      data-collapsed={collapsed}
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-full flex-col border-r border-zinc-800 bg-zinc-950 text-zinc-50 transition-all duration-300",
+        "peer fixed left-0 top-0 z-40 flex h-full flex-col border-r border-zinc-800 bg-zinc-950 text-zinc-50 transition-all duration-300",
         collapsed ? "w-20" : "w-64",
       )}
     >

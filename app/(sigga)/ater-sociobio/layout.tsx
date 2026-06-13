@@ -11,7 +11,7 @@ export default async function AterLayout({
   return (
     <div className="flex min-h-screen bg-zinc-50">
       <Sidebar scope="siggater" user={user} />
-      <main className="ml-64 flex-1">
+      <main className="flex-1 ml-64 transition-[margin] duration-300 peer-data-[collapsed=true]:ml-20">
         {children}
       </main>
     </div>
