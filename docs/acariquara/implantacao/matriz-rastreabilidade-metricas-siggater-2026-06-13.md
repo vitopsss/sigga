@@ -1,84 +1,88 @@
-# Matriz de Rastreabilidade - Métricas SIGGATER
+# Matriz de Rastreabilidade - Metricas SIGGATER
 
 Data: 2026-06-13
 
-## Numeração oficial
+## Numeracao oficial
 
-- **Doc 2**: Cadastro de Organização Coletiva.
-- **Doc 3**: Diagnóstico UFPA.
+- **Doc 2**: Cadastro de Organizacao Coletiva.
+- **Doc 3**: Diagnostico UFPA.
 - **Doc 4**: Indicadores UFPA.
-- **Doc 6**: Indicadores da Organização Coletiva.
-- **Doc Potencialidades**: substitui os campos de ações potenciais e limitações do Doc 3.
+- **Doc 6**: Indicadores da Organizacao Coletiva.
+- **Doc Potencialidades**: substitui os campos de acoes potenciais e limitacoes do Doc 3.
 
 ## Regra
 
-- Não misturar UFPA com organização coletiva.
-- Perfil da amostra não é indicador de desempenho.
-- Quando falar de Documento 6, falar apenas de organização coletiva.
+- Nao misturar UFPA com organizacao coletiva.
+- Perfil da amostra nao e indicador de desempenho.
+- Documento 6 sempre significa organizacao coletiva, nunca UFPA.
 
-## Doc 3 - Diagnóstico UFPA
+## Status rapido
 
-| Eixo | Indicador | Campos principais | Dashboard | Status | Observação |
-|---|---|---|---|---|---|
-| Infraestrutura | Comunicação | `possuiRadio`, `possuiTelevisao`, `possuiCelular`, `possuiInternet`, `usaRedesSociais`, `possuiOutroMeioComunicacao` | Doc 3 e Doc 4: UFPAs | A auditar | Métrica de diagnóstico da UFPA. |
-| Infraestrutura | Saneamento rural | `aguaParaConsumo`, `aguaConsumoTratada`, `aguaParaProducao`, `captacaoAguaChuva`, `esgotoTratado`, `fontesProtegidas` | Doc 3 e Doc 4: UFPAs; UFPAs prioritárias | A auditar | Água tratada e esgoto entram na prioridade. |
-| Geral | Recursos disponíveis | `recursosDisponiveis` | Faltando/indireto | A auditar | Ver se precisa virar métrica ou só detalhe da UFPA. |
-| Geral | Atividades coletivas | `atividadesColetivas` | Perfil da amostra/indireto | A auditar | Confirmar uso real no service. |
-| Geral | Políticas públicas | `politicasPublicas` | Faltando/indireto | A auditar | Pode ter sido substituído por campos do Doc 4. |
+| Bloco | Status | Leitura |
+|---|---|---|
+| Doc 3 - Comunicacao e saneamento | OK | Salva, consulta e aparece no painel de UFPAs. |
+| Doc 3 - Patrimonio, areas, recursos e atividades coletivas | Parcial | Salva no formulario, mas ainda nao virou painel gerencial. |
+| Doc Potencialidades | OK | Usa listas oficiais por eixo em JSON. Zero significa nao preenchido no recorte. |
+| Doc 4 - Social | OK/Parcial | Campos booleanos aparecem; textos "quais" ficam como detalhe, nao metrica. |
+| Doc 4 - Ambiental | OK | Praticas e motivos aparecem no painel de UFPAs. |
+| Doc 4 - Economico | OK | VBP, politicas produtivas, motivos, PRONAF e canais aparecem no painel. |
+| Doc 2 - Cadastro de organizacao | OK | Cadastro/base; nao e indicador de desempenho. |
+| Doc 6 - Organizacao coletiva | OK/Parcial | Booleanos aparecem; textos "quais" ficam como detalhe. |
+| Perfil da amostra | OK | Comunidade, organizacao, atividade e bioma so explicam composicao do recorte. |
+
+## Doc 3 - Diagnostico UFPA
+
+| Indicador | Campos principais | Dashboard | Status | Observacao |
+|---|---|---|---|---|
+| Comunicacao | `possuiRadio`, `possuiTelevisao`, `possuiCelular`, `possuiInternet`, `usaRedesSociais`, `possuiOutroMeioComunicacao` | Doc 3 e Doc 4: UFPAs | OK | Conta Sim/Nao/Sem informacao. |
+| Saneamento rural | `aguaParaConsumo`, `aguaConsumoTratada`, `aguaParaProducao`, `captacaoAguaChuva`, `esgotoTratado`, `fontesProtegidas` | Doc 3 e Doc 4: UFPAs; UFPAs prioritarias | OK | Agua tratada e esgoto entram na prioridade. |
+| Patrimonio e plantel | `qtdMaquinasAgricolas` ate `qtdPequenosAnimaisOutros` | Faltando | Parcial | Salva, mas falta decidir se vira metrica. |
+| Areas da UFPA | `areaPastagens` ate `areaOutrosUsos` | Faltando | Parcial | Pode virar soma/percentual depois. |
+| Recursos disponiveis | `recursosDisponiveis` | Faltando | Parcial | Salva JSON; falta agregacao por tipo. |
+| Atividades coletivas | `atividadesColetivas` | Faltando/indireto | Parcial | Salva JSON; nao confundir com perfil da amostra. |
+| Politicas publicas do diagnostico | `politicasPublicas` | Faltando/indireto | Parcial | Pode ser detalhe historico; Doc 4 cobre politicas sociais/produtivas. |
 
 ## Doc Potencialidades
 
-| Eixo | Indicador | Campos principais | Dashboard | Status | Observação |
-|---|---|---|---|---|---|
-| Produtivo/Social/Ambiental | Potencialidades | `acoesPotenciaisProdutivo`, `acoesPotenciaisSocial`, `acoesPotenciaisAmbiental` | Doc Potencialidades: potencialidades e limitações | A auditar | Mantido no schema com nome antigo, mas conceito vem do Doc Potencialidades. |
-| Produtivo/Social/Ambiental | Limitações | `limitacoesProdutivo`, `limitacoesSocial`, `limitacoesAmbiental` | Doc Potencialidades: potencialidades e limitações | A auditar | Zero indica que ainda não foi marcado no recorte. |
+| Indicador | Campos principais | Dashboard | Status | Observacao |
+|---|---|---|---|---|
+| Potencialidades | `acoesPotenciaisProdutivo`, `acoesPotenciaisSocial`, `acoesPotenciaisAmbiental` | Doc Potencialidades | OK | Lista oficial por eixo. |
+| Limitacoes | `limitacoesProdutivo`, `limitacoesSocial`, `limitacoesAmbiental` | Doc Potencialidades | OK | Lista oficial por eixo. |
 
 ## Doc 4 - Indicadores UFPA
 
-| Eixo | Indicador | Campos principais | Dashboard | Status | Observação |
-|---|---|---|---|---|---|
-| Social | Segurança alimentar | `alimentacaoVariadaComprometida`, `comidaAcabouSemCondicao`, `deixouRefeicaoSemCondicao`, `comeuMenosSemCondicao`, `qtdVezesComeuMenos`, `sentiuFomeENaoComeu` | Doc 3 e Doc 4: UFPAs; UFPAs prioritárias | A auditar | Critério forte de urgência. |
-| Social | Serviços sociais básicos | `documentacaoPessoalCompleta`, `documentacaoPessoalQuais`, `cadastradoCadUnico`, `cadUnicoQuais`, `acessaPoliticasSociais`, `politicasSociaisQuais` | Doc 3 e Doc 4: UFPAs; UFPAs prioritárias | A auditar | CadÚnico entra na prioridade. |
-| Social | Participação comunitária | `participaGrupoComunitario`, `qualGrupoComunitario`, `participaAssociacao`, `participaCooperativa`, `participaGrupoInformalProdutivo`, `participaGrupoInformalSocial` | Doc 3 e Doc 4: UFPAs | A auditar | Indicador social da UFPA. |
-| Ambiental | Práticas sustentáveis da UFPA | `possuiPraticasSustentaveis`, `praticasSustentaveisQuais`, `praticaIntegracaoAtividades`, `praticaDescarteCorretoEmbalagens`, `praticaControleQueimadas`, `praticaAdubacaoVerde`, `praticaRecuperacaoPastagens`, `praticaCoberturaSolo`, `praticaManejoIntegradoPragas`, `praticaCordoesVegetacao`, `praticaRotacaoCulturas`, `praticaPlantioDireto`, `praticaPousio`, `praticaProtecaoNascentes`, `praticaPreservacaoApps`, `praticaManejoFlorestal`, `praticaRecomposicaoFlorestal` | Doc 3 e Doc 4: UFPAs | A auditar | Não confundir com práticas ambientais do Doc 6. |
-| Ambiental | Motivos para não usar práticas | `motivoSemPraticaFinanceiro`, `motivoSemPraticaFaltaInformacao`, `motivoSemPraticaTecnologico`, `motivoSemPraticaFaltaInteresse` | Doc 3 e Doc 4: UFPAs | A auditar | Cruzar depois com limitações. |
-| Econômico | Valor bruto da produção | `valorBrutoProducaoUltimos12Meses` | Faltando | Faltando | Definir soma, média ou mediana. |
-| Econômico | Políticas produtivas | `acessaPoliticasProdutivas`, `motivoNaoAcessaPoliticasFaltaInfo`, `motivoNaoAcessaPoliticasDificilAcesso`, `motivoNaoAcessaPoliticasSemInteresse`, `acessouPaa`, `acessouPnae`, `acessouPgpmBio`, `acessouPronaf`, `linhasPronaf` | Doc 3 e Doc 4: UFPAs; UFPAs prioritárias | A auditar | Sem políticas produtivas entra como alerta. |
-| Econômico | Canais de comercialização da UFPA | `canalTrocaProdutoServico`, `canalVendaPropriedade`, `canalVendaDiretaConsumidor`, `canalFeira`, `canalMercadoLocal`, `canalAtravessador`, `canalPaa`, `canalPnae`, `canalCooperativaEntreposto` | Doc 3 e Doc 4: UFPAs | A auditar | Não confundir com canais do Doc 6. |
-
-## Doc 2 - Cadastro de Organização Coletiva
-
-| Bloco | Campos | Dashboard | Status | Observação |
+| Indicador | Campos principais | Dashboard | Status | Observacao |
 |---|---|---|---|---|
-| Cadastro da organização | `OrganizacaoColetiva` e campos cadastrais | Perfil/listas de organizações | A auditar | Não é Doc 6. Serve como base cadastral. |
-| Vínculo com UFPAs | relação `FamiliaAter.organizacaoColetivaId` | Perfil da amostra/organizações | A auditar | Mede composição, não desempenho. |
+| Seguranca alimentar | `alimentacaoVariadaComprometida`, `comidaAcabouSemCondicao`, `deixouRefeicaoSemCondicao`, `comeuMenosSemCondicao`, `qtdVezesComeuMenos`, `sentiuFomeENaoComeu` | Doc 3 e Doc 4: UFPAs; UFPAs prioritarias | OK | `qtdVezesComeuMenos` agora entra no resumo economico/SAN. |
+| Servicos sociais basicos | `documentacaoPessoalCompleta`, `documentacaoPessoalQuais`, `cadastradoCadUnico`, `cadUnicoQuais`, `acessaPoliticasSociais`, `politicasSociaisQuais` | Doc 3 e Doc 4: UFPAs; UFPAs prioritarias | OK/Parcial | Booleanos no dashboard; "quais" ficam como detalhe. |
+| Participacao comunitaria | `participaGrupoComunitario`, `qualGrupoComunitario`, `participaAssociacao`, `participaCooperativa`, `participaGrupoInformalProdutivo`, `participaGrupoInformalSocial` | Doc 3 e Doc 4: UFPAs | OK/Parcial | `qualGrupoComunitario` nao e agregado. |
+| Praticas sustentaveis da UFPA | `possuiPraticasSustentaveis`, `praticaIntegracaoAtividades` ate `praticaRecomposicaoFlorestal` | Doc 3 e Doc 4: UFPAs | OK | Nao confundir com praticas ambientais do Doc 6. |
+| Motivos sem pratica | `motivoSemPraticaFinanceiro`, `motivoSemPraticaFaltaInformacao`, `motivoSemPraticaTecnologico`, `motivoSemPraticaFaltaInteresse` | Doc 3 e Doc 4: UFPAs | OK | Cruzar depois com limitacoes ambientais. |
+| Valor bruto da producao | `valorBrutoProducaoUltimos12Meses` | Doc 3 e Doc 4: UFPAs | OK | Exibe total, quantidade informada e media. |
+| Politicas produtivas | `acessaPoliticasProdutivas`, motivos, `acessouPaa`, `acessouPnae`, `acessouPgpmBio`, `acessouPronaf`, `linhasPronaf` | Doc 3 e Doc 4: UFPAs | OK | Motivos e linhas PRONAF agora aparecem. |
+| Canais de comercializacao da UFPA | `canalTrocaProdutoServico` ate `canalCooperativaEntreposto` | Doc 3 e Doc 4: UFPAs | OK | Nao confundir com canais do Doc 6. |
 
-## Doc 6 - Indicadores da Organização Coletiva
+## Doc 2 - Cadastro de Organizacao Coletiva
 
-| Eixo | Indicador | Campos principais | Dashboard | Status | Observação |
-|---|---|---|---|---|---|
-| Ambiental | Práticas ambientais da organização | `possuiPraticasAmbientais`, `praticaSeparacaoLixo`, `praticaDescarteCorretoLixo`, `praticaManutencaoAcessos`, `praticaTratamentoDejetos`, `praticaCaptacaoAguaChuva`, `praticaEducacaoAmbiental`, `praticaAvaliacaoPrevencaoRiscos` | Doc 6: indicadores das organizações coletivas | A auditar | Bloco próprio da organização. |
-| Social | Identidade comercial | `usaIdentidadeComercial`, `identidadeMarcaPropria`, `identidadeSeloArte`, `identidadeSenaf`, `identidadeSenafSociobiodiversidade`, `identidadeSeloQuilombos`, `identidadeSeloIndigenas`, `identidadeSeloPovosTradicionais` | Doc 6: indicadores das organizações coletivas | A auditar | Bloco próprio da organização. |
-| Social | Gênero e juventude | `possuiMulheresDiretoriaConselho`, `possuiJovensDiretoriaConselho` | Doc 6: indicadores das organizações coletivas | A auditar | Diretoria/conselho; não é integrante de UFPA. |
-| Social | Representação política | `filiadaOrganizacao`, `filiadaUnicafes`, `filiadaUnicopas`, `filiadaSistemaOcb` | Doc 6: indicadores das organizações coletivas | A auditar | Filiação institucional. |
-| Econômico | Políticas públicas da organização | `acessaPoliticasPublicas`, `possuiCafJuridica`, `acessouPronafCusteio`, `acessouPronafCapitalGiro`, `acessouPronafMaisAlimentos`, `acessouPronafIndustrializacao`, `acessouPronafAgroindustria`, `acessouPronafCotasPartes`, `acessouPaa`, `acessouPnae`, `acessouPgpm`, `acessouPgpmSociobiodiversidade`, `acessouCooperaMaisBrasil` | Doc 6: indicadores das organizações coletivas | A auditar | Não confundir com políticas produtivas da UFPA. |
-| Econômico | Canais de comercialização da organização | `canalTrocaProdutoServico`, `canalVendaOrganizacao`, `canalVendaDiretaConsumidor`, `canalFeira`, `canalMercadoLocal`, `canalAtravessador`, `canalPaa`, `canalPnae`, `canalMercadoJustoSolidario` | Doc 6: indicadores das organizações coletivas | A auditar | Canais institucionais/coletivos. |
-
-## Perfil da amostra
-
-| Tipo | Campos | Dashboard | Status | Observação |
+| Bloco | Campos | Dashboard | Status | Observacao |
 |---|---|---|---|---|
-| Comunidade | `FamiliaAter.comunidade` | Perfil da amostra | OK | Não mede desempenho. |
-| Organização vinculada | `FamiliaAter.organizacaoColetivaId` | Perfil da amostra | OK | Não é indicador da organização. |
-| Atividade produtiva | `atividades` no service/dashboard | Perfil da amostra | A auditar | Confirmar origem exata. |
-| Bioma | `FamiliaAter.bioma` | Perfil da amostra | OK | Se só houver um bioma, aparece como nota. |
+| Cadastro da organizacao | `OrganizacaoColetiva` e campos cadastrais | Lista/perfil de organizacoes | OK | Base cadastral, nao desempenho. |
+| Vinculo com UFPAs | `FamiliaAter.organizacaoColetivaId` | Perfil da amostra/organizacoes | OK | Mede composicao e alcance cadastral. |
 
-## Próximos checks
+## Doc 6 - Indicadores da Organizacao Coletiva
 
-1. Conferir cada campo do Doc 3 no formulário e dashboard.
-2. Conferir cada campo do Doc 4 no formulário e dashboard.
-3. Conferir o Doc Potencialidades contra campos JSON atuais.
-4. Conferir Doc 2 separado do Doc 6.
-5. Conferir Doc 6 somente nas telas de organizações coletivas.
-6. Criar dados controlados para validar contagens.
-7. Definir pesos da lista de UFPAs prioritárias.
+| Indicador | Campos principais | Dashboard | Status | Observacao |
+|---|---|---|---|---|
+| Praticas ambientais da organizacao | `possuiPraticasAmbientais`, `praticaSeparacaoLixo` ate `praticaAvaliacaoPrevencaoRiscos` | Doc 6: organizacoes coletivas | OK | Bloco proprio da organizacao. |
+| Identidade comercial | `usaIdentidadeComercial`, `identidadeMarcaPropria` ate `identidadeSeloPovosTradicionais` | Doc 6: organizacoes coletivas | OK | Booleanos cobertos. |
+| Genero e juventude | `possuiMulheresDiretoriaConselho`, `possuiJovensDiretoriaConselho` | Doc 6: organizacoes coletivas | OK | Diretoria/conselho, nao integrantes de UFPA. |
+| Representacao politica | `filiadaOrganizacao`, `filiadaUnicafes`, `filiadaUnicopas`, `filiadaSistemaOcb` | Doc 6: organizacoes coletivas | OK | Filiacao institucional. |
+| Politicas publicas da organizacao | `acessaPoliticasPublicas`, `possuiCafJuridica`, PRONAF, PAA, PNAE, PGPM, Coopera Mais Brasil | Doc 6: organizacoes coletivas | OK | Nao confundir com politicas produtivas da UFPA. |
+| Canais da organizacao | `canalTrocaProdutoServico` ate `canalMercadoJustoSolidario` | Doc 6: organizacoes coletivas | OK | Canais coletivos/institucionais. |
+| Campos "quais" | `praticasAmbientaisQuais`, `identidadeComercialQuais`, `representacaoPoliticaQuais`, `politicasPublicasQuais` | Detalhe | Parcial | Guardado como texto; nao agregado. |
+
+## Proximo ataque
+
+1. Criar dados controlados para validar contagens automaticamente.
+2. Definir pesos da lista de UFPAs prioritarias.
+3. Decidir se Doc 3 patrimonio/areas/recursos viram metricas gerenciais.

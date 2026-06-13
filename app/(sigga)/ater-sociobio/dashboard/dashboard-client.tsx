@@ -37,6 +37,7 @@ import {
   ATER_SOCIOBIO_POTENCIALIDADES_SOCIAL,
   getAterSociobioStatusRelatorioLabel,
 } from "@/lib/constants/ater-sociobio";
+import { PRONAF_LINHAS_UFPA } from "@/lib/constants/ater-sociobio-official";
 import { ExportExcelButton } from "@/components/system/export-excel-button";
 
 export type DashboardView = "ufpas" | "organizacoes" | "atendimentos";
@@ -78,6 +79,10 @@ function normalized(value?: string | null) {
 
 function ratio(part: number, total: number) {
   return total > 0 ? Math.round((part / total) * 100) : 0;
+}
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function formatDate(value?: string | null) {
@@ -498,6 +503,28 @@ function CompactRankList({
   );
 }
 
+function CompactValueList({
+  title,
+  data,
+}: {
+  title: string;
+  data: { label: string; value: string | number }[];
+}) {
+  return (
+    <div className="rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+      <h3 className="mb-3 text-sm font-bold text-zinc-900">{title}</h3>
+      <div className="divide-y divide-zinc-100">
+        {data.map((item) => (
+          <div key={item.label} className="flex items-center justify-between gap-4 py-2 text-xs">
+            <span className="font-semibold text-zinc-700">{item.label}</span>
+            <span className="text-right font-mono font-bold text-zinc-950">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function UfpaPrioritiesCard({
   priorities,
   appendReturnHref,
@@ -626,6 +653,9 @@ function UfpaPanel({
     const mulheres = items.reduce((sum, item) => sum + item.mulheres, 0);
     const jovens = items.reduce((sum, item) => sum + item.jovens, 0);
     const visitas = items.reduce((sum, item) => sum + item.atendimentos, 0);
+    const vbpItems = items.filter((item) => item.valorBrutoProducaoUltimos12Meses !== null);
+    const vbpTotal = vbpItems.reduce((sum, item) => sum + (item.valorBrutoProducaoUltimos12Meses ?? 0), 0);
+    const qtdVezesComeuMenos = items.reduce((sum, item) => sum + (item.qtdVezesComeuMenos ?? 0), 0);
 
     return {
       total,
@@ -641,6 +671,9 @@ function UfpaPanel({
       mulheres,
       jovens,
       visitas,
+      vbpTotal,
+      vbpCount: vbpItems.length,
+      qtdVezesComeuMenos,
     };
   }, [items]);
 
@@ -723,6 +756,11 @@ function UfpaPanel({
     { label: "Acessou PGPM-Bio", getValue: (item) => item.acessouPgpmBio },
     { label: "Acessou PRONAF", getValue: (item) => item.acessouPronaf },
   ];
+  const politicasProdutivasMotivosMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
+    { label: "Motivo: falta de informacao", getValue: (item) => item.motivoNaoAcessaPoliticasFaltaInfo },
+    { label: "Motivo: dificil acesso", getValue: (item) => item.motivoNaoAcessaPoliticasDificilAcesso },
+    { label: "Motivo: sem necessidade/interesse", getValue: (item) => item.motivoNaoAcessaPoliticasSemInteresse },
+  ];
   const canaisMetrics: BooleanMetric<SiggaterDashboardItem>[] = [
     { label: "Troca por produto/serviço", getValue: (item) => item.canalTrocaProdutoServico },
     { label: "Venda na propriedade", getValue: (item) => item.canalVendaPropriedade },
@@ -758,6 +796,19 @@ function UfpaPanel({
     () => groupArrayValues(items, (item) => item.limitacoesAmbiental, ATER_SOCIOBIO_LIMITACOES_AMBIENTAL),
     [items],
   );
+  const linhasPronafData = useMemo(
+    () => groupArrayValues(items, (item) => item.linhasPronaf, PRONAF_LINHAS_UFPA.map((item) => item.label)),
+    [items],
+  );
+  const economicSummary = [
+    { label: "VBP total informado", value: formatCurrency(metrics.vbpTotal) },
+    { label: "UFPAs com VBP informado", value: metrics.vbpCount },
+    {
+      label: "Media do VBP informado",
+      value: metrics.vbpCount > 0 ? formatCurrency(metrics.vbpTotal / metrics.vbpCount) : formatCurrency(0),
+    },
+    { label: "Soma de vezes que comeram menos", value: metrics.qtdVezesComeuMenos },
+  ];
 
   return (
     <div className="space-y-6">
@@ -852,6 +903,9 @@ function UfpaPanel({
           <BooleanMetricsTable title="Ambiental: práticas sustentáveis" items={items} metrics={praticasSustentaveisMetrics} />
           <BooleanMetricsTable title="Ambiental: motivos para não usar práticas" items={items} metrics={praticasMotivosMetrics} />
           <BooleanMetricsTable title="Econômico: políticas produtivas" items={items} metrics={politicasProdutivasMetrics} />
+          <BooleanMetricsTable title="Econômico: motivos para não acessar políticas" items={items} metrics={politicasProdutivasMotivosMetrics} />
+          <CompactRankList title="Econômico: linhas PRONAF acessadas" data={linhasPronafData} />
+          <CompactValueList title="Econômico: VBP e SAN" data={economicSummary} />
           <BooleanMetricsTable title="Econômico: canais de comercialização" items={items} metrics={canaisMetrics} />
         </div>
       </section>

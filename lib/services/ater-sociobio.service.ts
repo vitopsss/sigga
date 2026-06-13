@@ -72,6 +72,7 @@ export type SiggaterDashboardItem = {
   comidaAcabouSemCondicao: boolean | null;
   deixouRefeicaoSemCondicao: boolean | null;
   comeuMenosSemCondicao: boolean | null;
+  qtdVezesComeuMenos: number | null;
   sentiuFomeENaoComeu: boolean | null;
   documentacaoPessoalCompleta: boolean | null;
   cadUnico: boolean | null;
@@ -103,10 +104,15 @@ export type SiggaterDashboardItem = {
   motivoSemPraticaFaltaInformacao: boolean | null;
   motivoSemPraticaTecnologico: boolean | null;
   motivoSemPraticaFaltaInteresse: boolean | null;
+  valorBrutoProducaoUltimos12Meses: number | null;
+  motivoNaoAcessaPoliticasFaltaInfo: boolean | null;
+  motivoNaoAcessaPoliticasDificilAcesso: boolean | null;
+  motivoNaoAcessaPoliticasSemInteresse: boolean | null;
   acessouPaa: boolean | null;
   acessouPnae: boolean | null;
   acessouPgpmBio: boolean | null;
   acessouPronaf: boolean | null;
+  linhasPronaf: string[];
   canalTrocaProdutoServico: boolean | null;
   canalVendaPropriedade: boolean | null;
   canalVendaDiretaConsumidor: boolean | null;
@@ -343,6 +349,21 @@ function readAtividadesList(value: Prisma.JsonValue | null | undefined): string[
       if (!item || typeof item !== "object") return null;
       const record = item as Record<string, unknown>;
       return typeof record.atividade === "string" ? record.atividade.trim() : null;
+    })
+    .filter((item): item is string => Boolean(item));
+}
+
+function readSelectedJsonLabels(
+  value: Prisma.JsonValue | null | undefined,
+  labelKey = "linha",
+  flagKey = "acessou",
+): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const record = item as Record<string, unknown>;
+      return record[flagKey] === true && typeof record[labelKey] === "string" ? record[labelKey].trim() : null;
     })
     .filter((item): item is string => Boolean(item));
 }
@@ -703,6 +724,7 @@ export class AterSociobioService {
             comidaAcabouSemCondicao: true,
             deixouRefeicaoSemCondicao: true,
             comeuMenosSemCondicao: true,
+            qtdVezesComeuMenos: true,
             sentiuFomeENaoComeu: true,
             documentacaoPessoalCompleta: true,
             cadastradoCadUnico: true,
@@ -733,10 +755,15 @@ export class AterSociobioService {
             motivoSemPraticaFaltaInformacao: true,
             motivoSemPraticaTecnologico: true,
             motivoSemPraticaFaltaInteresse: true,
+            valorBrutoProducaoUltimos12Meses: true,
+            motivoNaoAcessaPoliticasFaltaInfo: true,
+            motivoNaoAcessaPoliticasDificilAcesso: true,
+            motivoNaoAcessaPoliticasSemInteresse: true,
             acessouPaa: true,
             acessouPnae: true,
             acessouPgpmBio: true,
             acessouPronaf: true,
+            linhasPronaf: true,
             canalTrocaProdutoServico: true,
             canalVendaPropriedade: true,
             canalVendaDiretaConsumidor: true,
@@ -822,6 +849,7 @@ export class AterSociobioService {
         comidaAcabouSemCondicao: indicadores?.comidaAcabouSemCondicao ?? null,
         deixouRefeicaoSemCondicao: indicadores?.deixouRefeicaoSemCondicao ?? null,
         comeuMenosSemCondicao: indicadores?.comeuMenosSemCondicao ?? null,
+        qtdVezesComeuMenos: indicadores?.qtdVezesComeuMenos ?? null,
         sentiuFomeENaoComeu: indicadores?.sentiuFomeENaoComeu ?? null,
         documentacaoPessoalCompleta: indicadores?.documentacaoPessoalCompleta ?? null,
         cadUnico: indicadores?.cadastradoCadUnico ?? null,
@@ -853,10 +881,17 @@ export class AterSociobioService {
         motivoSemPraticaFaltaInformacao: indicadores?.motivoSemPraticaFaltaInformacao ?? null,
         motivoSemPraticaTecnologico: indicadores?.motivoSemPraticaTecnologico ?? null,
         motivoSemPraticaFaltaInteresse: indicadores?.motivoSemPraticaFaltaInteresse ?? null,
+        valorBrutoProducaoUltimos12Meses: indicadores?.valorBrutoProducaoUltimos12Meses === null || indicadores?.valorBrutoProducaoUltimos12Meses === undefined
+          ? null
+          : Number(indicadores.valorBrutoProducaoUltimos12Meses),
+        motivoNaoAcessaPoliticasFaltaInfo: indicadores?.motivoNaoAcessaPoliticasFaltaInfo ?? null,
+        motivoNaoAcessaPoliticasDificilAcesso: indicadores?.motivoNaoAcessaPoliticasDificilAcesso ?? null,
+        motivoNaoAcessaPoliticasSemInteresse: indicadores?.motivoNaoAcessaPoliticasSemInteresse ?? null,
         acessouPaa: indicadores?.acessouPaa ?? null,
         acessouPnae: indicadores?.acessouPnae ?? null,
         acessouPgpmBio: indicadores?.acessouPgpmBio ?? null,
         acessouPronaf: indicadores?.acessouPronaf ?? null,
+        linhasPronaf: readSelectedJsonLabels(indicadores?.linhasPronaf),
         canalTrocaProdutoServico: indicadores?.canalTrocaProdutoServico ?? null,
         canalVendaPropriedade: indicadores?.canalVendaPropriedade ?? null,
         canalVendaDiretaConsumidor: indicadores?.canalVendaDiretaConsumidor ?? null,
