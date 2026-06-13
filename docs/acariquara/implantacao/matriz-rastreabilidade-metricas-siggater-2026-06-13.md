@@ -81,8 +81,46 @@ Data: 2026-06-13
 | Canais da organizacao | `canalTrocaProdutoServico` ate `canalMercadoJustoSolidario` | Doc 6: organizacoes coletivas | OK | Canais coletivos/institucionais. |
 | Campos "quais" | `praticasAmbientaisQuais`, `identidadeComercialQuais`, `representacaoPoliticaQuais`, `politicasPublicasQuais` | Detalhe | Parcial | Guardado como texto; nao agregado. |
 
+## Historico de execucao
+
+### 2026-06-13 — commit a06ba28
+
+**Implementado:**
+
+1. **Seed de metricas controlado** (`prisma/seed-metricas-teste.ts`)
+   - 3 UFPAs com combinacoes conhecidas: Verde (infra OK), Alerta (vulneravel), Produtiva (economica)
+   - Valores esperados documentados no proprio arquivo
+   - Uso: `npx.cmd tsx prisma/seed-metricas-teste.ts`
+   - Limpeza: `DELETE FROM familias_ater WHERE nome_familia LIKE '%-Teste'`
+
+2. **Pesos de prioridade implementados** (`dashboard-client.tsx`)
+   - `RISK_WEIGHTS` const com 7 regras ponderadas:
+     | Risco                  | Peso |
+     |------------------------|------|
+     | Diagnostico ausente    | 3    |
+     | Agua sem tratamento    | 3    |
+     | Sem esgoto tratado     | 3    |
+     | Inseguranca alimentar  | 4    |
+     | Sem CadUnico           | 2    |
+     | Sem politicas produtivas | 2  |
+     | SGA pendente           | 1    |
+   - Novo risco adicionado: **"Sem politicas produtivas"** (peso 2)
+   - `getRisks()` derivado da tabela de pesos
+   - `getRiskScore()` soma os pesos dos riscos ativos
+   - Ordenacao por score ponderado (nao mais por contagem simples)
+   - Badge `Xpts` visivel no card UFPAs prioritarias
+   - Subtitulo: "Ranking ponderado por severidade das pendencias"
+
+3. **Validacoes:**
+   - `npx.cmd tsc --noEmit` — OK
+   - `npm.cmd run lint` — OK
+
 ## Proximo ataque
 
-1. Criar dados controlados para validar contagens automaticamente.
-2. Definir pesos da lista de UFPAs prioritarias.
-3. Decidir se Doc 3 patrimonio/areas/recursos viram metricas gerenciais.
+1. Rodar seed de teste e comparar contagens no dashboard com os valores esperados.
+2. Decidir se Doc 3 patrimonio/areas/recursos viram metricas gerenciais:
+   - area total por uso (pastagem, culturas, extrativismo etc.)
+   - total de plantel (bovinos, aves, suinos...)
+   - recursos disponiveis por tipo
+   - atividades coletivas por area
+3. Avaliar se score de prioridade precisa de ajuste fino apos validacao com equipe.
