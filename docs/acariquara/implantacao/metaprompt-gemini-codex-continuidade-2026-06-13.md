@@ -38,7 +38,7 @@ Foco atual: implantação/homologação da Fase 1 com a Acariquara, sem liberar 
 
 Commits principais recentes:
 
-- `794f09e` - alinhou diagnósticos ao Documento 6.
+- `794f09e` - alinhou diagnósticos e indicadores aos instrumentos oficiais.
 - `893c64a` - separou dashboard em telas por domínio.
 - `84e54db` - adicionou métricas compactas de UFPA.
 - `3f87f93` - adicionou métricas de indicadores de organizações coletivas.
@@ -84,7 +84,7 @@ Tela de UFPAs:
 
 - cards-resumo compactos;
 - UFPAs prioritárias no topo;
-- indicadores do Documento 6;
+- diagnóstico e indicadores das UFPAs;
 - potencialidades e limitações;
 - perfil da amostra recolhível.
 
@@ -161,7 +161,7 @@ Contexto:
 Estado recente:
 
 - Dashboard foi dividido em UFPAs, organizações e atendimentos.
-- UFPAs têm métricas do Documento 6, prioridades, potencialidades/limitações e perfil da amostra recolhível.
+- UFPAs têm métricas próprias de diagnóstico/indicadores familiares, prioridades, potencialidades/limitações e perfil da amostra recolhível.
 - Organizações têm métricas próprias de práticas ambientais, identidade, gênero/juventude, representação, políticas públicas e canais.
 - Potencialidades/limitações aparecem com `0` quando ainda não foram marcadas nos diagnósticos.
 - `scripts/check_users.js`, `scripts/create_test_user.js` e `scripts/extract_docx.py` são temporários; não commitar sem revisão.
@@ -189,8 +189,7 @@ Comandos úteis:
 ```powershell
 cd C:\sigga-v5
 git status -sb
-rg -n "Dashboard|UfpaPanel|OrganizacoesPanel|Potencialidades|Indicadores do Documento 6" app lib components
+rg -n "Dashboard|UfpaPanel|OrganizacoesPanel|Potencialidades|Diagnóstico e indicadores|Indicadores de organizações" app lib components
 npx.cmd tsc --noEmit
 npm.cmd run lint
 ```
-

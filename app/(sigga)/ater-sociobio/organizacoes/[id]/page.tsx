@@ -240,7 +240,7 @@ export default async function OrganizacaoColetivaDetailPage({
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-bold text-zinc-900">Indicadores Coletivos</h2>
-                <p className="mt-1 text-sm text-zinc-500 font-medium">Monitoramento do Documento 6 - Indicadores da Organização.</p>
+                <p className="mt-1 text-sm text-zinc-500 font-medium">Monitoramento dos indicadores da organização coletiva.</p>
               </div>
               <Link href={appendFromDetails(`/ater-sociobio/organizacoes/${organizacao.id}/indicadores`)}>
                 <Button variant={indicadores ? "secondary" : "primary"} size="sm">{indicadores ? "Atualizar indicadores" : "Preencher indicadores"}</Button>

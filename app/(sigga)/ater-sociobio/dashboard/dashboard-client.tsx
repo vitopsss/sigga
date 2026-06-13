@@ -839,9 +839,9 @@ function UfpaPanel({
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-bold text-zinc-900">Indicadores do Documento 6</h2>
+          <h2 className="text-base font-bold text-zinc-900">Diagnóstico e indicadores das UFPAs</h2>
           <p className="mt-1 text-xs font-semibold text-zinc-500">
-            Contagem de UFPAs por resposta. S/I indica registros ainda sem informação.
+            Contagem de UFPAs por resposta nos blocos de diagnóstico familiar. S/I indica registros ainda sem informação.
           </p>
         </div>
         <div className="grid gap-4 xl:grid-cols-2">
