@@ -27,6 +27,12 @@ Foco atual: implantação/homologação da Fase 1 com a Acariquara, sem liberar 
 
 ## Como estamos trabalhando
 
+- Numeração oficial dos instrumentos:
+  - Doc 2: cadastro de organização coletiva.
+  - Doc 3: diagnóstico UFPA.
+  - Doc 4: indicadores UFPA.
+  - Doc 6: indicadores da organização coletiva.
+  - Doc Potencialidades: substitui ações potenciais e limitações no Doc 3.
 - Mudanças pequenas, validadas e commitadas.
 - Separar métricas por domínio: UFPAs, organizações e atendimentos.
 - Evitar tela poluída: cards compactos, seções claras e dados secundários recolhíveis.
@@ -61,14 +67,25 @@ Arquivos temporários não devem ser commitados sem revisão:
 - Indicadores de organização coletiva receberam campos detalhados para práticas ambientais, identidade comercial, representação política, políticas públicas e canais.
 - Foi criada migration para converter campos de texto em JSONB e adicionar campos de detalhamento.
 
-### Diagnóstico UFPA
+### Doc 3 - Diagnóstico UFPA
 
-- Ações potenciais e limitações viraram seleção múltipla por eixo:
-  - produtivo;
-  - social;
-  - ambiental.
-- Esses itens alimentam métricas de frequência no dashboard.
-- Se todos aparecem `0`, é porque ainda não foram marcados nos diagnósticos das UFPAs do recorte.
+- Cobre diagnóstico da UFPA, incluindo comunicação, saneamento e outros dados estruturais.
+
+### Doc 4 - Indicadores UFPA
+
+- Cobre indicadores sociais, ambientais e econômicos da UFPA.
+
+### Doc Potencialidades
+
+- Substitui o antigo bloco de ações potenciais e limitações do Doc 3.
+- No schema ainda aparece como `acoesPotenciais*` e `limitacoes*`.
+- Se todos aparecem `0`, é porque ainda não foram marcados nas UFPAs do recorte.
+
+### Doc 2 e Doc 6
+
+- Doc 2 é cadastro de organização coletiva.
+- Doc 6 é indicadores da organização coletiva.
+- Não misturar Doc 6 com UFPA.
 
 ### Dashboard
 
@@ -84,7 +101,7 @@ Tela de UFPAs:
 
 - cards-resumo compactos;
 - UFPAs prioritárias no topo;
-- diagnóstico e indicadores das UFPAs;
+- Doc 3 e Doc 4 das UFPAs;
 - potencialidades e limitações;
 - perfil da amostra recolhível.
 
@@ -161,9 +178,9 @@ Contexto:
 Estado recente:
 
 - Dashboard foi dividido em UFPAs, organizações e atendimentos.
-- UFPAs têm métricas próprias de diagnóstico/indicadores familiares, prioridades, potencialidades/limitações e perfil da amostra recolhível.
-- Organizações têm métricas próprias de práticas ambientais, identidade, gênero/juventude, representação, políticas públicas e canais.
-- Potencialidades/limitações aparecem com `0` quando ainda não foram marcadas nos diagnósticos.
+- UFPAs têm métricas próprias do Doc 3, Doc 4, prioridades, Doc Potencialidades e perfil da amostra recolhível.
+- Organizações têm cadastro no Doc 2 e indicadores no Doc 6.
+- Potencialidades/limitações aparecem com `0` quando ainda não foram marcadas.
 - `scripts/check_users.js`, `scripts/create_test_user.js` e `scripts/extract_docx.py` são temporários; não commitar sem revisão.
 
 Sua missão:

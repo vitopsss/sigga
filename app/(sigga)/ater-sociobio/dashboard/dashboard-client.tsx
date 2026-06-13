@@ -839,9 +839,9 @@ function UfpaPanel({
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-bold text-zinc-900">Diagnóstico e indicadores das UFPAs</h2>
+          <h2 className="text-base font-bold text-zinc-900">Doc 3 e Doc 4: UFPAs</h2>
           <p className="mt-1 text-xs font-semibold text-zinc-500">
-            Contagem de UFPAs por resposta nos blocos de diagnóstico familiar. S/I indica registros ainda sem informação.
+            Diagnóstico da UFPA e indicadores da UFPA. S/I indica registros ainda sem informação.
           </p>
         </div>
         <div className="grid gap-4 xl:grid-cols-2">
@@ -858,7 +858,7 @@ function UfpaPanel({
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-bold text-zinc-900">Potencialidades e limitações</h2>
+          <h2 className="text-base font-bold text-zinc-900">Doc Potencialidades: potencialidades e limitações</h2>
           <p className="mt-1 text-xs font-semibold text-zinc-500">
             Frequência dos temas marcados no diagnóstico. Itens em 0 ainda não foram selecionados nas UFPAs do recorte.
           </p>
@@ -1157,7 +1157,7 @@ function OrganizacoesPanel({
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-bold text-zinc-900">Indicadores de organizações coletivas</h2>
+          <h2 className="text-base font-bold text-zinc-900">Doc 6: indicadores das organizações coletivas</h2>
           <p className="mt-1 text-xs font-semibold text-zinc-500">
             Contagem por organização coletiva. S/I indica registros ainda sem informação ou não aplicável.
           </p>
