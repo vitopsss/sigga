@@ -828,6 +828,18 @@ function UfpaPanel({
     () => groupArrayValues(items, (item) => item.linhasPronaf, PRONAF_LINHAS_UFPA.map((item) => item.label)),
     [items],
   );
+  const politicasPublicasFederaisData = useMemo(
+    () => groupArrayValues(items, (item) => item.politicasPublicasFederais),
+    [items],
+  );
+  const atividadesColetivAsData = useMemo(
+    () => groupArrayValues(items, (item) => item.atividadesColetivas),
+    [items],
+  );
+  const areasAtividadesColetivAsData = useMemo(
+    () => groupArrayValues(items, (item) => item.areasAtividadesColetivas),
+    [items],
+  );
   const economicSummary = [
     { label: "VBP total informado", value: formatCurrency(metrics.vbpTotal) },
     { label: "UFPAs com VBP informado", value: metrics.vbpCount },
@@ -952,6 +964,20 @@ function UfpaPanel({
           <CompactRankList title="Limitações: eixo produtivo" data={limitacoesProdutivo} />
           <CompactRankList title="Limitações: eixo social" data={limitacoesSocial} />
           <CompactRankList title="Limitações: eixo ambiental" data={limitacoesAmbiental} />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-zinc-900">Doc 3: Políticas públicas e atividades coletivas</h2>
+          <p className="mt-1 text-xs font-semibold text-zinc-500">
+            Dados da tabela de diagnóstico. Freqüência dos itens preenchidos nas UFPAs do recorte.
+          </p>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-3">
+          <CompactRankList title="Políticas públicas federais acessadas" data={politicasPublicasFederaisData} />
+          <CompactRankList title="Atividades coletivas" data={atividadesColetivAsData} />
+          <CompactRankList title="Áreas das atividades coletivas" data={areasAtividadesColetivAsData} />
         </div>
       </section>
 

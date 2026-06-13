@@ -128,6 +128,12 @@ export type SiggaterDashboardItem = {
   limitacoesProdutivo: string[];
   limitacoesSocial: string[];
   limitacoesAmbiental: string[];
+  /** Doc 3: políticas públicas federais mencionadas na tabela da UFPA (ex: BPC, Bolsa Família) */
+  politicasPublicasFederais: string[];
+  /** Doc 3: atividades coletivas (coluna atividade) da UFPA */
+  atividadesColetivas: string[];
+  /** Doc 3: áreas das atividades coletivas (social, produtiva, cultural etc.) */
+  areasAtividadesColetivas: string[];
 };
 
 export type SiggaterOrganizacaoDashboardItem = {
@@ -364,6 +370,26 @@ function readSelectedJsonLabels(
       if (!item || typeof item !== "object" || Array.isArray(item)) return null;
       const record = item as Record<string, unknown>;
       return record[flagKey] === true && typeof record[labelKey] === "string" ? record[labelKey].trim() : null;
+    })
+    .filter((item): item is string => Boolean(item));
+}
+
+/**
+ * Extrai os valores de uma coluna específica de um array de objetos JSON.
+ * Usado para `politicasPublicas` e `atividadesColetivas` do DiagnosticoUfpa.
+ * Retorna apenas strings não vazias.
+ */
+function readJsonTableColumn(
+  value: Prisma.JsonValue | null | undefined,
+  columnKey: string,
+): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const record = item as Record<string, unknown>;
+      const cell = record[columnKey];
+      return typeof cell === "string" && cell.trim().length > 0 ? cell.trim() : null;
     })
     .filter((item): item is string => Boolean(item));
 }
@@ -716,6 +742,8 @@ export class AterSociobioService {
             limitacoesProdutivo: true,
             limitacoesSocial: true,
             limitacoesAmbiental: true,
+            politicasPublicas: true,
+            atividadesColetivas: true,
           },
         },
         indicadores: {
@@ -907,6 +935,9 @@ export class AterSociobioService {
         limitacoesProdutivo: readStringArray(familia.diagnostico?.limitacoesProdutivo),
         limitacoesSocial: readStringArray(familia.diagnostico?.limitacoesSocial),
         limitacoesAmbiental: readStringArray(familia.diagnostico?.limitacoesAmbiental),
+        politicasPublicasFederais: readJsonTableColumn(familia.diagnostico?.politicasPublicas, "politicaPublicaFederal"),
+        atividadesColetivas: readJsonTableColumn(familia.diagnostico?.atividadesColetivas, "atividadeColetiva"),
+        areasAtividadesColetivas: readJsonTableColumn(familia.diagnostico?.atividadesColetivas, "area"),
         bioma: familia.bioma,
         atividades: readAtividadesList(familia.envioSGAPorAtividade),
         mulheres,
