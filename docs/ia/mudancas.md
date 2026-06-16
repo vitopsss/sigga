@@ -4,7 +4,7 @@
 
 Resumo:
 - Next.js 15 `searchParams`: corrigido erro de runtime "A tela falhou durante o carregamento" que ocorria ao navegar na tabela e apertar o botão "Voltar". O erro ocorria porque múltiplos parâmetros iguais na URL geravam um Array, quebrando a chamada do método `.trim()`. Todos os destructurings de páginas do SIGGATER foram ajustados para forçar tipo `string`.
-- Logout: Alterado `/logout/route.ts` (Route Handler) para `/logout/page.tsx` (Server Component Page) e adicionado `force-dynamic` para garantir que o Next.js não faça cache estático da exclusão de cookies durante o build.
+- Logout: A alteração de `/logout/route.ts` para `page.tsx` causou um Erro de Sistema porque o Next.js não permite deletar cookies em Server Components. O arquivo foi revertido para `/logout/route.ts` (Route Handler) com `export const dynamic = "force-dynamic"` e deleção explícita do cookie `__Host-` com `secure` e `path=/` para garantir que a Vercel limpe a sessão corretamente.
 
 ## 2026-06-13 - Deploy e homologacao SIGGATER
 
