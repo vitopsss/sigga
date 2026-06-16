@@ -126,13 +126,13 @@ export function Sidebar({
           </div>
         )}
         {scope === "siggater" && user && (
-          <Link
+          <a
             href="/logout"
             className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
           >
             <LogOut className="h-5 w-5" />
             {!collapsed && <span>Sair</span>}
-          </Link>
+          </a>
         )}
         <button
           type="button"
