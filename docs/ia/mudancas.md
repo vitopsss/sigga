@@ -1,5 +1,11 @@
 # Mudancas registradas por IAs
 
+## 2026-06-16 - Ajustes no Logout e Next.js 15 searchParams
+
+Resumo:
+- Next.js 15 `searchParams`: corrigido erro de runtime "A tela falhou durante o carregamento" que ocorria ao navegar na tabela e apertar o botão "Voltar". O erro ocorria porque múltiplos parâmetros iguais na URL geravam um Array, quebrando a chamada do método `.trim()`. Todos os destructurings de páginas do SIGGATER foram ajustados para forçar tipo `string`.
+- Logout: Alterado `/logout/route.ts` (Route Handler) para `/logout/page.tsx` (Server Component Page) e adicionado `force-dynamic` para garantir que o Next.js não faça cache estático da exclusão de cookies durante o build.
+
 ## 2026-06-13 - Deploy e homologacao SIGGATER
 
 Fonte principal: `docs/relatorio_deploy.md`.
