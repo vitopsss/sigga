@@ -24,9 +24,11 @@
   - *Fale:* "Estamos usando aquele login único de testes (`test@sigga.org`), que já está com todos os acessos administrativos."
 
 - **Passo B: O Dashboard (Painel Geral)**
-  - Assim que entrar, pause no Dashboard.
-  - *Fale:* "Logo de cara, a coordenação já tem a visão geral do cenário. Já deixei o banco pré-carregado com dados controlados para vocês não verem uma tela em branco."
-  - *Mostre:* Aponte com o mouse os cards principais (Alertas socioambientais, UFPAs sem internet, etc.).
+  - Assim que entrar, pause no Dashboard Principal.
+  - *Fale:* "Logo de cara, a coordenação já tem a visão geral separada por UFPAs, Organizações e Atendimentos. Vamos entrar nas Métricas de UFPAs."
+  - *Ação:* Clique no card "Métricas de UFPAs".
+  - *Fale:* "Aqui sim temos a inteligência do Doc 3 e Doc 4 cruzados. O sistema já acusa automaticamente onde estão as vulnerabilidades."
+  - *Ação:* Aponte com o mouse para os cards de "Alertas socioambientais" e "Sem internet".
 
 - **Passo C: Listagem de Organizações Coletivas**
   - Clique na aba de Organizações na barra lateral.
