@@ -35,9 +35,12 @@ export default async function OrganizacoesColetivasPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { busca = "", from = "" } = await searchParams;
-  const buscaNorm = busca.trim().toLowerCase();
-  const fromValue = from.trim();
+  const params = await searchParams;
+  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
+  const from = Array.isArray(params.from) ? params.from[0] : params.from;
+
+  const buscaNorm = (busca || "").trim().toLowerCase();
+  const fromValue = (from || "").trim();
 
   let organizacoes: OrganizacaoColetivaListItem[] = [];
   let setupMissing = false;

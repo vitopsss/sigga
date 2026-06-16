@@ -48,10 +48,14 @@ export default async function TecnicosPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { busca = "", status = "", pagina = "1" } = await searchParams;
-  const buscaNorm = busca.trim();
-  const statusNorm = status.trim().toLowerCase();
-  const requestedPage = parsePage(pagina);
+  const params = await searchParams;
+  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
+  const status = Array.isArray(params.status) ? params.status[0] : params.status;
+  const pagina = Array.isArray(params.pagina) ? params.pagina[0] : params.pagina;
+
+  const buscaNorm = (busca || "").trim();
+  const statusNorm = (status || "").trim().toLowerCase();
+  const requestedPage = parsePage(pagina || "1");
 
   let tecnicos: Array<{
     id: string;

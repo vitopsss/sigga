@@ -76,24 +76,24 @@ export default async function FamiliasPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const {
-    busca = "",
-    municipio = "",
-    comunidade = "",
-    organizacao = "",
-    sga = "",
-    indicador = "",
-    pagina = "1",
-    from = "",
-  } = await searchParams;
-  const buscaNorm = busca.trim();
-  const municipioNorm = municipio.trim();
-  const comunidadeNorm = comunidade.trim();
-  const organizacaoNorm = organizacao.trim();
-  const sgaNorm = sga.trim().toLowerCase();
-  const indicadorNorm = indicador.trim().toLowerCase();
-  const requestedPage = parsePage(pagina);
-  const fromValue = from.trim();
+  const params = await searchParams;
+  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
+  const municipio = Array.isArray(params.municipio) ? params.municipio[0] : params.municipio;
+  const comunidade = Array.isArray(params.comunidade) ? params.comunidade[0] : params.comunidade;
+  const organizacao = Array.isArray(params.organizacao) ? params.organizacao[0] : params.organizacao;
+  const sga = Array.isArray(params.sga) ? params.sga[0] : params.sga;
+  const indicador = Array.isArray(params.indicador) ? params.indicador[0] : params.indicador;
+  const pagina = Array.isArray(params.pagina) ? params.pagina[0] : params.pagina;
+  const from = Array.isArray(params.from) ? params.from[0] : params.from;
+
+  const buscaNorm = (busca || "").trim();
+  const municipioNorm = (municipio || "").trim();
+  const comunidadeNorm = (comunidade || "").trim();
+  const organizacaoNorm = (organizacao || "").trim();
+  const sgaNorm = (sga || "").trim().toLowerCase();
+  const indicadorNorm = (indicador || "").trim().toLowerCase();
+  const requestedPage = parsePage(pagina || "1");
+  const fromValue = (from || "").trim();
 
   let familias: FamiliaListItem[] = [];
   let totalFamilias = 0;

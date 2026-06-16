@@ -49,11 +49,16 @@ export default async function AtendimentosPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { busca = "", status = "", pagina = "1", from = "" } = await searchParams;
-  const buscaNorm = busca.trim().toLowerCase();
-  const statusNorm = status.trim().toUpperCase();
-  const requestedPage = parsePage(pagina);
-  const fromValue = from.trim();
+  const params = await searchParams;
+  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
+  const status = Array.isArray(params.status) ? params.status[0] : params.status;
+  const pagina = Array.isArray(params.pagina) ? params.pagina[0] : params.pagina;
+  const from = Array.isArray(params.from) ? params.from[0] : params.from;
+
+  const buscaNorm = (busca || "").trim().toLowerCase();
+  const statusNorm = (status || "").trim().toUpperCase();
+  const requestedPage = parsePage(pagina || "1");
+  const fromValue = (from || "").trim();
 
   let atendimentos: AtendimentoWithDetails[] = [];
   let error: string | null = null;
