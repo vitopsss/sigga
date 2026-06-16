@@ -7,10 +7,15 @@ import { isAterMissingTableError } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_STATUS_RASCUNHO, ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/dashboard/header";
+import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ busca?: string; status?: string; pagina?: string }>;
+type SearchParams = Promise<{
+  busca?: SearchParamValue;
+  status?: SearchParamValue;
+  pagina?: SearchParamValue;
+}>;
 
 const PAGE_SIZE = 10;
 
@@ -49,9 +54,9 @@ export default async function TecnicosPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
-  const status = Array.isArray(params.status) ? params.status[0] : params.status;
-  const pagina = Array.isArray(params.pagina) ? params.pagina[0] : params.pagina;
+  const busca = firstSearchParam(params.busca);
+  const status = firstSearchParam(params.status);
+  const pagina = firstSearchParam(params.pagina);
 
   const buscaNorm = (busca || "").trim();
   const statusNorm = (status || "").trim().toLowerCase();

@@ -11,6 +11,7 @@ import {
   getAterSociobioStatusRelatorioLabel,
 } from "@/lib/constants/ater-sociobio";
 import { AterSociobioService, type AtendimentoWithDetails } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, safeInternalPath, type SearchParamValue } from "@/lib/search-params";
 
 export const dynamic = "force-dynamic";
 
@@ -44,13 +45,6 @@ function formatNumber(value: number | null | undefined) {
   return typeof value === "number" ? String(value) : "-";
 }
 
-function getSafeReturnHref(value?: string | null) {
-  if (!value?.startsWith("/")) return null;
-  if (value.startsWith("//")) return null;
-  if (!value.startsWith("/ater-sociobio")) return null;
-  return value;
-}
-
 function renderArray(values: string[] | undefined) {
   if (!Array.isArray(values) || values.length === 0) return "-";
   return values.join("; ");
@@ -61,13 +55,14 @@ export default async function AtendimentoDetailPage({
   searchParams,
 }: {
   params: Promise<{ atendimentoId: string }>;
-  searchParams?: Promise<{ from?: string }>;
+  searchParams?: Promise<{ from?: SearchParamValue }>;
 }) {
   const { atendimentoId } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
-  const returnHref = getSafeReturnHref(resolvedSearchParams.from) ?? "/ater-sociobio/atendimentos";
+  const fromValue = firstSearchParam(resolvedSearchParams.from).trim();
+  const returnHref = safeInternalPath(resolvedSearchParams.from, "/ater-sociobio") ?? "/ater-sociobio/atendimentos";
 
-  const currentUrl = `/ater-sociobio/atendimentos/${atendimentoId}${resolvedSearchParams.from ? `?from=${encodeURIComponent(resolvedSearchParams.from)}` : ""}`;
+  const currentUrl = `/ater-sociobio/atendimentos/${atendimentoId}${fromValue ? `?from=${encodeURIComponent(fromValue)}` : ""}`;
   const appendFromDetails = (href: string) => {
     const connector = href.includes("?") ? "&" : "?";
     return `${href}${connector}from=${encodeURIComponent(currentUrl)}`;

@@ -12,12 +12,18 @@ import {
 } from "@/lib/constants/ater-sociobio";
 import { Header } from "@/components/dashboard/header";
 import { AterSociobioService, AtendimentoWithDetails } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
 
-type SearchParams = Promise<{ busca?: string; status?: string; pagina?: string; from?: string }>;
+type SearchParams = Promise<{
+  busca?: SearchParamValue;
+  status?: SearchParamValue;
+  pagina?: SearchParamValue;
+  from?: SearchParamValue;
+}>;
 
 function parsePage(value?: string) {
   const parsed = Number(value);
@@ -50,10 +56,10 @@ export default async function AtendimentosPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
-  const status = Array.isArray(params.status) ? params.status[0] : params.status;
-  const pagina = Array.isArray(params.pagina) ? params.pagina[0] : params.pagina;
-  const from = Array.isArray(params.from) ? params.from[0] : params.from;
+  const busca = firstSearchParam(params.busca);
+  const status = firstSearchParam(params.status);
+  const pagina = firstSearchParam(params.pagina);
+  const from = firstSearchParam(params.from);
 
   const buscaNorm = (busca || "").trim().toLowerCase();
   const statusNorm = (status || "").trim().toUpperCase();

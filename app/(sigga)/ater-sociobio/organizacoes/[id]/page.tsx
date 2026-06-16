@@ -10,6 +10,7 @@ import {
   AterSociobioService,
   type OrganizacaoColetivaWithFamilias,
 } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, safeInternalPath, type SearchParamValue } from "@/lib/search-params";
 
 type Params = Promise<{ id: string }>;
 
@@ -27,13 +28,6 @@ function formatBoolean(value: boolean | null | undefined) {
   if (value === true) return "Sim";
   if (value === false) return "Não";
   return "-";
-}
-
-function getSafeReturnHref(value?: string | null) {
-  if (!value?.startsWith("/")) return null;
-  if (value.startsWith("//")) return null;
-  if (!value.startsWith("/ater-sociobio")) return null;
-  return value;
 }
 
 function getAtividadesRows(value: unknown) {
@@ -66,13 +60,14 @@ export default async function OrganizacaoColetivaDetailPage({
   searchParams,
 }: {
   params: Params;
-  searchParams?: Promise<{ from?: string }>;
+  searchParams?: Promise<{ from?: SearchParamValue }>;
 }) {
   const { id } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
-  const returnHref = getSafeReturnHref(resolvedSearchParams.from) ?? "/ater-sociobio/organizacoes";
+  const fromValue = firstSearchParam(resolvedSearchParams.from).trim();
+  const returnHref = safeInternalPath(resolvedSearchParams.from, "/ater-sociobio") ?? "/ater-sociobio/organizacoes";
 
-  const currentUrl = `/ater-sociobio/organizacoes/${id}${resolvedSearchParams.from ? `?from=${encodeURIComponent(resolvedSearchParams.from)}` : ""}`;
+  const currentUrl = `/ater-sociobio/organizacoes/${id}${fromValue ? `?from=${encodeURIComponent(fromValue)}` : ""}`;
   const appendFromDetails = (href: string) => {
     const connector = href.includes("?") ? "&" : "?";
     return `${href}${connector}from=${encodeURIComponent(currentUrl)}`;

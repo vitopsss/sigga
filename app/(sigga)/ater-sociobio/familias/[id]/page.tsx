@@ -17,6 +17,7 @@ import {
   type AtendimentoWithDetails,
   type FamiliaWithCadastro,
 } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 
 type Params = Promise<{ id: string }>;
 
@@ -54,11 +55,11 @@ export default async function FamiliaDetailPage({
   searchParams,
 }: {
   params: Params;
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: SearchParamValue }>;
 }) {
   const { id } = await params;
-  const { from = "" } = await searchParams;
-  const fromValue = from.trim();
+  const { from } = await searchParams;
+  const fromValue = firstSearchParam(from).trim();
 
   let familia: FamiliaWithCadastro | null = null;
   let atendimentos: AtendimentoWithDetails[] = [];

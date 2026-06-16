@@ -1,5 +1,12 @@
 # Mudancas registradas por IAs
 
+## 2026-06-16 - Normalizacao centralizada de searchParams repetidos
+
+Resumo:
+- Criado `lib/search-params.ts` com helpers para obter o primeiro valor de parametros repetidos e validar caminhos internos de retorno.
+- Aplicado em listagens e paginas de detalhe do SIGGATER para evitar novos crashes quando a URL vier com parametros duplicados (`from`, `busca`, `pagina`, `tab`, `focus`, `q`, `familiaId`).
+- O handoff `docs/ia/handoff_codex.md` foi lido; ele esta correto no diagnostico geral, mas ainda havia pontos residuais em paginas de detalhe que foram fechados nesta rodada.
+
 ## 2026-06-16 - Ajustes no Logout e Next.js 15 searchParams
 
 Resumo:

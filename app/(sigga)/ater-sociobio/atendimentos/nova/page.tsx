@@ -12,6 +12,7 @@ import {
   ATER_SOCIOBIO_TERRITORY_NAME,
 } from "@/lib/constants/ater-sociobio";
 import { AterSociobioService, type FamiliaListItem, type TecnicoAtivo } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 import { Header } from "@/components/dashboard/header";
 import { Button } from "@/components/ui";
 
@@ -22,7 +23,7 @@ const inputClassName =
 
 const labelClassName = "block";
 
-type SearchParams = Promise<{ familiaId?: string }>;
+type SearchParams = Promise<{ familiaId?: SearchParamValue }>;
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
@@ -33,7 +34,8 @@ export default async function NovoAtendimentoPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { familiaId: familiaIdPre } = await searchParams;
+  const { familiaId } = await searchParams;
+  const familiaIdPre = firstSearchParam(familiaId);
 
   async function submit(formData: FormData) {
     "use server";

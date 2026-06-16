@@ -8,13 +8,14 @@ import { Button, Card } from "@/components/ui";
 import { isAterMissingTableError } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { AterSociobioService, type SiggaterDashboardData } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 
 export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<{
-  tab?: string;
-  focus?: string;
-  q?: string;
+  tab?: SearchParamValue;
+  focus?: SearchParamValue;
+  q?: SearchParamValue;
 }>;
 
 const dashboardRoutes = {
@@ -27,10 +28,12 @@ function isDashboardRoute(value?: string): value is keyof typeof dashboardRoutes
   return value === "ufpas" || value === "organizacoes" || value === "atendimentos";
 }
 
-function buildRedirectSuffix(params: { focus?: string; q?: string }) {
+function buildRedirectSuffix(params: { focus?: SearchParamValue; q?: SearchParamValue }) {
   const search = new URLSearchParams();
-  if (params.focus) search.set("focus", params.focus);
-  if (params.q) search.set("q", params.q);
+  const focus = firstSearchParam(params.focus);
+  const q = firstSearchParam(params.q);
+  if (focus) search.set("focus", focus);
+  if (q) search.set("q", q);
   const value = search.toString();
   return value ? `?${value}` : "";
 }
@@ -41,9 +44,10 @@ export default async function SiggaterDashboardPage({
   searchParams?: SearchParams;
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : {};
+  const tab = firstSearchParam(resolvedSearchParams.tab);
 
-  if (isDashboardRoute(resolvedSearchParams.tab)) {
-    redirect(`${dashboardRoutes[resolvedSearchParams.tab]}${buildRedirectSuffix(resolvedSearchParams)}`);
+  if (isDashboardRoute(tab)) {
+    redirect(`${dashboardRoutes[tab]}${buildRedirectSuffix(resolvedSearchParams)}`);
   }
 
   let dashboardData: SiggaterDashboardData = {

@@ -25,8 +25,9 @@ import {
   AterSociobioService,
   type OrganizacaoColetivaListItem,
 } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 
-type SearchParams = Promise<{ busca?: string; from?: string }>;
+type SearchParams = Promise<{ busca?: SearchParamValue; from?: SearchParamValue }>;
 
 export const dynamic = "force-dynamic";
 
@@ -36,8 +37,8 @@ export default async function OrganizacoesColetivasPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
-  const from = Array.isArray(params.from) ? params.from[0] : params.from;
+  const busca = firstSearchParam(params.busca);
+  const from = firstSearchParam(params.from);
 
   const buscaNorm = (busca || "").trim().toLowerCase();
   const fromValue = (from || "").trim();

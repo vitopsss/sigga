@@ -22,16 +22,17 @@ import { isAterMissingTableError } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
 import { Header } from "@/components/dashboard/header";
 import { AterSociobioService, FamiliaListItem } from "@/lib/services/ater-sociobio.service";
+import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 
 type SearchParams = Promise<{
-  busca?: string;
-  municipio?: string;
-  comunidade?: string;
-  organizacao?: string;
-  sga?: string;
-  indicador?: string;
-  pagina?: string;
-  from?: string;
+  busca?: SearchParamValue;
+  municipio?: SearchParamValue;
+  comunidade?: SearchParamValue;
+  organizacao?: SearchParamValue;
+  sga?: SearchParamValue;
+  indicador?: SearchParamValue;
+  pagina?: SearchParamValue;
+  from?: SearchParamValue;
 }>;
 
 const PAGE_SIZE = 10;
@@ -77,14 +78,14 @@ export default async function FamiliasPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const busca = Array.isArray(params.busca) ? params.busca[0] : params.busca;
-  const municipio = Array.isArray(params.municipio) ? params.municipio[0] : params.municipio;
-  const comunidade = Array.isArray(params.comunidade) ? params.comunidade[0] : params.comunidade;
-  const organizacao = Array.isArray(params.organizacao) ? params.organizacao[0] : params.organizacao;
-  const sga = Array.isArray(params.sga) ? params.sga[0] : params.sga;
-  const indicador = Array.isArray(params.indicador) ? params.indicador[0] : params.indicador;
-  const pagina = Array.isArray(params.pagina) ? params.pagina[0] : params.pagina;
-  const from = Array.isArray(params.from) ? params.from[0] : params.from;
+  const busca = firstSearchParam(params.busca);
+  const municipio = firstSearchParam(params.municipio);
+  const comunidade = firstSearchParam(params.comunidade);
+  const organizacao = firstSearchParam(params.organizacao);
+  const sga = firstSearchParam(params.sga);
+  const indicador = firstSearchParam(params.indicador);
+  const pagina = firstSearchParam(params.pagina);
+  const from = firstSearchParam(params.from);
 
   const buscaNorm = (busca || "").trim();
   const municipioNorm = (municipio || "").trim();
