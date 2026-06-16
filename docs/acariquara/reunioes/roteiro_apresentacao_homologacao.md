@@ -30,8 +30,8 @@
 
 - **Passo C: Listagem de Organizações Coletivas**
   - Clique na aba de Organizações na barra lateral.
-  - *Fale:* "Aqui estruturamos os dados do famoso Doc 6. A ideia é que vocês batam o olho e consigam usar os filtros rápidos lá no topo."
-  - *Ação:* Clique nos filtros de "Práticas Ambientais" ou "Identidade Comercial" para eles verem a lista atualizando sozinha.
+  - *Fale:* "Aqui estruturamos os dados do famoso Doc 6. A ideia é que vocês batam o olho e consigam buscar rapidamente."
+  - *Ação:* Faça uma busca por texto para eles verem a lista atualizando sozinha.
 
 - **Passo D: Visão Individual da Organização/UFPA**
   - Na listagem, clique no botão para "Abrir Detalhes" de uma organização ou UFPA de teste.
