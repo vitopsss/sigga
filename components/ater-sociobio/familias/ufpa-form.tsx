@@ -12,11 +12,11 @@ const inputClassName =
 
 const labelClassName = "block group";
 
-function Field({ label, name, type = "text", step, required, placeholder, register, className = "" }: any) {
+function Field({ label, name, type = "text", step, required, placeholder, register, className = "", readOnly }: any) {
   return (
     <label className={`${labelClassName} ${className}`}>
       <span className="text-sm font-medium text-zinc-700 transition-colors group-hover:text-emerald-700">{label}</span>
-      <input type={type} step={step} required={required} placeholder={placeholder} {...register(name)} className={inputClassName} />
+      <input type={type} step={step} required={required} placeholder={placeholder} readOnly={readOnly} {...register(name)} className={inputClassName} />
     </label>
   );
 }
@@ -50,6 +50,32 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  const DEFAULT_PATRIMONIOS = [
+    { descricao: "Máquinas agrícolas", quantidade: "", unidade: "" },
+    { descricao: "Implemento agrícolas", quantidade: "", unidade: "" },
+    { descricao: "Veículos de passeio", quantidade: "", unidade: "" },
+    { descricao: "Construções rurais", quantidade: "", unidade: "" },
+    { descricao: "Motores elétricos (não pertencentes às máquinas)", quantidade: "", unidade: "" },
+    { descricao: "Conjuntos de irrigação", quantidade: "", unidade: "" },
+    { descricao: "Animais de trabalho", quantidade: "", unidade: "" },
+    { descricao: "Veículos / maquinário de tração animal", quantidade: "", unidade: "" },
+    { descricao: "Bovinos", quantidade: "", unidade: "cabeças" },
+    { descricao: "Ovinos", quantidade: "", unidade: "cabeças" },
+    { descricao: "Caprinos", quantidade: "", unidade: "cabeças" },
+    { descricao: "Suínos", quantidade: "", unidade: "cabeças" },
+    { descricao: "Aves", quantidade: "", unidade: "cabeças" },
+    { descricao: "Bubalinos", quantidade: "", unidade: "cabeças" },
+    { descricao: "Equinos, muares e asininos", quantidade: "", unidade: "cabeças" },
+    { descricao: "Colmeias", quantidade: "", unidade: "" },
+    { descricao: "Pequenos animais (outros)", quantidade: "", unidade: "" },
+    { descricao: "Pastagens (ha)", quantidade: "", unidade: "ha" },
+    { descricao: "Culturas temporárias (ha)", quantidade: "", unidade: "ha" },
+    { descricao: "Culturas permanentes (ha)", quantidade: "", unidade: "ha" },
+    { descricao: "Lâmina d’água", quantidade: "", unidade: "" },
+    { descricao: "Extrativismo", quantidade: "", unidade: "" },
+    { descricao: "Reserva Legal", quantidade: "", unidade: "" },
+  ];
+
   const { register, control, handleSubmit, watch } = useForm({
     defaultValues: {
       nomeFamilia: "",
@@ -73,7 +99,7 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
       cepUfpa: "",
       latitude: "",
       longitude: "",
-      patrimonios: [],
+      patrimonios: defaultValues?.patrimonios?.length ? defaultValues.patrimonios : DEFAULT_PATRIMONIOS,
       atividadesProdutivas: [],
       atividadesColetivas: [],
       recursosDisponiveis: [],
@@ -86,7 +112,9 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
       representanteNome: "",
       representanteCpf: "",
       referenciaAnexoLgpd: "",
-      ...defaultValues
+      ...defaultValues,
+      // Ensure patrimonios fallback applies even if spread overrides it with undefined
+      patrimonios: defaultValues?.patrimonios?.length ? defaultValues.patrimonios : DEFAULT_PATRIMONIOS,
     }
   });
 
@@ -229,19 +257,23 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
       {/* 3. Dynamic Lists */}
       <Section title="Patrimônios" description="Bens da unidade familiar.">
         <div className="space-y-4">
-          {patrimonios.map((item, index) => (
-            <div key={item.id} className="flex gap-4 items-end">
-              <Field label="Quantidade" name={`patrimonios.${index}.quantidade`} type="number" register={register} className="w-32" />
-              <Field label="Unidade" name={`patrimonios.${index}.unidade`} register={register} className="w-48" />
-              <label className="flex items-center gap-2 w-32 pb-4 text-sm font-medium"><input type="checkbox" {...register(`patrimonios.${index}.atividadePrincipal`)} className="h-4 w-4" /> Principal</label>
-              <Field label="Descrição" name={`patrimonios.${index}.descricao`} register={register} className="flex-1" />
-              <Button type="button" variant="destructive" onClick={() => removePatrimonio(index)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+          {patrimonios.map((item, index) => {
+            const isDefault = index < 23; // the first 23 items are from the DEFAULT_PATRIMONIOS list
+            return (
+              <div key={item.id} className="flex gap-4 items-end">
+                <Field label="Descrição" name={`patrimonios.${index}.descricao`} register={register} className="flex-1" {...(isDefault ? { readOnly: true, className: "flex-1 bg-zinc-100 opacity-80 pointer-events-none" } : {})} />
+                <Field label="Quantidade" name={`patrimonios.${index}.quantidade`} type="number" register={register} className="w-32" />
+                <Field label="Unidade" name={`patrimonios.${index}.unidade`} register={register} className="w-48" />
+                {!isDefault && (
+                  <Button type="button" variant="destructive" onClick={() => removePatrimonio(index)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            );
+          })}
           <Button type="button" variant="outline" onClick={() => appendPatrimonio({ quantidade: 1, unidade: "", descricao: "" })}>
-            <Plus className="mr-2 h-4 w-4" /> Adicionar Patrimônio
+            <Plus className="mr-2 h-4 w-4" /> Adicionar Outro Patrimônio
           </Button>
         </div>
       </Section>

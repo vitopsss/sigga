@@ -8,6 +8,7 @@ Resumo:
 - Implementada a lógica de "Outros" em todos os eixos de Limitações e Ações Potenciais (textos livres concatenados nas strings arrays originais).
 - Implementada lógica condicional do `watch` nas Políticas Públicas do eixo Econômico (ex: linha PRONAF só aparece se marcou SIM, e foi refatorado para uma grade de checkboxes mapeada para um JSON interno).
 - Padronizadas as listas dinâmicas para Patrimônio e Atividades Produtivas (dividido em colunas de quantidade, unidade e descrição) mantendo a estrutura JSON do Schema do Prisma.
+- Implementado congelamento de 23 itens fixos no formulário de Patrimônios (Bovinos, Pastagens, Máquinas, etc) inicializando o `useForm` com defaults imutáveis para `descricao`.
 - Adicionadas listas dinâmicas faltantes em `UfpaForm`: Atividades Coletivas, Recursos Disponíveis e Políticas Públicas Federais (que existiam no Prisma mas não possuíam interface).
 - Corrigido "Erro ao salvar" nos indicadores de Família: (1) Conversão de objetos `Decimal` do Prisma para `Number` nativo para resolver crash do Next.js Client Components. (2) Omitida a captura de erro `NEXT_REDIRECT` no catch, que acusava falso-positivo.
 - Adicionados os novos campos nas exportações para o relatório do Excel na Dashboard (`excel-export.ts`).
