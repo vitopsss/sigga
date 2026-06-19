@@ -121,7 +121,7 @@ export default async function FamiliaDetailPage({
             <DiagnosticoPdfLink familia={familia} />
             <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/diagnostico`)}>
               <Button variant="primary" size="sm">
-                {familia.diagnostico || familia.indicadores ? "Diagnóstico & Indicadores" : "Preencher Diagnóstico"}
+                {familia.dataCadastro || familia.indicadores ? "Diagnóstico & Indicadores" : "Preencher Diagnóstico"}
               </Button>
             </Link>
             <Link href={appendFromDetails(`/ater-sociobio/atendimentos/nova?familiaId=${familia.id}`)}>
@@ -135,7 +135,7 @@ export default async function FamiliaDetailPage({
         <div className="mx-auto flex max-w-6xl flex-col gap-8">
 
           <div className="flex flex-wrap items-center gap-3">
-            {familia.diagnostico ? (
+            {familia.dataCadastro ? (
               <Badge variant="success-subtle" className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider">Diagnóstico OK</Badge>
             ) : (
               <Badge variant="warning-subtle" className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider">Diagnóstico Pendente</Badge>
@@ -145,7 +145,7 @@ export default async function FamiliaDetailPage({
             ) : (
               <Badge variant="warning-subtle" className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider">Indicadores Pendentes</Badge>
             )}
-            {familia.diagnostico?.lgpdConsentimento ? (
+            {familia.lgpdConsentimento ? (
               <Badge variant="success-subtle" className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider">LGPD OK</Badge>
             ) : (
               <Badge variant="destructive-subtle" className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider">LGPD Pendente</Badge>
@@ -274,9 +274,9 @@ export default async function FamiliaDetailPage({
               <div>
                 <dt className="text-xs font-bold uppercase tracking-widest text-zinc-400">LGPD / Adesão</dt>
                 <dd className="mt-1">
-                  {familia.diagnostico?.referenciaAnexoLgpd ? (
+                  {familia.referenciaAnexoLgpd ? (
                     <span className="inline-flex rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-900">
-                      Ref: {familia.diagnostico.referenciaAnexoLgpd}
+                      Ref: {familia.referenciaAnexoLgpd}
                     </span>
                   ) : (
                     <span className="text-zinc-400">Sem referência</span>
@@ -380,14 +380,14 @@ export default async function FamiliaDetailPage({
                   Base estruturada para métricas e plano de ação da UFPA.
                 </p>
               </div>
-              {familia.diagnostico || familia.indicadores ? (
+              {familia.dataCadastro || familia.indicadores ? (
                 <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/diagnostico`)}>
                   <Button variant="secondary">Atualizar diagnóstico completo</Button>
                 </Link>
               ) : null}
             </div>
 
-            {!familia.diagnostico && !familia.indicadores ? (
+            {!familia.dataCadastro && !familia.indicadores ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-100 bg-emerald-50/50 py-12 text-center">
                 <div className="mb-4 rounded-full bg-emerald-100 p-3 text-emerald-600">
                   <Calendar className="h-6 w-6" />
@@ -405,15 +405,15 @@ export default async function FamiliaDetailPage({
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
                   <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
                     <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Data do diagnóstico</p>
-                    <p className="mt-1 font-semibold text-zinc-900">{formatDate(familia.diagnostico?.dataDiagnostico)}</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{formatDate(familia.dataCadastro)}</p>
                   </div>
                   <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
                     <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Internet</p>
-                    <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.diagnostico?.possuiInternet)}</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.possuiInternet)}</p>
                   </div>
                   <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
                     <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">Água tratada</p>
-                    <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.diagnostico?.aguaConsumoTratada)}</p>
+                    <p className="mt-1 font-semibold text-zinc-900">{booleanText(familia.aguaConsumoTratada)}</p>
                   </div>
                   <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4">
                     <p className="font-bold text-zinc-400 uppercase tracking-tighter text-[10px]">CadÚnico</p>
@@ -495,8 +495,8 @@ export default async function FamiliaDetailPage({
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Produtivo</p>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {(familia.diagnostico?.acoesPotenciaisProdutivo as string[])?.length ? (
-                                (familia.diagnostico?.acoesPotenciaisProdutivo as string[]).map((item) => (
+                              {(familia.acoesPotenciaisProdutivo as string[])?.length ? (
+                                (familia.acoesPotenciaisProdutivo as string[]).map((item) => (
                                   <Badge key={item} variant="secondary" className="text-xs font-normal text-zinc-700">{item}</Badge>
                                 ))
                               ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
@@ -505,8 +505,8 @@ export default async function FamiliaDetailPage({
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Social</p>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {(familia.diagnostico?.acoesPotenciaisSocial as string[])?.length ? (
-                                (familia.diagnostico?.acoesPotenciaisSocial as string[]).map((item) => (
+                              {(familia.acoesPotenciaisSocial as string[])?.length ? (
+                                (familia.acoesPotenciaisSocial as string[]).map((item) => (
                                   <Badge key={item} variant="secondary" className="text-xs font-normal text-zinc-700">{item}</Badge>
                                 ))
                               ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
@@ -515,8 +515,8 @@ export default async function FamiliaDetailPage({
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Ambiental</p>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {(familia.diagnostico?.acoesPotenciaisAmbiental as string[])?.length ? (
-                                (familia.diagnostico?.acoesPotenciaisAmbiental as string[]).map((item) => (
+                              {(familia.acoesPotenciaisAmbiental as string[])?.length ? (
+                                (familia.acoesPotenciaisAmbiental as string[]).map((item) => (
                                   <Badge key={item} variant="secondary" className="text-xs font-normal text-zinc-700">{item}</Badge>
                                 ))
                               ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
@@ -531,8 +531,8 @@ export default async function FamiliaDetailPage({
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Produtivo</p>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {(familia.diagnostico?.limitacoesProdutivo as string[])?.length ? (
-                                (familia.diagnostico?.limitacoesProdutivo as string[]).map((item) => (
+                              {(familia.limitacoesProdutivo as string[])?.length ? (
+                                (familia.limitacoesProdutivo as string[]).map((item) => (
                                   <Badge key={item} variant="destructive-subtle" className="text-xs font-normal text-zinc-700">{item}</Badge>
                                 ))
                               ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
@@ -541,8 +541,8 @@ export default async function FamiliaDetailPage({
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Social</p>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {(familia.diagnostico?.limitacoesSocial as string[])?.length ? (
-                                (familia.diagnostico?.limitacoesSocial as string[]).map((item) => (
+                              {(familia.limitacoesSocial as string[])?.length ? (
+                                (familia.limitacoesSocial as string[]).map((item) => (
                                   <Badge key={item} variant="destructive-subtle" className="text-xs font-normal text-zinc-700">{item}</Badge>
                                 ))
                               ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}
@@ -551,8 +551,8 @@ export default async function FamiliaDetailPage({
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Eixo Ambiental</p>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {(familia.diagnostico?.limitacoesAmbiental as string[])?.length ? (
-                                (familia.diagnostico?.limitacoesAmbiental as string[]).map((item) => (
+                              {(familia.limitacoesAmbiental as string[])?.length ? (
+                                (familia.limitacoesAmbiental as string[]).map((item) => (
                                   <Badge key={item} variant="destructive-subtle" className="text-xs font-normal text-zinc-700">{item}</Badge>
                                 ))
                               ) : <span className="text-sm text-zinc-400 italic">Não informado</span>}

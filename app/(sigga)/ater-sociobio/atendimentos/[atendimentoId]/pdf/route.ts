@@ -20,7 +20,6 @@ export async function GET(
       include: {
         familia: {
           include: {
-            diagnostico: true,
             indicadores: true,
             integrantes: true,
             organizacaoColetiva: true,
@@ -68,13 +67,13 @@ export async function GET(
                 statusGestor: atendimento.familia.statusGestor ?? null,
                 quantidadeIntegrantes:
                   atendimento.familia.integrantes.length || atendimento.familia.quantidadeMembros || null,
-                diagnostico: atendimento.familia.diagnostico
+                diagnostico: atendimento.familia.dataCadastro
                   ? {
-                      dataDiagnostico: atendimento.familia.diagnostico.dataDiagnostico ?? null,
-                      possuiInternet: atendimento.familia.diagnostico.possuiInternet ?? null,
-                      aguaParaConsumo: atendimento.familia.diagnostico.aguaParaConsumo ?? null,
-                      aguaConsumoTratada: atendimento.familia.diagnostico.aguaConsumoTratada ?? null,
-                      esgotoTratado: atendimento.familia.diagnostico.esgotoTratado ?? null,
+                      dataDiagnostico: atendimento.familia.dataCadastro ?? null,
+                      possuiInternet: atendimento.familia.possuiInternet ?? null,
+                      aguaParaConsumo: atendimento.familia.aguaParaConsumo ?? null,
+                      aguaConsumoTratada: atendimento.familia.aguaConsumoTratada ?? null,
+                      esgotoTratado: atendimento.familia.esgotoTratado ?? null,
                     }
                   : null,
                 indicadores: atendimento.familia.indicadores

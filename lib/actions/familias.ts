@@ -25,6 +25,26 @@ function getBoolean(formData: FormData, key: string) {
   return formData.get(key) === "true" || formData.get(key) === "on";
 }
 
+function parseJsonSafe(formData: FormData, key: string) {
+  const value = getText(formData.get(key));
+  if (!value) return undefined;
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    return undefined;
+  }
+}
+
+function parseStringArray(formData: FormData, key: string) {
+  const values = formData.getAll(key).map(v => getText(v)).filter(Boolean);
+  const first = values[0];
+  if (values.length === 0) return undefined;
+  if (values.length === 1 && first && first.includes(",")) {
+    return first.split(",").map(s => s.trim()).filter(Boolean);
+  }
+  return values;
+}
+
 function readIntegrantes(formData: FormData) {
   const integrantes = [];
 
@@ -160,6 +180,44 @@ export async function criarFamilia(formData: FormData) {
   }
 
   try {
+    const extraData = {
+      projeto: getText(formData.get("projeto")) || null,
+      tecnico: getText(formData.get("tecnico")) || null,
+      dataCadastro: getOptionalDate(formData, "dataCadastro"),
+      lgpdConsentimento: getBoolean(formData, "lgpdConsentimento"),
+      lgpdDataConsentimento: getOptionalDate(formData, "lgpdDataConsentimento"),
+      representanteNome: getText(formData.get("representanteNome")) || null,
+      representanteCpf: getText(formData.get("representanteCpf")) || null,
+      referenciaAnexoLgpd: (() => {
+        const file = formData.get("referenciaAnexoLgpd");
+        if (file instanceof File) return file.name;
+        return getText(file) || null;
+      })(),
+      patrimonios: parseJsonSafe(formData, "patrimonios_json"),
+      atividadesProdutivas: parseJsonSafe(formData, "atividadesProdutivas_json"),
+      possuiRadio: getBoolean(formData, "possuiRadio"),
+      possuiTelevisao: getBoolean(formData, "possuiTelevisao"),
+      possuiCelular: getBoolean(formData, "possuiCelular"),
+      possuiInternet: getBoolean(formData, "possuiInternet"),
+      usaRedesSociais: getBoolean(formData, "usaRedesSociais"),
+      possuiOutroMeioComunicacao: getBoolean(formData, "possuiOutroMeioComunicacao"),
+      outroMeioComunicacao: getText(formData.get("outroMeioComunicacao")) || null,
+      aguaParaConsumo: getBoolean(formData, "aguaParaConsumo"),
+      aguaConsumoTratada: getBoolean(formData, "aguaConsumoTratada"),
+      aguaParaProducao: getBoolean(formData, "aguaParaProducao"),
+      captacaoAguaChuva: getBoolean(formData, "captacaoAguaChuva"),
+      esgotoTratado: getBoolean(formData, "esgotoTratado"),
+      fontesProtegidas: getBoolean(formData, "fontesProtegidas"),
+      acoesPotenciaisProdutivo: parseStringArray(formData, "acoesPotenciaisProdutivo"),
+      acoesPotenciaisSocial: parseStringArray(formData, "acoesPotenciaisSocial"),
+      acoesPotenciaisAmbiental: parseStringArray(formData, "acoesPotenciaisAmbiental"),
+      limitacoesProdutivo: parseStringArray(formData, "limitacoesProdutivo"),
+      limitacoesSocial: parseStringArray(formData, "limitacoesSocial"),
+      limitacoesAmbiental: parseStringArray(formData, "limitacoesAmbiental"),
+      outrasAcoesPotenciais: getText(formData.get("outrasAcoesPotenciais")) || null,
+      outrasLimitacoes: getText(formData.get("outrasLimitacoes")) || null,
+    };
+
     const payload = {
       nomeFamilia,
       documentoResponsavel: documentoResponsavel || responsavel?.cpf || "",
@@ -196,6 +254,7 @@ export async function criarFamilia(formData: FormData) {
       valorInvestidoUFPA: getOptionalNumber(formData, "valorInvestidoUFPA"),
       valorFomento: getOptionalNumber(formData, "valorFomento"),
       integrantes,
+      ...extraData,
     };
 
     const created = await AterSociobioService.createFamilia(payload);
@@ -224,6 +283,44 @@ export async function atualizarFamilia(id: string, formData: FormData) {
     const telefone = getText(formData.get("telefone"));
     const integrantes = readIntegrantes(formData);
     const responsavel = integrantes.find((integrante) => integrante.responsavelUfpa) ?? integrantes[0];
+
+    const extraData = {
+      projeto: getText(formData.get("projeto")) || null,
+      tecnico: getText(formData.get("tecnico")) || null,
+      dataCadastro: getOptionalDate(formData, "dataCadastro"),
+      lgpdConsentimento: getBoolean(formData, "lgpdConsentimento"),
+      lgpdDataConsentimento: getOptionalDate(formData, "lgpdDataConsentimento"),
+      representanteNome: getText(formData.get("representanteNome")) || null,
+      representanteCpf: getText(formData.get("representanteCpf")) || null,
+      referenciaAnexoLgpd: (() => {
+        const file = formData.get("referenciaAnexoLgpd");
+        if (file instanceof File) return file.name;
+        return getText(file) || null;
+      })(),
+      patrimonios: parseJsonSafe(formData, "patrimonios_json"),
+      atividadesProdutivas: parseJsonSafe(formData, "atividadesProdutivas_json"),
+      possuiRadio: getBoolean(formData, "possuiRadio"),
+      possuiTelevisao: getBoolean(formData, "possuiTelevisao"),
+      possuiCelular: getBoolean(formData, "possuiCelular"),
+      possuiInternet: getBoolean(formData, "possuiInternet"),
+      usaRedesSociais: getBoolean(formData, "usaRedesSociais"),
+      possuiOutroMeioComunicacao: getBoolean(formData, "possuiOutroMeioComunicacao"),
+      outroMeioComunicacao: getText(formData.get("outroMeioComunicacao")) || null,
+      aguaParaConsumo: getBoolean(formData, "aguaParaConsumo"),
+      aguaConsumoTratada: getBoolean(formData, "aguaConsumoTratada"),
+      aguaParaProducao: getBoolean(formData, "aguaParaProducao"),
+      captacaoAguaChuva: getBoolean(formData, "captacaoAguaChuva"),
+      esgotoTratado: getBoolean(formData, "esgotoTratado"),
+      fontesProtegidas: getBoolean(formData, "fontesProtegidas"),
+      acoesPotenciaisProdutivo: parseStringArray(formData, "acoesPotenciaisProdutivo"),
+      acoesPotenciaisSocial: parseStringArray(formData, "acoesPotenciaisSocial"),
+      acoesPotenciaisAmbiental: parseStringArray(formData, "acoesPotenciaisAmbiental"),
+      limitacoesProdutivo: parseStringArray(formData, "limitacoesProdutivo"),
+      limitacoesSocial: parseStringArray(formData, "limitacoesSocial"),
+      limitacoesAmbiental: parseStringArray(formData, "limitacoesAmbiental"),
+      outrasAcoesPotenciais: getText(formData.get("outrasAcoesPotenciais")) || null,
+      outrasLimitacoes: getText(formData.get("outrasLimitacoes")) || null,
+    };
 
     const payload = {
       nomeFamilia,
@@ -262,6 +359,7 @@ export async function atualizarFamilia(id: string, formData: FormData) {
       valorFomento: getOptionalNumber(formData, "valorFomento"),
       efetividade: getText(formData.get("efetividade")),
       integrantes,
+      ...extraData,
     };
 
     const updated = await AterSociobioService.updateFamilia(id, payload);

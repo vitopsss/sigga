@@ -279,7 +279,45 @@ model FamiliaAter {
   dataStatusGestor         DateTime?
   organizacaoColetivaId    String?
   atendimentos             Atendimento[]
-  diagnostico              DiagnosticoUfpa?
+
+  projeto                  String?
+  dataCadastro             DateTime?
+  tecnico                  String?
+  possuiRadio              Boolean?
+  possuiTelevisao          Boolean?
+  possuiCelular            Boolean?
+  possuiInternet           Boolean?
+  usaRedesSociais          Boolean?
+  outroMeioComunicacao     String?
+  possuiOutroMeioComunicacao Boolean?
+  aguaParaConsumo          Boolean?
+  aguaConsumoTratada       Boolean?
+  aguaParaProducao         Boolean?
+  captacaoAguaChuva        Boolean?
+  esgotoTratado            Boolean?
+  fontesProtegidas         Boolean?
+  recursosDisponiveis      Json?
+  atividadesColetivas      Json?
+  politicasPublicas        Json?
+  acoesPotenciaisProdutivo Json?
+  acoesPotenciaisSocial    Json?
+  acoesPotenciaisAmbiental Json?
+  limitacoesProdutivo      Json?
+  limitacoesSocial         Json?
+  limitacoesAmbiental      Json?
+  outrasAcoesPotenciais    String?
+  outrasLimitacoes         String?
+  lgpdConsentimento        Boolean?
+  lgpdDataConsentimento    DateTime?
+  representanteNome        String?
+  representanteCpf         String?
+  referenciaAnexoLgpd      String?
+  anexoLgpdKey             String?
+  anexoLgpdUrl             String?
+  observacoes              String?
+  patrimonios              Json?
+  atividadesProdutivas     Json?
+
   cadastro                 CadastroUnico        @relation(fields: [cadastroId], references: [id])
   organizacaoColetiva      OrganizacaoColetiva? @relation(fields: [organizacaoColetivaId], references: [id])
   indicadores              IndicadoresUfpa?
@@ -355,90 +393,12 @@ model IntegranteUfpa {
   @@map("integrantes_ufpa")
 }
 
-model DiagnosticoUfpa {
-  id                         String      @id @default(uuid())
-  dataDiagnostico            DateTime?
-  possuiRadio                Boolean?
-  possuiTelevisao            Boolean?
-  possuiCelular              Boolean?
-  possuiInternet             Boolean?
-  usaRedesSociais            Boolean?
-  outroMeioComunicacao       String?
-  aguaParaConsumo            Boolean?
-  aguaConsumoTratada         Boolean?
-  aguaParaProducao           Boolean?
-  captacaoAguaChuva          Boolean?
-  esgotoTratado              Boolean?
-  fontesProtegidas           Boolean?
-  qtdMaquinasAgricolas       Int?
-  qtdImplementosAgricolas    Int?
-  qtdVeiculosPasseio         Int?
-  qtdConstrucoesRurais       Int?
-  qtdMotoresEletricos        Int?
-  qtdConjuntosIrrigacao      Int?
-  qtdAnimaisTrabalho         Int?
-  qtdMaquinarioTracaoAnimal  Int?
-  qtdBovinos                 Int?
-  qtdOvinos                  Int?
-  qtdCaprinos                Int?
-  qtdSuinos                  Int?
-  qtdAves                    Int?
-  qtdBubalinos               Int?
-  qtdEquinosMuaresAsininos   Int?
-  qtdColmeias                Int?
-  qtdPequenosAnimaisOutros   Int?
-  areaPastagens              Decimal?    @db.Decimal(12, 2)
-  areaCulturasTemporarias    Decimal?    @db.Decimal(12, 2)
-  areaCulturasPermanentes    Decimal?    @db.Decimal(12, 2)
-  areaLaminaAgua             Decimal?    @db.Decimal(12, 2)
-  areaExtrativismo           Decimal?    @db.Decimal(12, 2)
-  areaReservaLegal           Decimal?    @db.Decimal(12, 2)
-  areaOutrosUsos             Decimal?    @db.Decimal(12, 2)
-  recursosDisponiveis        Json?
-  atividadesColetivas        Json?
-  politicasPublicas          Json?
-  acoesPotenciaisProdutivo   Json?
-  acoesPotenciaisSocial      Json?
-  acoesPotenciaisAmbiental   Json?
-  limitacoesProdutivo        Json?
-  limitacoesSocial           Json?
-  limitacoesAmbiental        Json?
-  lgpdConsentimento          Boolean?
-  lgpdDataConsentimento      DateTime?
-  representanteNome          String?
-  representanteCpf           String?
-  observacoes                String?
-  createdAt                  DateTime    @default(now())
-  updatedAt                  DateTime    @updatedAt
-  familiaId                  String      @unique
-  entidadeExecutoraNome      String?
-  entidadeExecutoraCnpj      String?
-  unidadeServicos            String?
-  numeroInstrumento          String?
-  localUf                    String?
-  localMunicipio             String?
-  localOrganizacaoColetiva   String?
-  possuiOutroMeioComunicacao Boolean?
-  agenteAterCpf1             String?
-  agenteAterCpf2             String?
-  agenteAterCpf3             String?
-  agenteAterNome1            String?
-  agenteAterNome2            String?
-  agenteAterNome3            String?
-  referenciaAnexoLgpd        String?
-  anexoLgpdKey               String?
-  anexoLgpdUrl               String?
-  familia                    FamiliaAter @relation(fields: [familiaId], references: [id], onDelete: Cascade)
-
-  @@index([aguaParaConsumo])
-  @@index([aguaConsumoTratada])
-  @@index([possuiInternet])
-  @@index([esgotoTratado])
-  @@map("diagnosticos_ufpa")
-}
 
 model IndicadoresUfpa {
   id                                    String      @id @default(uuid())
+  projeto                               String?
+  tecnico                               String?
+  dataCadastro                          DateTime?
   dataReferencia                        DateTime?
   alimentacaoVariadaComprometida        Boolean?
   comidaAcabouSemCondicao               Boolean?

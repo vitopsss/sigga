@@ -101,12 +101,10 @@ async function main() {
       },
     });
 
-    await prisma.diagnosticoUfpa.upsert({
-      where: { familiaId: familia.id },
-      update: {},
-      create: {
-        familiaId: familia.id,
-        dataDiagnostico: new Date("2025-03-01"),
+    await prisma.familiaAter.update({
+      where: { id: familia.id },
+      data: {
+        dataCadastro: new Date("2025-03-01"),
         aguaParaConsumo: true,
         aguaConsumoTratada: opts.aguaTratada,
         aguaParaProducao: true,

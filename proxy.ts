@@ -31,7 +31,7 @@ function buildLoginRedirect(request: NextRequest) {
   return withSecurityHeaders(NextResponse.redirect(loginUrl));
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (!isSiggaterOnlyMode()) {
     return withSecurityHeaders(NextResponse.next());
   }

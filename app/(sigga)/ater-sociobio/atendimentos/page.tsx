@@ -194,7 +194,7 @@ export default async function AtendimentosPage({
                     const familiaNome = at.familia?.nomeFamilia;
                     const municipio = at.familia?.municipio;
                     const tecnicoNome = at.tecnicoRef?.nome ?? at.tecnico;
-                    const diagnosticoStatus = at.familia?.diagnostico ? "Diagnóstico registrado" : "Sem diagnóstico";
+                    const diagnosticoStatus = at.familia?.dataCadastro || at.familia?.indicadores ? "Diagnóstico registrado" : "Sem diagnóstico";
 
                     return (
                       <tr key={at.id} className="hover:bg-slate-50">

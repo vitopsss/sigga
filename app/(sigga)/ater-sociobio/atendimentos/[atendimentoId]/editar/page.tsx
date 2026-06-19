@@ -128,7 +128,7 @@ export default async function EditarAtendimentoPage({
                     <option value="">Selecione a UFPA</option>
                     {familias.map((f) => (
                       <option key={f.id} value={f.id}>
-                        {f.nomeFamilia} - {f.municipio ?? "sem município"} - {f.diagnostico ? "diagnóstico registrado" : "sem diagnóstico"}
+                        {f.nomeFamilia} - {f.municipio ?? "sem município"} - {f.dataCadastro ? "diagnóstico registrado" : "sem diagnóstico"}
                       </option>
                     ))}
                   </select>

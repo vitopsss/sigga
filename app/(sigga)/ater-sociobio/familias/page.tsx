@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, ChevronLeft, ChevronRight, Eye, MapPin, PencilLine, Plus, Search, Users } from "lucide-react";
+import { BarChart3, ChevronLeft, ChevronRight, Eye, MapPin, PencilLine, Plus, Search, Users, Download } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import {
@@ -210,12 +210,20 @@ export default async function FamiliasPage({
                   <h2 className="text-lg font-semibold text-zinc-950">Lista de UFPAs</h2>
                   <p className="text-sm text-zinc-500">Busque por denominação, responsável, DAP/CAF, NIS, SGA ou comunidade e refine pelos municípios cadastrados.</p>
                 </div>
-                <Link href={appendFromList("/ater-sociobio/familias/nova")}>
-                  <Button variant="primary">
-                    <Plus className="h-4 w-4" />
-                    Nova UFPA
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a href="/api/export/familias" target="_blank">
+                    <Button variant="secondary" className="w-full sm:w-auto border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
+                      <Download className="h-4 w-4 mr-2" />
+                      Exportar Base Completa
+                    </Button>
+                  </a>
+                  <Link href={appendFromList("/ater-sociobio/familias/nova")}>
+                    <Button variant="primary" className="w-full sm:w-auto">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova UFPA
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
               <form action="/ater-sociobio/familias" method="GET" className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_220px_220px_260px_auto_auto]">

@@ -19,9 +19,12 @@ import {
   Users,
   Wifi,
   X,
+  Download,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { ExportExcelButton } from "@/components/system/export-excel-button";
+import { mapUfpasToExcelData } from "@/lib/excel-export";
 import {
   type SiggaterAtendimentoDashboardItem,
   type SiggaterDashboardData,
@@ -38,7 +41,7 @@ import {
   getAterSociobioStatusRelatorioLabel,
 } from "@/lib/constants/ater-sociobio";
 import { PRONAF_LINHAS_UFPA } from "@/lib/constants/ater-sociobio-official";
-import { ExportExcelButton } from "@/components/system/export-excel-button";
+import { exportUfpasToExcel, exportTableToExcel } from "@/lib/excel-export";
 
 export type DashboardView = "ufpas" | "organizacoes" | "atendimentos";
 type DashboardTab = DashboardView;
@@ -258,6 +261,7 @@ function MetricCard({
   icon: Icon,
   active,
   onClick,
+  onExport,
 }: {
   label: string;
   value: string | number;
@@ -266,6 +270,7 @@ function MetricCard({
   icon?: typeof Users;
   active?: boolean;
   onClick?: () => void;
+  onExport?: (e: React.MouseEvent) => void;
 }) {
   const colors = {
     blue: "bg-blue-50 text-blue-600 border-blue-100",
@@ -276,10 +281,11 @@ function MetricCard({
   }[tone];
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
+    <div className="relative group/metric">
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(
         "group block w-full text-left rounded-xl border p-3 transition-all outline-none",
         active
           ? "border-zinc-950 bg-zinc-950 shadow-xl shadow-zinc-950/20"
@@ -301,7 +307,18 @@ function MetricCard({
       <div className={cn("mt-3 border-t pt-3", active ? "border-white/10" : "border-zinc-50")}>
         <p className={cn("text-[11px] leading-snug font-medium", active ? "text-zinc-500" : "text-zinc-500")}>{description}</p>
       </div>
-    </button>
+      </button>
+      {onExport && (
+        <button
+          type="button"
+          onClick={onExport}
+          title={`Baixar excel: ${label}`}
+          className="absolute right-3 top-3 rounded-lg border border-transparent bg-white/50 p-1.5 text-zinc-400 opacity-0 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 focus:opacity-100 group-hover/metric:opacity-100"
+        >
+          <Download className="h-4 w-4" />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -338,6 +355,7 @@ function AlertButton({
   description,
   active,
   onClick,
+  onExport,
   icon: Icon,
 }: {
   label: string;
@@ -345,13 +363,15 @@ function AlertButton({
   description: string;
   active: boolean;
   onClick: () => void;
+  onExport?: (e: React.MouseEvent) => void;
   icon: typeof AlertCircle;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`group relative overflow-hidden rounded-xl border p-3 text-left transition-all ${
+    <div className="relative group/alert">
+      <button
+        type="button"
+        onClick={onClick}
+        className={`w-full group relative overflow-hidden rounded-xl border p-3 text-left transition-all ${
         active
           ? "border-zinc-900 bg-zinc-950 text-white shadow-xl shadow-zinc-950/20"
           : "border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50/50"
@@ -367,7 +387,18 @@ function AlertButton({
         <span className={`text-xs font-bold ${active ? "text-zinc-100" : "text-zinc-900"}`}>{label}</span>
         <p className={`mt-1 text-[11px] leading-snug ${active ? "text-zinc-400" : "text-zinc-500"}`}>{description}</p>
       </div>
-    </button>
+      </button>
+      {onExport && (
+        <button
+          type="button"
+          onClick={onExport}
+          title={`Baixar excel: ${label}`}
+          className="absolute right-3 top-3 rounded-lg border border-transparent bg-white/50 p-1.5 text-zinc-400 opacity-0 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 focus:opacity-100 group-hover/alert:opacity-100"
+        >
+          <Download className="h-4 w-4" />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -460,8 +491,21 @@ function BooleanMetricsTable<T>({
   metrics: BooleanMetric<T>[];
   items: T[];
 }) {
+  function handleExport() {
+    const data = metrics.map((metric) => {
+      const count = countBooleanMetric(items, metric);
+      return {
+        Indicador: metric.label,
+        Sim: count.sim,
+        Não: count.nao,
+        "S/I": count.semInfo,
+      };
+    });
+    exportTableToExcel(data, `Metricas_${title.replace(/[^a-z0-9]/gi, "_")}.xlsx`, title.substring(0, 31));
+  }
+
   return (
-    <div className="rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+    <div className="relative group/table rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-zinc-900">{title}</h3>
         <div className="grid w-32 grid-cols-3 text-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
@@ -486,6 +530,14 @@ function BooleanMetricsTable<T>({
           );
         })}
       </div>
+      <button
+        type="button"
+        onClick={handleExport}
+        title={`Baixar tabela: ${title}`}
+        className="absolute -top-3 -right-3 rounded-lg border border-zinc-200/50 bg-white shadow-sm p-1.5 text-zinc-400 opacity-0 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 focus:opacity-100 group-hover/table:opacity-100"
+      >
+        <Download className="h-4 w-4" />
+      </button>
     </div>
   );
 }
@@ -499,10 +551,18 @@ function CompactRankList({
   data: { name: string; value: number }[];
   emptyLabel?: string;
 }) {
+  function handleExport() {
+    const exportData = data.map(item => ({
+      Item: item.name,
+      Quantidade: item.value,
+    }));
+    exportTableToExcel(exportData, `Ranking_${title.replace(/[^a-z0-9]/gi, "_")}.xlsx`, title.substring(0, 31));
+  }
+
   const max = Math.max(...data.map((item) => item.value), 1);
 
   return (
-    <div className="rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+    <div className="relative group/table rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
       <h3 className="mb-3 text-sm font-bold text-zinc-900">{title}</h3>
       <div className="space-y-2">
         {data.length ? (
@@ -521,6 +581,16 @@ function CompactRankList({
           <p className="py-3 text-xs font-semibold text-zinc-400">{emptyLabel}</p>
         )}
       </div>
+      {data.length > 0 && (
+        <button
+          type="button"
+          onClick={handleExport}
+          title={`Baixar ranking: ${title}`}
+          className="absolute -top-3 -right-3 rounded-lg border border-zinc-200/50 bg-white shadow-sm p-1.5 text-zinc-400 opacity-0 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 focus:opacity-100 group-hover/table:opacity-100"
+        >
+          <Download className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }
@@ -1002,6 +1072,10 @@ function UfpaPanel({
             active={focus === "semDiagnostico"}
             onClick={() => setFocus(focus === "semDiagnostico" ? null : "semDiagnostico")}
             icon={ClipboardList}
+            onExport={(e) => {
+              e.stopPropagation();
+              exportUfpasToExcel(items.filter((i) => !i.diagnosticoRegistrado), "UFPAs_Sem_Diagnostico.xlsx");
+            }}
           />
           <AlertButton
             label="Água sem tratamento"
@@ -1010,6 +1084,10 @@ function UfpaPanel({
             active={focus === "semAgua"}
             onClick={() => setFocus(focus === "semAgua" ? null : "semAgua")}
             icon={Droplets}
+            onExport={(e) => {
+              e.stopPropagation();
+              exportUfpasToExcel(items.filter((i) => i.aguaTratada === false), "UFPAs_Sem_Agua_Tratada.xlsx");
+            }}
           />
           <AlertButton
             label="Sem CadÚnico"
@@ -1018,6 +1096,10 @@ function UfpaPanel({
             active={focus === "semCadUnico"}
             onClick={() => setFocus(focus === "semCadUnico" ? null : "semCadUnico")}
             icon={Users}
+            onExport={(e) => {
+              e.stopPropagation();
+              exportUfpasToExcel(items.filter((i) => i.cadUnico === false), "UFPAs_Sem_CadUnico.xlsx");
+            }}
           />
           <AlertButton
             label="Insegurança alimentar"
@@ -1026,6 +1108,10 @@ function UfpaPanel({
             active={focus === "inseguranca"}
             onClick={() => setFocus(focus === "inseguranca" ? null : "inseguranca")}
             icon={AlertCircle}
+            onExport={(e) => {
+              e.stopPropagation();
+              exportUfpasToExcel(items.filter((i) => i.insegurancaAlimentar === true), "UFPAs_Com_Inseguranca_Alimentar.xlsx");
+            }}
           />
         </section>
       </div>
@@ -1896,7 +1982,7 @@ export function SiggaterDashboardClient({
 
           <div className="flex items-center gap-2">
             <ExportExcelButton
-              data={activeData}
+              data={activeTab === "ufpas" ? mapUfpasToExcelData(activeData as any) : activeData}
               fileName={`Exportacao_${meta.exportName}_SIGGATER_${new Date().toISOString().slice(0,10)}`}
               label={meta.exportLabel}
             />

@@ -177,7 +177,7 @@ function PdfField({
 }
 
 export function DiagnosticoReportPdf({ familia }: { familia: FamiliaWithCadastro }) {
-  const diagnostico = familia.diagnostico;
+  const diagnostico = familia;
   const indicadores = familia.indicadores;
 
   const getAtividadesRows = (value: unknown) => {
@@ -280,7 +280,7 @@ export function DiagnosticoReportPdf({ familia }: { familia: FamiliaWithCadastro
               <PdfField label="Internet" value={formatBoolean(diagnostico.possuiInternet)} />
               <PdfField label="Consentimento LGPD" value={formatBoolean(diagnostico.lgpdConsentimento)} />
               <PdfField label="Referência LGPD" value={safeText(diagnostico.referenciaAnexoLgpd)} />
-              <PdfField label="Data Diagnóstico" value={formatDate(diagnostico.dataDiagnostico)} />
+              <PdfField label="Data Diagnóstico" value={formatDate(diagnostico.dataCadastro)} />
             </View>
           </View>
         )}

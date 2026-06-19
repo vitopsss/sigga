@@ -348,8 +348,8 @@ export default async function OrganizacaoColetivaDetailPage({
                         </TableCell>
                         <TableCell className="font-semibold text-zinc-700">{familia.municipio ?? "-"}</TableCell>
                         <TableCell>
-                          <Badge variant={familia.diagnostico || familia.indicadores ? "success-subtle" : "warning-subtle"} className="font-bold text-[10px] uppercase">
-                            {familia.diagnostico || familia.indicadores ? "Registrado" : "Pendente"}
+                          <Badge variant={familia.dataCadastro || familia.indicadores ? "success-subtle" : "warning-subtle"} className="font-bold text-[10px] uppercase">
+                            {familia.dataCadastro || familia.indicadores ? "Registrado" : "Pendente"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -374,19 +374,19 @@ export default async function OrganizacaoColetivaDetailPage({
               <div>
                 <dt className="font-medium text-slate-500">Sem diagnóstico</dt>
                 <dd className="mt-1 text-slate-900">
-                  {organizacao.familias.filter((familia) => !familia.diagnostico && !familia.indicadores).length}
+                  {organizacao.familias.filter((familia) => !familia.dataCadastro && !familia.indicadores).length}
                 </dd>
               </div>
               <div>
                 <dt className="font-medium text-slate-500">Sem internet</dt>
                 <dd className="mt-1 text-slate-900">
-                  {organizacao.familias.filter((familia) => familia.diagnostico?.possuiInternet === false).length}
+                  {organizacao.familias.filter((familia) => familia.possuiInternet === false).length}
                 </dd>
               </div>
               <div>
                 <dt className="font-medium text-slate-500">Sem água tratada</dt>
                 <dd className="mt-1 text-slate-900">
-                  {organizacao.familias.filter((familia) => familia.diagnostico?.aguaConsumoTratada === false).length}
+                  {organizacao.familias.filter((familia) => familia.aguaConsumoTratada === false).length}
                 </dd>
               </div>
               <div>

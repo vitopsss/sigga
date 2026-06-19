@@ -10,7 +10,6 @@ export type FamiliaWithCadastro = Prisma.FamiliaAterGetPayload<{
     integrantes: {
       orderBy: [{ responsavelUfpa: "desc" }, { nome: "asc" }];
     };
-    diagnostico: true;
     indicadores: true;
   };
 }>;
@@ -27,7 +26,6 @@ export type OrganizacaoColetivaWithFamilias = Prisma.OrganizacaoColetivaGetPaylo
   include: {
     familias: {
       include: {
-        diagnostico: true;
         indicadores: true;
         _count: { select: { atendimentos: true; integrantes: true } };
       };
@@ -219,7 +217,6 @@ export type AtendimentoWithDetails = Prisma.AtendimentoGetPayload<{
         integrantes: {
           orderBy: [{ responsavelUfpa: "desc" }, { nome: "asc" }];
         };
-        diagnostico: true;
         indicadores: true;
       };
     };
@@ -240,49 +237,10 @@ export interface FamiliaFilterDTO {
   atividade?: string;
 }
 
-export type FamiliaAterInput = {
-  nomeFamilia: string;
-  documentoResponsavel?: string | null;
-  nomeResponsavel?: string | null;
-  telefone?: string | null;
-  quantidadeMembros?: number | null;
-  municipio?: string | null;
-  comunidade?: string | null;
-  enderecoUfpa?: string | null;
-  complementoUfpa?: string | null;
-  cepUfpa?: string | null;
-  ufpa?: string | null;
-  dapCaf?: string | null;
-  dapCafOrgaoEmissor?: string | null;
-  dapCafValidade?: Date | null;
-  areaEstabelecimento?: number | null;
-  areaImovelPrincipal?: number | null;
-  classificacaoUfpa?: string | null;
-  bioma?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  grupoInteresse?: string | null;
-  statusCadastro?: string | null;
-  situacaoProjeto?: string | null;
-  tipoAtendimento?: string | null;
-  atividadeProdutiva?: string | null;
-  programaFomento?: string | null;
-  nis?: string | null;
-  codigoSGA?: string | null;
-  situacaoFomento?: string | null;
-  valorProjetoATER?: number | null;
-  valorInvestidoUFPA?: number | null;
-  valorFomento?: number | null;
-  efetividade?: string | null;
-  statusSGA?: string | null;
-  envioSGAPorAtividade?: Prisma.InputJsonValue;
-  sgaCadastro?: boolean;
-  sgaRevisao?: boolean;
-  sgaIndicador?: boolean;
-  sgaFotos?: boolean;
-  statusGestor?: string | null;
-  motivoReprovacaoGestor?: string | null;
-  organizacaoColetivaId?: string | null;
+export type FamiliaAterInput = Omit<
+  Prisma.FamiliaAterUncheckedCreateInput,
+  "id" | "cadastroId" | "createdAt" | "updatedAt" | "integrantes"
+> & {
   integrantes?: IntegranteUfpaInput[];
 };
 
@@ -481,7 +439,6 @@ export class AterSociobioService {
           cadastro: true,
           organizacaoColetiva: true,
           integrantes: { orderBy: [{ responsavelUfpa: "desc" }, { nome: "asc" }] },
-          diagnostico: true,
           indicadores: true,
           _count: {
             select: {
@@ -514,17 +471,17 @@ export class AterSociobioService {
         where: { ...where, dapCaf: { not: null } },
       }),
       prisma.familiaAter.count({
-        where: { ...where, diagnostico: { is: { possuiInternet: false } } },
+        where: { ...where, possuiInternet: false },
       }),
       prisma.familiaAter.count({
-        where: { ...where, diagnostico: { is: { aguaConsumoTratada: false } } },
+        where: { ...where, aguaConsumoTratada: false },
       }),
     ]);
 
     const [semEsgotoTratado, insegurancaAlimentar, semCadUnico, diagnosticoRegistrado, aguaTratada] =
       await Promise.all([
       prisma.familiaAter.count({
-        where: { ...where, diagnostico: { is: { esgotoTratado: false } } },
+        where: { ...where, esgotoTratado: false },
       }),
       prisma.familiaAter.count({
         where: {
@@ -546,10 +503,10 @@ export class AterSociobioService {
         where: { ...where, indicadores: { is: { cadastradoCadUnico: false } } },
       }),
       prisma.familiaAter.count({
-        where: { ...where, OR: [{ diagnostico: { isNot: null } }, { indicadores: { isNot: null } }] },
+        where: { ...where, OR: [{ dataCadastro: { not: null } }, { indicadores: { isNot: null } }] },
       }),
       prisma.familiaAter.count({
-        where: { ...where, diagnostico: { is: { aguaConsumoTratada: true } } },
+        where: { ...where, aguaConsumoTratada: true },
       }),
     ]);
 
@@ -564,12 +521,12 @@ export class AterSociobioService {
         where: { ...where, indicadores: { is: { cadastradoCadUnico: true } } },
       }),
       prisma.familiaAter.count({
-        where: { ...where, diagnostico: { is: null }, indicadores: { is: null } },
+        where: { ...where, dataCadastro: null, indicadores: { is: null } },
       }),
       prisma.familiaAter.count({
         where: {
           ...where,
-          OR: [{ diagnostico: { is: null } }, { diagnostico: { is: { aguaConsumoTratada: null } } }],
+          OR: [{ dataCadastro: null }, { aguaConsumoTratada: null }],
         },
       }),
       prisma.familiaAter.count({
@@ -660,17 +617,17 @@ export class AterSociobioService {
       case "sem-sga":
         return { OR: [{ codigoSGA: null }, { codigoSGA: "" }] };
       case "sem-internet":
-        return { diagnostico: { is: { possuiInternet: false } } };
+        return { possuiInternet: false };
       case "com-internet":
-        return { diagnostico: { is: { possuiInternet: true } } };
+        return { possuiInternet: true };
       case "sem-agua-tratada":
-        return { diagnostico: { is: { aguaConsumoTratada: false } } };
+        return { aguaConsumoTratada: false };
       case "com-agua-tratada":
-        return { diagnostico: { is: { aguaConsumoTratada: true } } };
+        return { aguaConsumoTratada: true };
       case "sem-esgoto-tratado":
-        return { diagnostico: { is: { esgotoTratado: false } } };
+        return { esgotoTratado: false };
       case "com-esgoto-tratado":
-        return { diagnostico: { is: { esgotoTratado: true } } };
+        return { esgotoTratado: true };
       case "inseguranca-alimentar":
         return {
           indicadores: {
@@ -690,9 +647,9 @@ export class AterSociobioService {
       case "com-cadunico":
         return { indicadores: { is: { cadastradoCadUnico: true } } };
       case "sem-diagnostico":
-        return { diagnostico: { is: null }, indicadores: { is: null } };
+        return { dataCadastro: null, indicadores: { is: null } };
       case "com-diagnostico":
-        return { OR: [{ diagnostico: { isNot: null } }, { indicadores: { isNot: null } }] };
+        return { OR: [{ dataCadastro: { not: null } }, { indicadores: { isNot: null } }] };
       default:
         return null;
     }
@@ -722,30 +679,27 @@ export class AterSociobioService {
             dataNascimento: true,
           },
         },
-        diagnostico: {
-          select: {
-            possuiRadio: true,
-            possuiTelevisao: true,
-            possuiCelular: true,
-            usaRedesSociais: true,
-            possuiOutroMeioComunicacao: true,
-            aguaParaConsumo: true,
-            possuiInternet: true,
-            aguaConsumoTratada: true,
-            aguaParaProducao: true,
-            captacaoAguaChuva: true,
-            esgotoTratado: true,
-            fontesProtegidas: true,
-            acoesPotenciaisProdutivo: true,
-            acoesPotenciaisSocial: true,
-            acoesPotenciaisAmbiental: true,
-            limitacoesProdutivo: true,
-            limitacoesSocial: true,
-            limitacoesAmbiental: true,
-            politicasPublicas: true,
-            atividadesColetivas: true,
-          },
-        },
+        possuiRadio: true,
+        possuiTelevisao: true,
+        possuiCelular: true,
+        usaRedesSociais: true,
+        possuiOutroMeioComunicacao: true,
+        aguaParaConsumo: true,
+        possuiInternet: true,
+        aguaConsumoTratada: true,
+        aguaParaProducao: true,
+        captacaoAguaChuva: true,
+        esgotoTratado: true,
+        fontesProtegidas: true,
+        acoesPotenciaisProdutivo: true,
+        acoesPotenciaisSocial: true,
+        acoesPotenciaisAmbiental: true,
+        limitacoesProdutivo: true,
+        limitacoesSocial: true,
+        limitacoesAmbiental: true,
+        politicasPublicas: true,
+        atividadesColetivas: true,
+        dataCadastro: true,
         indicadores: {
           select: {
             alimentacaoVariadaComprometida: true,
@@ -860,19 +814,19 @@ export class AterSociobioService {
         temSga: Boolean(familia.codigoSGA?.trim()),
         integrantes: familia._count.integrantes || familia.quantidadeMembros || 0,
         atendimentos: familia._count.atendimentos,
-        diagnosticoRegistrado: Boolean(familia.diagnostico || familia.indicadores),
-        possuiRadio: familia.diagnostico?.possuiRadio ?? null,
-        possuiTelevisao: familia.diagnostico?.possuiTelevisao ?? null,
-        possuiCelular: familia.diagnostico?.possuiCelular ?? null,
-        usaRedesSociais: familia.diagnostico?.usaRedesSociais ?? null,
-        possuiOutroMeioComunicacao: familia.diagnostico?.possuiOutroMeioComunicacao ?? null,
-        aguaParaConsumo: familia.diagnostico?.aguaParaConsumo ?? null,
-        possuiInternet: familia.diagnostico?.possuiInternet ?? null,
-        aguaTratada: familia.diagnostico?.aguaConsumoTratada ?? null,
-        aguaParaProducao: familia.diagnostico?.aguaParaProducao ?? null,
-        captacaoAguaChuva: familia.diagnostico?.captacaoAguaChuva ?? null,
-        esgotoTratado: familia.diagnostico?.esgotoTratado ?? null,
-        fontesProtegidas: familia.diagnostico?.fontesProtegidas ?? null,
+        diagnosticoRegistrado: Boolean(familia.dataCadastro || familia.indicadores),
+        possuiRadio: familia.possuiRadio ?? null,
+        possuiTelevisao: familia.possuiTelevisao ?? null,
+        possuiCelular: familia.possuiCelular ?? null,
+        usaRedesSociais: familia.usaRedesSociais ?? null,
+        possuiOutroMeioComunicacao: familia.possuiOutroMeioComunicacao ?? null,
+        aguaParaConsumo: familia.aguaParaConsumo ?? null,
+        possuiInternet: familia.possuiInternet ?? null,
+        aguaTratada: familia.aguaConsumoTratada ?? null,
+        aguaParaProducao: familia.aguaParaProducao ?? null,
+        captacaoAguaChuva: familia.captacaoAguaChuva ?? null,
+        esgotoTratado: familia.esgotoTratado ?? null,
+        fontesProtegidas: familia.fontesProtegidas ?? null,
         alimentacaoVariadaComprometida: indicadores?.alimentacaoVariadaComprometida ?? null,
         comidaAcabouSemCondicao: indicadores?.comidaAcabouSemCondicao ?? null,
         deixouRefeicaoSemCondicao: indicadores?.deixouRefeicaoSemCondicao ?? null,
@@ -929,15 +883,15 @@ export class AterSociobioService {
         canalPaa: indicadores?.canalPaa ?? null,
         canalPnae: indicadores?.canalPnae ?? null,
         canalCooperativaEntreposto: indicadores?.canalCooperativaEntreposto ?? null,
-        acoesPotenciaisProdutivo: readStringArray(familia.diagnostico?.acoesPotenciaisProdutivo),
-        acoesPotenciaisSocial: readStringArray(familia.diagnostico?.acoesPotenciaisSocial),
-        acoesPotenciaisAmbiental: readStringArray(familia.diagnostico?.acoesPotenciaisAmbiental),
-        limitacoesProdutivo: readStringArray(familia.diagnostico?.limitacoesProdutivo),
-        limitacoesSocial: readStringArray(familia.diagnostico?.limitacoesSocial),
-        limitacoesAmbiental: readStringArray(familia.diagnostico?.limitacoesAmbiental),
-        politicasPublicasFederais: readJsonTableColumn(familia.diagnostico?.politicasPublicas, "politicaPublicaFederal"),
-        atividadesColetivas: readJsonTableColumn(familia.diagnostico?.atividadesColetivas, "atividadeColetiva"),
-        areasAtividadesColetivas: readJsonTableColumn(familia.diagnostico?.atividadesColetivas, "area"),
+        acoesPotenciaisProdutivo: readStringArray(familia.acoesPotenciaisProdutivo),
+        acoesPotenciaisSocial: readStringArray(familia.acoesPotenciaisSocial),
+        acoesPotenciaisAmbiental: readStringArray(familia.acoesPotenciaisAmbiental),
+        limitacoesProdutivo: readStringArray(familia.limitacoesProdutivo),
+        limitacoesSocial: readStringArray(familia.limitacoesSocial),
+        limitacoesAmbiental: readStringArray(familia.limitacoesAmbiental),
+        politicasPublicasFederais: readJsonTableColumn(familia.politicasPublicas, "politicaPublicaFederal"),
+        atividadesColetivas: readJsonTableColumn(familia.atividadesColetivas, "atividadeColetiva"),
+        areasAtividadesColetivas: readJsonTableColumn(familia.atividadesColetivas, "area"),
         bioma: familia.bioma,
         atividades: readAtividadesList(familia.envioSGAPorAtividade),
         mulheres,
@@ -1079,7 +1033,6 @@ export class AterSociobioService {
         cadastro: true,
         organizacaoColetiva: true,
         integrantes: { orderBy: [{ responsavelUfpa: "desc" }, { nome: "asc" }] },
-        diagnostico: true,
         indicadores: true,
       },
     });
@@ -1166,20 +1119,16 @@ export class AterSociobioService {
   static async upsertDiagnosticoUfpa(
     familiaId: string,
     data: {
-      diagnostico: Omit<Prisma.DiagnosticoUfpaUncheckedCreateInput, "id" | "familiaId" | "createdAt" | "updatedAt">;
+      diagnostico: Prisma.FamiliaAterUncheckedUpdateInput;
       indicadores: Omit<Prisma.IndicadoresUfpaUncheckedCreateInput, "id" | "familiaId" | "createdAt" | "updatedAt">;
     },
   ) {
     const { diagnostico, indicadores } = data;
 
     return prisma.$transaction(async (tx) => {
-      const savedDiagnostico = await tx.diagnosticoUfpa.upsert({
-        where: { familiaId },
-        create: {
-          ...diagnostico,
-          familiaId,
-        },
-        update: diagnostico,
+      const savedDiagnostico = await tx.familiaAter.update({
+        where: { id: familiaId },
+        data: diagnostico,
       });
 
       const savedIndicadores = await tx.indicadoresUfpa.upsert({
@@ -1212,7 +1161,6 @@ export class AterSociobioService {
       include: {
         familias: {
           include: {
-            diagnostico: true,
             indicadores: true,
             _count: {
               select: {
@@ -1279,7 +1227,6 @@ export class AterSociobioService {
             cadastro: true,
             organizacaoColetiva: true,
             integrantes: { orderBy: [{ responsavelUfpa: "desc" }, { nome: "asc" }] },
-            diagnostico: true,
             indicadores: true,
           },
         },
@@ -1301,7 +1248,6 @@ export class AterSociobioService {
             cadastro: true,
             organizacaoColetiva: true,
             integrantes: { orderBy: [{ responsavelUfpa: "desc" }, { nome: "asc" }] },
-            diagnostico: true,
             indicadores: true,
           },
         },

@@ -98,7 +98,7 @@ export default async function AtendimentoDetailPage({
     notFound();
   }
 
-  const diagnostico = atendimento.familia?.diagnostico;
+  const diagnostico = atendimento.familia;
   const indicadores = atendimento.familia?.indicadores;
   const insegurancaAlimentar = indicadores
     ? [
