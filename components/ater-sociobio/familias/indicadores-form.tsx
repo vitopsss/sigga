@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import Link from "next/link";
-import { useRouter, isRedirectError } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 const inputClassName =
@@ -191,8 +191,8 @@ export function IndicadoresForm({ defaultValues, familiaId, onSubmit }: any) {
     startTransition(async () => {
       try {
         await onSubmit(parsedData);
-      } catch (e) {
-        if (isRedirectError(e)) {
+      } catch (e: any) {
+        if (e && (e.message === 'NEXT_REDIRECT' || e.digest === 'NEXT_REDIRECT')) {
           throw e; // Let Next.js handle the redirect
         }
         console.error(e);

@@ -5,6 +5,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Iniciando Seed de Dados Reais...");
 
+  // TRAVA DE SEGURANÇA: Bloqueio de destruição de dados de produção
+  if (process.env.ALLOW_REAL_SEED_RESET !== "CONFIRMO_APAGAR_DADOS") {
+    console.error("ERRO: Operação bloqueada. É necessário definir ALLOW_REAL_SEED_RESET='CONFIRMO_APAGAR_DADOS' para rodar este seed destrutivo.");
+    process.exit(1);
+  }
+
+  const dbUrl = process.env.DATABASE_URL || "";
+  if (dbUrl.includes("supabase.com")) {
+    console.error("ERRO CRÍTICO: Execução bloqueada. A DATABASE_URL atual aponta para o Supabase (Produção/Nuvem). Nunca rode este seed destrutivo contra bases de produção.");
+    process.exit(1);
+  }
+
   // Limpar tabelas
   console.log("Limpando banco de dados...");
   await prisma.indicadoresUfpa.deleteMany();

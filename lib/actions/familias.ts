@@ -38,7 +38,7 @@ function parseJsonSafe(formData: FormData, key: string) {
 function parseStringArray(formData: FormData, key: string) {
   const values = formData.getAll(key).map(v => getText(v)).filter(Boolean);
   const first = values[0];
-  if (values.length === 0) return undefined;
+  if (values.length === 0) return [];
   if (values.length === 1 && first && first.includes(",")) {
     return first.split(",").map(s => s.trim()).filter(Boolean);
   }

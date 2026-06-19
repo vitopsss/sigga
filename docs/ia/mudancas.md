@@ -1,5 +1,16 @@
 # Mudancas registradas por IAs
 
+## 2026-06-19 (Parte 2) - Hotfixes de Compilação e Trava de Segurança no Seed
+
+Resumo:
+- Adicionada trava de segurança obrigatória (`ALLOW_REAL_SEED_RESET=CONFIRMO_APAGAR_DADOS`) e bloqueio da URL de Produção no arquivo `prisma/seed-real.ts` para prevenir a deleção catastrófica acidental das tabelas.
+- Resolvidos erros de tipagem descobertos pela validação local (`tsc --noEmit`):
+  - Ajuste de `setFocus(null)` para `setFocus([])` no Dashboard, adequando à tipagem `FocusKey[]`.
+  - Tratamento da conversão de objetos `Decimal` provenientes do Prisma em `Number` usando spread objects nas propriedades defaults (`[id]/indicadores/page.tsx`).
+  - Remoção da importação `isRedirectError` quebrando no ambiente e reescrita do hook de erro em `indicadores-form.tsx`.
+  - Fix da key `patrimonios` repetida e injeção do className dinâmico no `ufpa-form.tsx`.
+  - Ajustado retorno `undefined` para `[]` na função `parseStringArray` no Server Action `familias.ts` que quebrava o `.flatMap()`.
+
 ## 2026-06-19 - Unificação de Cadastro/Diagnóstico, Tela de Indicadores e Melhorias de UI
 
 Resumo:

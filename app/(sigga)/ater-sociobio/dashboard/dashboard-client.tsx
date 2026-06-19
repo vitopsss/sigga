@@ -2007,17 +2007,17 @@ export function SiggaterDashboardClient({
 
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-zinc-100 pt-8">
           <div className="flex flex-wrap items-center gap-3">
-            <TabButton active={activeTab === "ufpas"} icon={Users} label="UFPAs" onClick={() => { setActiveTab("ufpas"); setFocus(null); syncDashboardUrl("ufpas", null); }} />
-            <TabButton active={activeTab === "organizacoes"} icon={Building2} label="Organizações" onClick={() => { setActiveTab("organizacoes"); setFocus(null); syncDashboardUrl("organizacoes", null); }} />
-            <TabButton active={activeTab === "atendimentos"} icon={ClipboardList} label="Atendimentos" onClick={() => { setActiveTab("atendimentos"); setFocus(null); syncDashboardUrl("atendimentos", null); }} />
+            <TabButton active={activeTab === "ufpas"} icon={Users} label="UFPAs" onClick={() => { setActiveTab("ufpas"); setFocus([]); syncDashboardUrl("ufpas", []); }} />
+            <TabButton active={activeTab === "organizacoes"} icon={Building2} label="Organizações" onClick={() => { setActiveTab("organizacoes"); setFocus([]); syncDashboardUrl("organizacoes", []); }} />
+            <TabButton active={activeTab === "atendimentos"} icon={ClipboardList} label="Atendimentos" onClick={() => { setActiveTab("atendimentos"); setFocus([]); syncDashboardUrl("atendimentos", []); }} />
 
             {(query || focus) && (
               <button
                 type="button"
                 onClick={() => {
                   setQuery("");
-                  setFocus(null);
-                  syncDashboardUrl(activeTab, null, "");
+                  setFocus([]);
+                  syncDashboardUrl(activeTab, [], "");
                 }}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-bold text-zinc-600 transition hover:bg-zinc-200"
               >

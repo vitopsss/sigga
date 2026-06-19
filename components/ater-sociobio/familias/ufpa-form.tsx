@@ -99,7 +99,6 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
       cepUfpa: "",
       latitude: "",
       longitude: "",
-      patrimonios: defaultValues?.patrimonios?.length ? defaultValues.patrimonios : DEFAULT_PATRIMONIOS,
       atividadesProdutivas: [],
       atividadesColetivas: [],
       recursosDisponiveis: [],
@@ -261,7 +260,7 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
             const isDefault = index < 23; // the first 23 items are from the DEFAULT_PATRIMONIOS list
             return (
               <div key={item.id} className="flex gap-4 items-end">
-                <Field label="Descrição" name={`patrimonios.${index}.descricao`} register={register} className="flex-1" {...(isDefault ? { readOnly: true, className: "flex-1 bg-zinc-100 opacity-80 pointer-events-none" } : {})} />
+                <Field label="Descrição" name={`patrimonios.${index}.descricao`} register={register} className={isDefault ? "flex-1 bg-zinc-100 opacity-80 pointer-events-none" : "flex-1"} readOnly={isDefault} />
                 <Field label="Quantidade" name={`patrimonios.${index}.quantidade`} type="number" register={register} className="w-32" />
                 <Field label="Unidade" name={`patrimonios.${index}.unidade`} register={register} className="w-48" />
                 {!isDefault && (

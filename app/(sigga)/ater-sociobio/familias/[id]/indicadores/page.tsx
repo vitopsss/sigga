@@ -31,8 +31,9 @@ export default async function IndicadoresFamiliaPage({
   };
 
   // Convert Decimal to Number for Client Component
-  if (defaultValues.valorBrutoProducaoUltimos12Meses && typeof defaultValues.valorBrutoProducaoUltimos12Meses === "object") {
-    defaultValues.valorBrutoProducaoUltimos12Meses = Number(defaultValues.valorBrutoProducaoUltimos12Meses);
+  const safeDefaultValues: any = { ...defaultValues };
+  if (safeDefaultValues.valorBrutoProducaoUltimos12Meses && typeof safeDefaultValues.valorBrutoProducaoUltimos12Meses === "object") {
+    safeDefaultValues.valorBrutoProducaoUltimos12Meses = Number(safeDefaultValues.valorBrutoProducaoUltimos12Meses);
   }
 
   async function handleSubmit(data: any) {
@@ -61,7 +62,7 @@ export default async function IndicadoresFamiliaPage({
           <section className="rounded-[2.5rem] border border-zinc-200 bg-white p-6 shadow-sm sm:p-10 lg:p-12">
             <IndicadoresForm 
               familiaId={id} 
-              defaultValues={defaultValues} 
+              defaultValues={safeDefaultValues} 
               onSubmit={handleSubmit} 
             />
           </section>
