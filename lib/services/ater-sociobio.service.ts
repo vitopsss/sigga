@@ -132,6 +132,9 @@ export type SiggaterDashboardItem = {
   atividadesColetivas: string[];
   /** Doc 3: áreas das atividades coletivas (social, produtiva, cultural etc.) */
   areasAtividadesColetivas: string[];
+  recursosDisponiveis: string[];
+  patrimonios: any[];
+  atividadesProdutivas: any[];
 };
 
 export type SiggaterOrganizacaoDashboardItem = {
@@ -699,6 +702,9 @@ export class AterSociobioService {
         limitacoesAmbiental: true,
         politicasPublicas: true,
         atividadesColetivas: true,
+        recursosDisponiveis: true,
+        patrimonios: true,
+        atividadesProdutivas: true,
         dataCadastro: true,
         indicadores: {
           select: {
@@ -890,8 +896,11 @@ export class AterSociobioService {
         limitacoesSocial: readStringArray(familia.limitacoesSocial),
         limitacoesAmbiental: readStringArray(familia.limitacoesAmbiental),
         politicasPublicasFederais: readJsonTableColumn(familia.politicasPublicas, "politicaPublicaFederal"),
-        atividadesColetivas: readJsonTableColumn(familia.atividadesColetivas, "atividadeColetiva"),
-        areasAtividadesColetivas: readJsonTableColumn(familia.atividadesColetivas, "area"),
+        atividadesColetivas: readStringArray(familia.atividadesColetivas),
+        areasAtividadesColetivas: [], // No longer a table with area
+        recursosDisponiveis: readStringArray(familia.recursosDisponiveis),
+        patrimonios: Array.isArray(familia.patrimonios) ? familia.patrimonios : [],
+        atividadesProdutivas: Array.isArray(familia.atividadesProdutivas) ? familia.atividadesProdutivas : [],
         bioma: familia.bioma,
         atividades: readAtividadesList(familia.envioSGAPorAtividade),
         mulheres,

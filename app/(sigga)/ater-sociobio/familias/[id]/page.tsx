@@ -97,6 +97,12 @@ export default async function FamiliaDetailPage({
     notFound();
   }
 
+  // Next.js cannot pass Prisma Decimal to Client Components
+  if (familia.indicadores && familia.indicadores.valorBrutoProducaoUltimos12Meses && typeof familia.indicadores.valorBrutoProducaoUltimos12Meses === "object") {
+    // @ts-ignore - Bypass readonly properties just for serialization to Client Components
+    familia.indicadores.valorBrutoProducaoUltimos12Meses = Number(familia.indicadores.valorBrutoProducaoUltimos12Meses);
+  }
+
   const atividadesUfpa = getAtividades(familia.envioSGAPorAtividade);
   const atendimentosValidos = atendimentos.filter((atendimento) =>
     isAterSociobioAtendimentoValido(atendimento.statusRelatorio),
@@ -119,9 +125,9 @@ export default async function FamiliaDetailPage({
               <Button variant="secondary" size="sm">Editar UFPA</Button>
             </Link>
             <DiagnosticoPdfLink familia={familia} />
-            <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/diagnostico`)}>
+            <Link href={appendFromDetails(`/ater-sociobio/familias/${familia.id}/indicadores`)}>
               <Button variant="primary" size="sm">
-                {familia.dataCadastro || familia.indicadores ? "Diagnóstico & Indicadores" : "Preencher Diagnóstico"}
+                {familia.indicadores ? "Editar Indicadores" : "Preencher Indicadores"}
               </Button>
             </Link>
             <Link href={appendFromDetails(`/ater-sociobio/atendimentos/nova?familiaId=${familia.id}`)}>

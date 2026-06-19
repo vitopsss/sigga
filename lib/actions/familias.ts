@@ -208,14 +208,34 @@ export async function criarFamilia(formData: FormData) {
       captacaoAguaChuva: getBoolean(formData, "captacaoAguaChuva"),
       esgotoTratado: getBoolean(formData, "esgotoTratado"),
       fontesProtegidas: getBoolean(formData, "fontesProtegidas"),
-      acoesPotenciaisProdutivo: parseStringArray(formData, "acoesPotenciaisProdutivo"),
-      acoesPotenciaisSocial: parseStringArray(formData, "acoesPotenciaisSocial"),
-      acoesPotenciaisAmbiental: parseStringArray(formData, "acoesPotenciaisAmbiental"),
-      limitacoesProdutivo: parseStringArray(formData, "limitacoesProdutivo"),
-      limitacoesSocial: parseStringArray(formData, "limitacoesSocial"),
-      limitacoesAmbiental: parseStringArray(formData, "limitacoesAmbiental"),
-      outrasAcoesPotenciais: getText(formData.get("outrasAcoesPotenciais")) || null,
-      outrasLimitacoes: getText(formData.get("outrasLimitacoes")) || null,
+      acoesPotenciaisProdutivo: [
+        ...parseStringArray(formData, "acoesPotenciaisProdutivo"),
+        ...parseStringArray(formData, "outrasAcoesPotenciaisProdutivo").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      acoesPotenciaisSocial: [
+        ...parseStringArray(formData, "acoesPotenciaisSocial"),
+        ...parseStringArray(formData, "outrasAcoesPotenciaisSocial").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      acoesPotenciaisAmbiental: [
+        ...parseStringArray(formData, "acoesPotenciaisAmbiental"),
+        ...parseStringArray(formData, "outrasAcoesPotenciaisAmbiental").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      limitacoesProdutivo: [
+        ...parseStringArray(formData, "limitacoesProdutivo"),
+        ...parseStringArray(formData, "outrasLimitacoesProdutivo").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      limitacoesSocial: [
+        ...parseStringArray(formData, "limitacoesSocial"),
+        ...parseStringArray(formData, "outrasLimitacoesSocial").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      limitacoesAmbiental: [
+        ...parseStringArray(formData, "limitacoesAmbiental"),
+        ...parseStringArray(formData, "outrasLimitacoesAmbiental").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      recursosDisponiveis: parseStringArray(formData, "recursosDisponiveis"),
+      atividadesColetivas: parseStringArray(formData, "atividadesColetivas"),
+      outrasAcoesPotenciais: null,
+      outrasLimitacoes: null,
     };
 
     const payload = {
@@ -312,14 +332,34 @@ export async function atualizarFamilia(id: string, formData: FormData) {
       captacaoAguaChuva: getBoolean(formData, "captacaoAguaChuva"),
       esgotoTratado: getBoolean(formData, "esgotoTratado"),
       fontesProtegidas: getBoolean(formData, "fontesProtegidas"),
-      acoesPotenciaisProdutivo: parseStringArray(formData, "acoesPotenciaisProdutivo"),
-      acoesPotenciaisSocial: parseStringArray(formData, "acoesPotenciaisSocial"),
-      acoesPotenciaisAmbiental: parseStringArray(formData, "acoesPotenciaisAmbiental"),
-      limitacoesProdutivo: parseStringArray(formData, "limitacoesProdutivo"),
-      limitacoesSocial: parseStringArray(formData, "limitacoesSocial"),
-      limitacoesAmbiental: parseStringArray(formData, "limitacoesAmbiental"),
-      outrasAcoesPotenciais: getText(formData.get("outrasAcoesPotenciais")) || null,
-      outrasLimitacoes: getText(formData.get("outrasLimitacoes")) || null,
+      acoesPotenciaisProdutivo: [
+        ...parseStringArray(formData, "acoesPotenciaisProdutivo"),
+        ...parseStringArray(formData, "outrasAcoesPotenciaisProdutivo").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      acoesPotenciaisSocial: [
+        ...parseStringArray(formData, "acoesPotenciaisSocial"),
+        ...parseStringArray(formData, "outrasAcoesPotenciaisSocial").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      acoesPotenciaisAmbiental: [
+        ...parseStringArray(formData, "acoesPotenciaisAmbiental"),
+        ...parseStringArray(formData, "outrasAcoesPotenciaisAmbiental").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      limitacoesProdutivo: [
+        ...parseStringArray(formData, "limitacoesProdutivo"),
+        ...parseStringArray(formData, "outrasLimitacoesProdutivo").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      limitacoesSocial: [
+        ...parseStringArray(formData, "limitacoesSocial"),
+        ...parseStringArray(formData, "outrasLimitacoesSocial").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      limitacoesAmbiental: [
+        ...parseStringArray(formData, "limitacoesAmbiental"),
+        ...parseStringArray(formData, "outrasLimitacoesAmbiental").flatMap(v => v.split(',').map(s => s.trim()).filter(Boolean))
+      ],
+      recursosDisponiveis: parseStringArray(formData, "recursosDisponiveis"),
+      atividadesColetivas: parseStringArray(formData, "atividadesColetivas"),
+      outrasAcoesPotenciais: null,
+      outrasLimitacoes: null,
     };
 
     const payload = {

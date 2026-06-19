@@ -89,6 +89,24 @@ export function mapUfpasToExcelData(familias: SiggaterDashboardItem[]) {
       "Limitações (Produtivo)": formatArray(f.limitacoesProdutivo),
       "Limitações (Social)": formatArray(f.limitacoesSocial),
       "Limitações (Ambiental)": formatArray(f.limitacoesAmbiental),
+      
+      // Recursos e Atividades Coletivas
+      "Recursos Disponíveis": formatArray(f.recursosDisponiveis),
+      "Atividades Coletivas": formatArray(f.atividadesColetivas),
+
+      // Patrimônio e Atividades Produtivas (Estruturado)
+      "Patrimônio": Array.isArray(f.patrimonios) 
+        ? f.patrimonios.map((p: any) => {
+            if (typeof p === 'string') return p;
+            return `${p.quantidade || ''} ${p.unidade || ''} - ${p.descricao || ''}`.trim();
+          }).filter(Boolean).join(" | ") 
+        : "",
+      "Atividades Produtivas": Array.isArray(f.atividadesProdutivas)
+        ? f.atividadesProdutivas.map((a: any) => {
+            if (typeof a === 'string') return a;
+            return `${a.producaoAnual || ''} ${a.unidade || ''} - ${a.atividade || ''}`.trim();
+          }).filter(Boolean).join(" | ")
+        : "",
     };
   });
 }
@@ -98,11 +116,28 @@ export function mapUfpasToExcelData(familias: SiggaterDashboardItem[]) {
  */
 export function exportTableToExcel(data: any[], filename: string, sheetName = "Dados") {
   if (!data || data.length === 0) return;
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  autoFitColumns(data, worksheet);
+
+  // Remove invalid XML characters (control characters) from all string values
+  // which causes the "Encontramos um problema em um conteúdo" error in Excel.
+  const cleanData = data.map(row => {
+    const newRow: any = {};
+    for (const key in row) {
+      let val = row[key];
+      if (typeof val === 'string') {
+        // Remove chars 0x00-0x1F (except 0x09 tab, 0x0A LF, 0x0D CR)
+        val = val.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '');
+      }
+      newRow[key] = val;
+    }
+    return newRow;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(cleanData);
+  autoFitColumns(cleanData, worksheet);
   
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  const safeSheetName = sheetName.replace(/[\\/*?:[\]]/g, '').substring(0, 31) || "Dados";
+  XLSX.utils.book_append_sheet(workbook, worksheet, safeSheetName);
   XLSX.writeFile(workbook, filename);
 }
 

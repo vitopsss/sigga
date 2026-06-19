@@ -129,59 +129,61 @@ function isDashboardTab(value: string | null): value is DashboardTab {
   return value === "ufpas" || value === "organizacoes" || value === "atendimentos";
 }
 
-function focusFilter(key: FocusKey, item: SiggaterDashboardItem | SiggaterAtendimentoDashboardItem | SiggaterOrganizacaoDashboardItem, tab: DashboardView) {
-  if (!key) return true;
+function focusFilter(keys: FocusKey[], item: SiggaterDashboardItem | SiggaterAtendimentoDashboardItem | SiggaterOrganizacaoDashboardItem, tab: DashboardView) {
+  if (!keys || keys.length === 0) return true;
 
-  if (tab === "ufpas") {
-    const ufpa = item as SiggaterDashboardItem;
-    switch (key) {
-      case "comAlertas": return getRisks(ufpa).length > 0;
-      case "semDiagnostico": return !ufpa.diagnosticoRegistrado;
-      case "semAgua": return ufpa.aguaTratada === false;
-      case "semCadUnico": return ufpa.cadUnico === false;
-      case "inseguranca": return ufpa.insegurancaAlimentar === true;
-      case "semInternet": return ufpa.possuiInternet === false;
-      case "semSga": return !ufpa.temSga;
-      case "comDapCaf": return ufpa.temDapCaf;
-      case "comMulheresUfpa": return ufpa.mulheres > 0;
-      case "comJovensUfpa": return ufpa.jovens > 0;
-      case "comVisitas": return ufpa.atendimentos > 0;
-      case "semPoliticasSociais": return ufpa.politicasSociais === false;
-      case "semPoliticasProdutivas": return ufpa.politicasProdutivas === false;
-      default: return true;
+  // Usa AND: todos os filtros devem ser satisfeitos
+  return keys.every((key) => {
+    if (!key) return true;
+    if (tab === "ufpas") {
+      const ufpa = item as SiggaterDashboardItem;
+      switch (key) {
+        case "comAlertas": return getRisks(ufpa).length > 0;
+        case "semDiagnostico": return !ufpa.diagnosticoRegistrado;
+        case "semAgua": return ufpa.aguaTratada === false;
+        case "semCadUnico": return ufpa.cadUnico === false;
+        case "inseguranca": return ufpa.insegurancaAlimentar === true;
+        case "semInternet": return ufpa.possuiInternet === false;
+        case "semSga": return !ufpa.temSga;
+        case "comDapCaf": return ufpa.temDapCaf;
+        case "comMulheresUfpa": return ufpa.mulheres > 0;
+        case "comJovensUfpa": return ufpa.jovens > 0;
+        case "comVisitas": return ufpa.atendimentos > 0;
+        case "semPoliticasSociais": return ufpa.politicasSociais === false;
+        case "semPoliticasProdutivas": return ufpa.politicasProdutivas === false;
+        default: return true;
+      }
     }
-  }
 
-  if (tab === "organizacoes") {
-    const org = item as SiggaterOrganizacaoDashboardItem;
-    switch (key) {
-      case "indicadoresPendentes": return !org.indicadoresRegistrados;
-      case "praticasAmbientais": return org.praticasAmbientais === true;
-      case "semPraticasAmbientais": return org.praticasAmbientais === false;
-      case "politicasPublicas": return org.politicasPublicas === true;
-      case "semPoliticasPublicas": return org.politicasPublicas === false;
-      case "identidadeComercial": return org.identidadeComercial === true;
-      case "semIdentidadeComercial": return org.identidadeComercial === false;
-      case "filiadaOrganizacao": return org.representacaoPolitica === true;
-      case "semFiliadaOrganizacao": return org.representacaoPolitica === false;
-      case "mulheresDiretoria": return org.mulheresDiretoria === true;
-      case "jovensDiretoria": return org.jovensDiretoria === true;
-      default: return true;
+    if (tab === "organizacoes") {
+      const org = item as SiggaterOrganizacaoDashboardItem;
+      switch (key) {
+        case "indicadoresPendentes": return !org.indicadoresRegistrados;
+        case "praticasAmbientais": return org.praticasAmbientais === true;
+        case "semPraticasAmbientais": return org.praticasAmbientais === false;
+        case "politicasPublicas": return org.politicasPublicas === true;
+        case "semPoliticasPublicas": return org.politicasPublicas === false;
+        case "identidadeComercial": return org.identidadeComercial === true;
+        case "semIdentidadeComercial": return org.identidadeComercial === false;
+        case "filiadaOrganizacao": return org.representacaoPolitica === true;
+        case "semFiliadaOrganizacao": return org.representacaoPolitica === false;
+        case "mulheresDiretoria": return org.mulheresDiretoria === true;
+        case "jovensDiretoria": return org.jovensDiretoria === true;
+        default: return true;
+      }
     }
-  }
 
-  if (tab === "atendimentos") {
-    const at = item as SiggaterAtendimentoDashboardItem;
-    switch (key) {
-      case "mulheres": return at.numeroMulheres > 0;
-      case "jovens": return at.numeroJovens > 0;
-      case "emAnalise": return at.statusRelatorio === "EM_ANALISE";
-      case "reprovados": return at.statusRelatorio === "REPROVADO_GESTOR";
-      default: return true;
+    if (tab === "atendimentos") {
+      const aten = item as SiggaterAtendimentoDashboardItem;
+      switch (key) {
+        case "emAnalise": return aten.statusRelatorio === "AGUARDANDO_GESTOR";
+        case "reprovados": return aten.statusRelatorio === "REPROVADO_GESTOR";
+        default: return true;
+      }
     }
-  }
 
-  return true;
+    return true;
+  });
 }
 
 /**
@@ -492,16 +494,19 @@ function BooleanMetricsTable<T>({
   items: T[];
 }) {
   function handleExport() {
-    const data = metrics.map((metric) => {
-      const count = countBooleanMetric(items, metric);
-      return {
-        Indicador: metric.label,
-        Sim: count.sim,
-        Não: count.nao,
-        "S/I": count.semInfo,
+    const data = items.map((item: any) => {
+      const row: any = {
+        "ID": item.id,
+        "Nome": item.nomeFamilia || item.denominacao || "N/A",
+        "Município": item.municipio || "N/A",
       };
+      metrics.forEach((metric) => {
+        const val = metric.getValue(item);
+        row[metric.label] = val === true ? "Sim" : val === false ? "Não" : "S/I";
+      });
+      return row;
     });
-    exportTableToExcel(data, `Metricas_${title.replace(/[^a-z0-9]/gi, "_")}.xlsx`, title.substring(0, 31));
+    exportTableToExcel(data, `Analise_${title.replace(/[^a-z0-9]/gi, "_")}.xlsx`, title.substring(0, 31));
   }
 
   return (
@@ -546,12 +551,33 @@ function CompactRankList({
   title,
   data,
   emptyLabel = "Sem dados no recorte atual.",
+  items,
+  extractFn,
 }: {
   title: string;
   data: { name: string; value: number }[];
   emptyLabel?: string;
+  items?: any[];
+  extractFn?: (item: any) => string[];
 }) {
   function handleExport() {
+    if (items && extractFn) {
+      // Map row by row showing which family has which item
+      const exportData = items.flatMap(item => {
+        const extracted = extractFn(item) || [];
+        if (!extracted.length) return [];
+        return extracted.map(val => ({
+          "ID": item.id,
+          "Nome": item.nomeFamilia || item.denominacao || "N/A",
+          "Município": item.municipio || "N/A",
+          "Item": val
+        }));
+      });
+      if (exportData.length > 0) {
+        exportTableToExcel(exportData, `Ranking_${title.replace(/[^a-z0-9]/gi, "_")}.xlsx`, title.substring(0, 31));
+        return;
+      }
+    }
     const exportData = data.map(item => ({
       Item: item.name,
       Quantidade: item.value,
@@ -732,7 +758,7 @@ function UfpaPanel({
   appendReturnHref,
 }: {
   items: SiggaterDashboardItem[];
-  focus: FocusKey;
+  focus: FocusKey[];
   setFocus: (value: FocusKey) => void;
   appendReturnHref: (href: string) => string;
 }) {
@@ -943,8 +969,8 @@ function UfpaPanel({
           description="UFPAs que declararam não possuir internet no diagnóstico."
           tone="amber"
           icon={Wifi}
-          active={focus === "semInternet"}
-          onClick={() => setFocus(focus === "semInternet" ? null : "semInternet")}
+          active={focus.includes("semInternet")}
+          onClick={() => setFocus("semInternet")}
         />
         <MetricCard
           label="Visitas (recorte)"
@@ -952,8 +978,8 @@ function UfpaPanel({
           description="Atendimentos válidos vinculados às UFPAs deste recorte."
           tone="blue"
           icon={ClipboardList}
-          active={focus === "comVisitas"}
-          onClick={() => setFocus(focus === "comVisitas" ? null : "comVisitas")}
+          active={focus.includes("comVisitas")}
+          onClick={() => setFocus("comVisitas")}
         />
       </section>
 
@@ -964,8 +990,8 @@ function UfpaPanel({
           description="Integrantes com sexo feminino registrados nas unidades familiares."
           tone="rose"
           icon={Users}
-          active={focus === "comMulheresUfpa"}
-          onClick={() => setFocus(focus === "comMulheresUfpa" ? null : "comMulheresUfpa")}
+          active={focus.includes("comMulheresUfpa")}
+          onClick={() => setFocus("comMulheresUfpa")}
         />
         <MetricCard
           label="Jovens nas UFPAs"
@@ -973,8 +999,8 @@ function UfpaPanel({
           description="Integrantes de 15 a 29 anos identificados nos cadastros."
           tone="amber"
           icon={Users}
-          active={focus === "comJovensUfpa"}
-          onClick={() => setFocus(focus === "comJovensUfpa" ? null : "comJovensUfpa")}
+          active={focus.includes("comJovensUfpa")}
+          onClick={() => setFocus("comJovensUfpa")}
         />
         <MetricCard
           label="Sem políticas sociais"
@@ -982,8 +1008,8 @@ function UfpaPanel({
           description="UFPAs sem acesso informado a políticas públicas sociais."
           tone="zinc"
           icon={ClipboardList}
-          active={focus === "semPoliticasSociais"}
-          onClick={() => setFocus(focus === "semPoliticasSociais" ? null : "semPoliticasSociais")}
+          active={focus.includes("semPoliticasSociais")}
+          onClick={() => setFocus("semPoliticasSociais")}
         />
         <MetricCard
           label="Sem políticas produtivas"
@@ -991,8 +1017,8 @@ function UfpaPanel({
           description="UFPAs sem acesso informado a políticas públicas produtivas."
           tone="zinc"
           icon={Leaf}
-          active={focus === "semPoliticasProdutivas"}
-          onClick={() => setFocus(focus === "semPoliticasProdutivas" ? null : "semPoliticasProdutivas")}
+          active={focus.includes("semPoliticasProdutivas")}
+          onClick={() => setFocus("semPoliticasProdutivas")}
         />
       </section>
 
@@ -1014,7 +1040,7 @@ function UfpaPanel({
           <BooleanMetricsTable title="Ambiental: motivos para não usar práticas" items={items} metrics={praticasMotivosMetrics} />
           <BooleanMetricsTable title="Econômico: políticas produtivas" items={items} metrics={politicasProdutivasMetrics} />
           <BooleanMetricsTable title="Econômico: motivos para não acessar políticas" items={items} metrics={politicasProdutivasMotivosMetrics} />
-          <CompactRankList title="Econômico: linhas PRONAF acessadas" data={linhasPronafData} />
+          <CompactRankList title="Econômico: linhas PRONAF acessadas" data={linhasPronafData} items={items} extractFn={(f) => f.linhasPronaf} />
           <CompactValueList title="Econômico: VBP e SAN" data={economicSummary} />
           <BooleanMetricsTable title="Econômico: canais de comercialização" items={items} metrics={canaisMetrics} />
         </div>
@@ -1028,12 +1054,12 @@ function UfpaPanel({
           </p>
         </div>
         <div className="grid gap-4 xl:grid-cols-3">
-          <CompactRankList title="Potencialidades: eixo produtivo" data={potencialidadesProdutivo} />
-          <CompactRankList title="Potencialidades: eixo social" data={potencialidadesSocial} />
-          <CompactRankList title="Potencialidades: eixo ambiental" data={potencialidadesAmbiental} />
-          <CompactRankList title="Limitações: eixo produtivo" data={limitacoesProdutivo} />
-          <CompactRankList title="Limitações: eixo social" data={limitacoesSocial} />
-          <CompactRankList title="Limitações: eixo ambiental" data={limitacoesAmbiental} />
+          <CompactRankList title="Potencialidades: eixo produtivo" data={potencialidadesProdutivo} items={items} extractFn={(f) => f.acoesPotenciaisProdutivo} />
+          <CompactRankList title="Potencialidades: eixo social" data={potencialidadesSocial} items={items} extractFn={(f) => f.acoesPotenciaisSocial} />
+          <CompactRankList title="Potencialidades: eixo ambiental" data={potencialidadesAmbiental} items={items} extractFn={(f) => f.acoesPotenciaisAmbiental} />
+          <CompactRankList title="Limitações: eixo produtivo" data={limitacoesProdutivo} items={items} extractFn={(f) => f.limitacoesProdutivo} />
+          <CompactRankList title="Limitações: eixo social" data={limitacoesSocial} items={items} extractFn={(f) => f.limitacoesSocial} />
+          <CompactRankList title="Limitações: eixo ambiental" data={limitacoesAmbiental} items={items} extractFn={(f) => f.limitacoesAmbiental} />
         </div>
       </section>
 
@@ -1045,9 +1071,9 @@ function UfpaPanel({
           </p>
         </div>
         <div className="grid gap-4 xl:grid-cols-3">
-          <CompactRankList title="Políticas públicas federais acessadas" data={politicasPublicasFederaisData} />
-          <CompactRankList title="Atividades coletivas" data={atividadesColetivAsData} />
-          <CompactRankList title="Áreas das atividades coletivas" data={areasAtividadesColetivAsData} />
+          <CompactRankList title="Políticas públicas federais acessadas" data={politicasPublicasFederaisData} items={items} extractFn={(f) => f.politicasPublicasFederais} />
+          <CompactRankList title="Atividades coletivas" data={atividadesColetivAsData} items={items} extractFn={(f) => f.atividadesColetivas} />
+          <CompactRankList title="Áreas das atividades coletivas" data={areasAtividadesColetivAsData} items={items} extractFn={(f) => f.areasAtividadesColetivas} />
         </div>
       </section>
 
@@ -1069,8 +1095,8 @@ function UfpaPanel({
             label="Diagnóstico pendente"
             value={metrics.semDiagnostico}
             description="Cadastro existe, mas ainda falta diagnóstico/indicadores."
-            active={focus === "semDiagnostico"}
-            onClick={() => setFocus(focus === "semDiagnostico" ? null : "semDiagnostico")}
+            active={focus.includes("semDiagnostico")}
+            onClick={() => setFocus("semDiagnostico")}
             icon={ClipboardList}
             onExport={(e) => {
               e.stopPropagation();
@@ -1081,8 +1107,8 @@ function UfpaPanel({
             label="Água sem tratamento"
             value={metrics.semAgua}
             description="UFPAs com água de consumo sem tratamento."
-            active={focus === "semAgua"}
-            onClick={() => setFocus(focus === "semAgua" ? null : "semAgua")}
+            active={focus.includes("semAgua")}
+            onClick={() => setFocus("semAgua")}
             icon={Droplets}
             onExport={(e) => {
               e.stopPropagation();
@@ -1093,8 +1119,8 @@ function UfpaPanel({
             label="Sem CadÚnico"
             value={metrics.semCadUnico}
             description="Famílias que não possuem CadÚnico informado."
-            active={focus === "semCadUnico"}
-            onClick={() => setFocus(focus === "semCadUnico" ? null : "semCadUnico")}
+            active={focus.includes("semCadUnico")}
+            onClick={() => setFocus("semCadUnico")}
             icon={Users}
             onExport={(e) => {
               e.stopPropagation();
@@ -1105,8 +1131,8 @@ function UfpaPanel({
             label="Insegurança alimentar"
             value={metrics.inseguranca}
             description="Falta de comida, refeição reduzida ou fome registrada."
-            active={focus === "inseguranca"}
-            onClick={() => setFocus(focus === "inseguranca" ? null : "inseguranca")}
+            active={focus.includes("inseguranca")}
+            onClick={() => setFocus("inseguranca")}
             icon={AlertCircle}
             onExport={(e) => {
               e.stopPropagation();
@@ -1127,7 +1153,7 @@ function OrganizacoesPanel({
   appendReturnHref,
 }: {
   items: SiggaterOrganizacaoDashboardItem[];
-  focus: FocusKey;
+  focus: FocusKey[];
   setFocus: (v: FocusKey) => void;
   appendReturnHref: (href: string) => string;
 }) {
@@ -1244,8 +1270,8 @@ function OrganizacoesPanel({
           description="Organizações ainda sem formulário preenchido."
           tone="zinc"
           icon={ClipboardList}
-          active={focus === "indicadoresPendentes"}
-          onClick={() => setFocus(focus === "indicadoresPendentes" ? null : "indicadoresPendentes")}
+          active={focus.includes("indicadoresPendentes")}
+          onClick={() => setFocus("indicadoresPendentes")}
         />
         <MetricCard
           label="Famílias vinculadas"
@@ -1260,8 +1286,8 @@ function OrganizacoesPanel({
           description="Organizações com mulheres na diretoria executiva ou conselho fiscal."
           tone="rose"
           icon={Users}
-          active={focus === "mulheresDiretoria"}
-          onClick={() => setFocus(focus === "mulheresDiretoria" ? null : "mulheresDiretoria")}
+          active={focus.includes("mulheresDiretoria")}
+          onClick={() => setFocus("mulheresDiretoria")}
         />
         <MetricCard
           label="Jovens na direção"
@@ -1269,8 +1295,8 @@ function OrganizacoesPanel({
           description="Organizações com jovens na diretoria executiva ou conselho fiscal."
           tone="amber"
           icon={Users}
-          active={focus === "jovensDiretoria"}
-          onClick={() => setFocus(focus === "jovensDiretoria" ? null : "jovensDiretoria")}
+          active={focus.includes("jovensDiretoria")}
+          onClick={() => setFocus("jovensDiretoria")}
         />
       </section>
 
@@ -1281,8 +1307,8 @@ function OrganizacoesPanel({
           description="Fazem uso de práticas ambientais."
           tone="green"
           icon={Leaf}
-          active={focus === "praticasAmbientais"}
-          onClick={() => setFocus(focus === "praticasAmbientais" ? null : "praticasAmbientais")}
+          active={focus.includes("praticasAmbientais")}
+          onClick={() => setFocus("praticasAmbientais")}
         />
         <MetricCard
           label="Sem Práticas amb."
@@ -1290,8 +1316,8 @@ function OrganizacoesPanel({
           description="Não fazem uso de práticas ambientais."
           tone="rose"
           icon={AlertCircle}
-          active={focus === "semPraticasAmbientais"}
-          onClick={() => setFocus(focus === "semPraticasAmbientais" ? null : "semPraticasAmbientais")}
+          active={focus.includes("semPraticasAmbientais")}
+          onClick={() => setFocus("semPraticasAmbientais")}
         />
         <MetricCard
           label="Identidade comercial"
@@ -1299,8 +1325,8 @@ function OrganizacoesPanel({
           description="Utilizam estratégias de identidade."
           tone="blue"
           icon={Globe}
-          active={focus === "identidadeComercial"}
-          onClick={() => setFocus(focus === "identidadeComercial" ? null : "identidadeComercial")}
+          active={focus.includes("identidadeComercial")}
+          onClick={() => setFocus("identidadeComercial")}
         />
         <MetricCard
           label="Sem Identidade com."
@@ -1308,8 +1334,8 @@ function OrganizacoesPanel({
           description="Não utilizam estratégias de identidade."
           tone="zinc"
           icon={AlertCircle}
-          active={focus === "semIdentidadeComercial"}
-          onClick={() => setFocus(focus === "semIdentidadeComercial" ? null : "semIdentidadeComercial")}
+          active={focus.includes("semIdentidadeComercial")}
+          onClick={() => setFocus("semIdentidadeComercial")}
         />
         <MetricCard
           label="Filiadas"
@@ -1317,8 +1343,8 @@ function OrganizacoesPanel({
           description="Filiadas a outras organizações (Representação)."
           tone="blue"
           icon={Globe}
-          active={focus === "filiadaOrganizacao"}
-          onClick={() => setFocus(focus === "filiadaOrganizacao" ? null : "filiadaOrganizacao")}
+          active={focus.includes("filiadaOrganizacao")}
+          onClick={() => setFocus("filiadaOrganizacao")}
         />
         <MetricCard
           label="Não filiadas"
@@ -1326,8 +1352,8 @@ function OrganizacoesPanel({
           description="Não possuem filiação a outras organizações."
           tone="zinc"
           icon={AlertCircle}
-          active={focus === "semFiliadaOrganizacao"}
-          onClick={() => setFocus(focus === "semFiliadaOrganizacao" ? null : "semFiliadaOrganizacao")}
+          active={focus.includes("semFiliadaOrganizacao")}
+          onClick={() => setFocus("semFiliadaOrganizacao")}
         />
         <MetricCard
           label="Políticas públicas"
@@ -1335,8 +1361,8 @@ function OrganizacoesPanel({
           description="Acessaram políticas públicas no último ano."
           tone="green"
           icon={ClipboardCheck}
-          active={focus === "politicasPublicas"}
-          onClick={() => setFocus(focus === "politicasPublicas" ? null : "politicasPublicas")}
+          active={focus.includes("politicasPublicas")}
+          onClick={() => setFocus("politicasPublicas")}
         />
         <MetricCard
           label="Sem Políticas púb."
@@ -1344,8 +1370,8 @@ function OrganizacoesPanel({
           description="Não acessaram políticas públicas no último ano."
           tone="amber"
           icon={AlertCircle}
-          active={focus === "semPoliticasPublicas"}
-          onClick={() => setFocus(focus === "semPoliticasPublicas" ? null : "semPoliticasPublicas")}
+          active={focus.includes("semPoliticasPublicas")}
+          onClick={() => setFocus("semPoliticasPublicas")}
         />
       </section>
 
@@ -1463,7 +1489,7 @@ function AtendimentosPanel({
   appendReturnHref,
 }: {
   items: SiggaterAtendimentoDashboardItem[];
-  focus: FocusKey;
+  focus: FocusKey[];
   setFocus: (v: FocusKey) => void;
   appendReturnHref: (href: string) => string;
 }) {
@@ -1516,8 +1542,8 @@ function AtendimentosPanel({
           description="Soma do campo número de mulheres nos atendimentos."
           tone="rose"
           icon={Users}
-          active={focus === "mulheres"}
-          onClick={() => setFocus(focus === "mulheres" ? null : "mulheres")}
+          active={focus.includes("mulheres")}
+          onClick={() => setFocus("mulheres")}
         />
         <MetricCard
           label="Jovens atendidos"
@@ -1525,8 +1551,8 @@ function AtendimentosPanel({
           description="Soma do campo número de jovens nos atendimentos."
           tone="amber"
           icon={Users}
-          active={focus === "jovens"}
-          onClick={() => setFocus(focus === "jovens" ? null : "jovens")}
+          active={focus.includes("jovens")}
+          onClick={() => setFocus("jovens")}
         />
         <MetricCard
           label="Com indicadores trabalhados"
@@ -1544,8 +1570,8 @@ function AtendimentosPanel({
           description="Relatórios aguardando análise da coordenação/gestão."
           tone="blue"
           icon={LayoutDashboard}
-          active={focus === "emAnalise"}
-          onClick={() => setFocus(focus === "emAnalise" ? null : "emAnalise")}
+          active={focus.includes("emAnalise")}
+          onClick={() => setFocus("emAnalise")}
         />
         <MetricCard
           label="Reprovado gestor"
@@ -1553,8 +1579,8 @@ function AtendimentosPanel({
           description="Relatórios que precisam de correção antes de avançar."
           tone="rose"
           icon={AlertCircle}
-          active={focus === "reprovados"}
-          onClick={() => setFocus(focus === "reprovados" ? null : "reprovados")}
+          active={focus.includes("reprovados")}
+          onClick={() => setFocus("reprovados")}
         />
       </section>
 
@@ -1737,37 +1763,47 @@ export function SiggaterDashboardClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const focusParam = searchParams.get("focus");
+  const focusParamStr = searchParams.get("focus");
   const initialTab = isDashboardTab(tabParam) ? tabParam : view;
-  const initialFocus = isFocusKey(focusParam) ? focusParam : null;
+  const initialFocusArray = focusParamStr ? focusParamStr.split(",").filter(isFocusKey) : [];
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
-  const [focus, setFocus] = useState<FocusKey>(initialFocus);
+  const [focus, setFocus] = useState<Exclude<FocusKey, null>[]>(initialFocusArray as any);
 
   const queryNorm = query.trim().toLowerCase();
   const meta = dashboardViewMeta[activeTab];
   const ViewIcon = meta.icon;
 
-  const buildDashboardHref = (tab: DashboardTab, nextFocus: FocusKey, nextQuery: string) => {
+  const buildDashboardHref = (tab: DashboardTab, nextFocus: FocusKey[], nextQuery: string) => {
     const params = new URLSearchParams();
-    if (nextFocus) params.set("focus", nextFocus);
+    if (nextFocus.length > 0) params.set("focus", nextFocus.join(","));
     if (nextQuery.trim()) params.set("q", nextQuery.trim());
 
     const search = params.toString();
     return `/ater-sociobio/dashboard/${tab}${search ? `?${search}` : ""}`;
   };
-  const syncDashboardUrl = (tab: DashboardTab, nextFocus: FocusKey, nextQuery = query) => {
+  const syncDashboardUrl = (tab: DashboardTab, nextFocus: FocusKey[], nextQuery = query) => {
     router.replace(buildDashboardHref(tab, nextFocus, nextQuery), { scroll: false });
   };
   const activateFocus = (tab: DashboardTab, key: FocusKey) => {
-    const nextFocus = activeTab === tab && focus === key ? null : key;
+    if (!key) return;
+    let nextFocus = [...focus];
+    if (activeTab !== tab) {
+      nextFocus = [key];
+    } else {
+      if (nextFocus.includes(key as Exclude<FocusKey, null>)) {
+        nextFocus = nextFocus.filter((k) => k !== key);
+      } else {
+        nextFocus.push(key as Exclude<FocusKey, null>);
+      }
+    }
     setActiveTab(tab);
     setFocus(nextFocus);
     syncDashboardUrl(tab, nextFocus);
   };
   const currentDashboardHref = pathname.startsWith("/ater-sociobio/dashboard/")
-    ? `${pathname}${focus || query ? `?${new URLSearchParams([
-        ...(focus ? [["focus", focus] as [string, string]] : []),
+    ? `${pathname}${focus.length > 0 || query ? `?${new URLSearchParams([
+        ...(focus.length > 0 ? [["focus", focus.join(",")] as [string, string]] : []),
         ...(query.trim() ? [["q", query.trim()] as [string, string]] : []),
       ]).toString()}` : ""}`
     : buildDashboardHref(activeTab, focus, query);
@@ -1775,9 +1811,20 @@ export function SiggaterDashboardClient({
     const connector = href.includes("?") ? "&" : "?";
     return `${href}${connector}from=${encodeURIComponent(currentDashboardHref)}`;
   };
-  const setPanelFocus = (value: FocusKey) => {
-    setFocus(value);
-    syncDashboardUrl(activeTab, value);
+  const setPanelFocus = (key: FocusKey) => {
+    if (!key) {
+      setFocus([]);
+      syncDashboardUrl(activeTab, []);
+      return;
+    }
+    let nextFocus = [...focus];
+    if (nextFocus.includes(key as Exclude<FocusKey, null>)) {
+      nextFocus = nextFocus.filter((k) => k !== key);
+    } else {
+      nextFocus.push(key as Exclude<FocusKey, null>);
+    }
+    setFocus(nextFocus);
+    syncDashboardUrl(activeTab, nextFocus);
   };
 
   const familias = useMemo(
@@ -1895,7 +1942,7 @@ export function SiggaterDashboardClient({
               label="UFPAs com alerta"
               value={executiveMetrics.ufpasComAlertas}
               description="Famílias com uma ou mais pendências sociais, ambientais ou operacionais."
-              active={activeTab === "ufpas" && focus === "comAlertas"}
+              active={activeTab === "ufpas" && focus.includes("comAlertas")}
               onClick={() => activateFocus("ufpas", "comAlertas")}
               icon={AlertTriangle}
             />
@@ -1903,7 +1950,7 @@ export function SiggaterDashboardClient({
               label="Água sem tratamento"
               value={executiveMetrics.semAguaTratada}
               description="UFPAs com problema direto em água de consumo tratada."
-              active={activeTab === "ufpas" && focus === "semAgua"}
+              active={activeTab === "ufpas" && focus.includes("semAgua")}
               onClick={() => activateFocus("ufpas", "semAgua")}
               icon={Droplets}
             />
@@ -1911,7 +1958,7 @@ export function SiggaterDashboardClient({
               label="Sem CadÚnico"
               value={executiveMetrics.semCadUnico}
               description="Famílias sem CadÚnico registrado nos indicadores."
-              active={activeTab === "ufpas" && focus === "semCadUnico"}
+              active={activeTab === "ufpas" && focus.includes("semCadUnico")}
               onClick={() => activateFocus("ufpas", "semCadUnico")}
               icon={Users}
             />
@@ -1919,7 +1966,7 @@ export function SiggaterDashboardClient({
               label="Insegurança alimentar"
               value={executiveMetrics.insegurancaAlimentar}
               description="Famílias com alerta alimentar registrado no diagnóstico."
-              active={activeTab === "ufpas" && focus === "inseguranca"}
+              active={activeTab === "ufpas" && focus.includes("inseguranca")}
               onClick={() => activateFocus("ufpas", "inseguranca")}
               icon={AlertCircle}
             />
@@ -1927,7 +1974,7 @@ export function SiggaterDashboardClient({
               label="Org. sem indicadores"
               value={executiveMetrics.organizacoesSemIndicadores}
               description="Organizações coletivas sem indicadores preenchidos."
-              active={activeTab === "organizacoes" && focus === "indicadoresPendentes"}
+              active={activeTab === "organizacoes" && focus.includes("indicadoresPendentes")}
               onClick={() => activateFocus("organizacoes", "indicadoresPendentes")}
               icon={Building2}
             />
@@ -1935,7 +1982,7 @@ export function SiggaterDashboardClient({
               label="Org. sem práticas ambientais"
               value={executiveMetrics.organizacoesSemPraticas}
               description="Organizações que declararam não usar práticas ambientais."
-              active={activeTab === "organizacoes" && focus === "semPraticasAmbientais"}
+              active={activeTab === "organizacoes" && focus.includes("semPraticasAmbientais")}
               onClick={() => activateFocus("organizacoes", "semPraticasAmbientais")}
               icon={Leaf}
             />
@@ -1943,7 +1990,7 @@ export function SiggaterDashboardClient({
               label="Relatórios em análise"
               value={executiveMetrics.relatoriosEmAnalise}
               description="Atendimentos aguardando avaliação da coordenação."
-              active={activeTab === "atendimentos" && focus === "emAnalise"}
+              active={activeTab === "atendimentos" && focus.includes("emAnalise")}
               onClick={() => activateFocus("atendimentos", "emAnalise")}
               icon={LayoutDashboard}
             />
@@ -1951,7 +1998,7 @@ export function SiggaterDashboardClient({
               label="Relatórios reprovados"
               value={executiveMetrics.relatoriosReprovados}
               description="Atendimentos que precisam voltar para correção."
-              active={activeTab === "atendimentos" && focus === "reprovados"}
+              active={activeTab === "atendimentos" && focus.includes("reprovados")}
               onClick={() => activateFocus("atendimentos", "reprovados")}
               icon={AlertCircle}
             />

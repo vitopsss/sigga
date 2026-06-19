@@ -256,6 +256,33 @@ export default async function EditarFamiliaPage({
                 </div>
               </Section>
 
+              <Section title="Recursos e Atividades Coletivas">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="font-bold text-zinc-900 mb-3 text-sm">Recursos Disponíveis (Produção e Beneficiamento)</h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      {["Água para irrigação", "Energia elétrica", "Equipamentos agrícolas", "Veículo para transporte", "Local para armazenamento", "Local para beneficiamento", "Crédito rural"].map(opt => (
+                        <label key={opt} className="flex items-start gap-3 text-sm font-medium text-zinc-800 hover:text-zinc-900 cursor-pointer">
+                          <input type="checkbox" name="recursosDisponiveis" value={opt} defaultChecked={Array.isArray(familia.recursosDisponiveis) && familia.recursosDisponiveis.includes(opt)} className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500" />
+                          <span className="leading-tight">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-zinc-900 mb-3 text-sm">Participação em Atividades Coletivas</h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      {["Reuniões comunitárias", "Mutirões", "Festas tradicionais", "Assembleias sindicais", "Feiras locais", "Cursos e capacitações"].map(opt => (
+                        <label key={opt} className="flex items-start gap-3 text-sm font-medium text-zinc-800 hover:text-zinc-900 cursor-pointer">
+                          <input type="checkbox" name="atividadesColetivas" value={opt} defaultChecked={Array.isArray(familia.atividadesColetivas) && familia.atividadesColetivas.includes(opt)} className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500" />
+                          <span className="leading-tight">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Section>
+
               <Section title="Ações Potenciais e Limitações" description="Marque os itens que se aplicam em cada eixo.">
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                 {/* Ações Potenciais Card */}

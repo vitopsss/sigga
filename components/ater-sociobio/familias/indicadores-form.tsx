@@ -2,18 +2,22 @@
 
 import { useForm } from "react-hook-form";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, isRedirectError } from "next/navigation";
 import { useState, useTransition } from "react";
 
 const inputClassName =
-  "mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15";
+  "mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 outline-none backdrop-blur-sm transition-all duration-300 hover:border-emerald-400 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:shadow-lg focus:shadow-emerald-500/10 placeholder:text-slate-400";
 
 function Section({ title, description, children }: any) {
   return (
-    <section>
+    <section className="group relative mb-12 overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-300 hover:shadow-md sm:p-8">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400/0 via-emerald-400/50 to-emerald-400/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900">{title}</h2>
-        {description && <p className="mt-2 text-base font-medium text-slate-600">{description}</p>}
+        <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900">
+          <div className="h-2 w-2 rounded-full bg-emerald-500 transition-all duration-300 group-hover:scale-150 group-hover:bg-emerald-400" />
+          {title}
+        </h2>
+        {description && <p className="mt-2 text-sm text-slate-500">{description}</p>}
       </div>
       {children}
     </section>
@@ -22,8 +26,8 @@ function Section({ title, description, children }: any) {
 
 function Field({ label, name, type = "text", step, required, placeholder, register, className = "" }: any) {
   return (
-    <label className={`block ${className}`}>
-      <span className="text-sm font-bold text-slate-900 block mb-2">{label}</span>
+    <label className={`block group ${className}`}>
+      <span className="text-sm font-bold text-slate-900 block mb-2 transition-colors group-hover:text-emerald-700">{label}</span>
       <input type={type} step={step} required={required} placeholder={placeholder} {...register(name)} className={inputClassName} />
     </label>
   );
@@ -31,17 +35,17 @@ function Field({ label, name, type = "text", step, required, placeholder, regist
 
 function BooleanSelect({ label, name, register }: any) {
   return (
-    <fieldset className="block">
-      <legend className="text-sm font-medium text-slate-700 mb-3">{label}</legend>
+    <fieldset className="block group rounded-2xl border border-transparent p-4 transition-all duration-300 hover:border-slate-100 hover:bg-slate-50/50 hover:shadow-sm">
+      <legend className="text-sm font-semibold text-slate-700 mb-3 transition-colors group-hover:text-emerald-800">{label}</legend>
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 transition">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700 shadow-sm transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:shadow">
           <input type="radio" value="true" {...register(name)} className="peer sr-only" />
-          <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-300 bg-white transition hover:border-emerald-300 hover:bg-emerald-50 peer-checked:border-emerald-600 peer-checked:bg-emerald-600" />
+          <span className="h-4 w-4 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:scale-110" />
           Sim
         </label>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 transition">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700 shadow-sm transition-all hover:border-rose-300 hover:bg-rose-50 hover:shadow">
           <input type="radio" value="false" {...register(name)} className="peer sr-only" />
-          <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-300 bg-white transition hover:border-rose-300 hover:bg-rose-50 peer-checked:border-rose-600 peer-checked:bg-rose-600" />
+          <span className="h-4 w-4 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-rose-600 peer-checked:bg-rose-600 peer-checked:scale-110" />
           Não
         </label>
       </div>
@@ -51,22 +55,22 @@ function BooleanSelect({ label, name, register }: any) {
 
 function TernarySelect({ label, name, register }: any) {
   return (
-    <fieldset className="block border-b border-zinc-100 pb-4">
-      <legend className="text-sm font-medium text-slate-700 mb-3">{label}</legend>
+    <fieldset className="block group rounded-2xl border border-transparent p-4 transition-all duration-300 hover:border-slate-100 hover:bg-slate-50/50 hover:shadow-sm">
+      <legend className="text-sm font-semibold text-slate-700 mb-3 transition-colors group-hover:text-emerald-800">{label}</legend>
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 transition">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700 shadow-sm transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:shadow">
           <input type="radio" value="true" {...register(name)} className="peer sr-only" />
-          <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-300 bg-white transition hover:border-emerald-300 hover:bg-emerald-50 peer-checked:border-emerald-600 peer-checked:bg-emerald-600" />
+          <span className="h-4 w-4 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:scale-110" />
           Sim
         </label>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 transition">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700 shadow-sm transition-all hover:border-rose-300 hover:bg-rose-50 hover:shadow">
           <input type="radio" value="false" {...register(name)} className="peer sr-only" />
-          <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-300 bg-white transition hover:border-rose-300 hover:bg-rose-50 peer-checked:border-rose-600 peer-checked:bg-rose-600" />
+          <span className="h-4 w-4 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-rose-600 peer-checked:bg-rose-600 peer-checked:scale-110" />
           Não
         </label>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 transition">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 hover:shadow">
           <input type="radio" value="nao_aplica" {...register(name)} className="peer sr-only" />
-          <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-300 bg-white transition hover:border-slate-400 hover:bg-slate-50 peer-checked:border-slate-700 peer-checked:bg-slate-700" />
+          <span className="h-4 w-4 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-slate-700 peer-checked:bg-slate-700 peer-checked:scale-110" />
           Não se aplica
         </label>
       </div>
@@ -104,6 +108,7 @@ export function IndicadoresForm({ defaultValues, familiaId, onSubmit }: any) {
       acessouPnae: convertBoolToString(defaultValues?.acessouPnae),
       acessouPgpmBio: convertBoolToString(defaultValues?.acessouPgpmBio),
       acessouPronaf: convertBoolToString(defaultValues?.acessouPronaf),
+      linhasPronafArray: defaultValues?.linhasPronaf && typeof defaultValues.linhasPronaf === 'object' ? Object.keys(defaultValues.linhasPronaf).filter(k => defaultValues.linhasPronaf[k]) : [],
 
       // Econômico - Comercialização
       canalTrocaProdutoServico: convertBoolToString(defaultValues?.canalTrocaProdutoServico),
@@ -172,10 +177,24 @@ export function IndicadoresForm({ defaultValues, familiaId, onSubmit }: any) {
     if (parsedData.qtdVezesComeuMenos) parsedData.qtdVezesComeuMenos = parseInt(parsedData.qtdVezesComeuMenos, 10);
     if (parsedData.valorBrutoProducaoUltimos12Meses) parsedData.valorBrutoProducaoUltimos12Meses = parseFloat(parsedData.valorBrutoProducaoUltimos12Meses);
 
+    // Convert array of checkboxes into JSON Record<string, boolean>
+    if (Array.isArray(parsedData.linhasPronafArray)) {
+      parsedData.linhasPronaf = parsedData.linhasPronafArray.reduce((acc: any, val: string) => {
+        acc[val] = true;
+        return acc;
+      }, {});
+    } else if (typeof parsedData.linhasPronafArray === "string") {
+      parsedData.linhasPronaf = { [parsedData.linhasPronafArray]: true };
+    }
+    delete parsedData.linhasPronafArray;
+
     startTransition(async () => {
       try {
         await onSubmit(parsedData);
       } catch (e) {
+        if (isRedirectError(e)) {
+          throw e; // Let Next.js handle the redirect
+        }
         console.error(e);
         alert("Erro ao salvar indicadores.");
       }
@@ -330,8 +349,21 @@ export function IndicadoresForm({ defaultValues, familiaId, onSubmit }: any) {
             {acessouPronaf === "true" && (
               <div className="mt-8 border-t border-zinc-200 pt-8">
                 <h4 className="font-bold text-lg text-zinc-900 mb-6">7. Se sim na questão 6, qual?</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                  <Field label="Linhas do PRONAF Acessadas (Ex: Custeio, Mulher, Agroindústria, ABC+)" name="linhasPronaf" register={register} placeholder="Digite as linhas..." />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {[
+                    "Custeio", "Mais Alimentos", "Agroecologia", "Bioeconomia", 
+                    "Mulher", "Jovem", "Microcrédito (B)", "Agroindústria", "Floresta", "Semiárido"
+                  ].map((linha) => (
+                    <label key={linha} className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 hover:bg-zinc-50 cursor-pointer transition-colors">
+                      <input 
+                        type="checkbox" 
+                        value={linha} 
+                        {...register("linhasPronafArray")} 
+                        className="w-5 h-5 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span className="text-sm font-medium text-zinc-700">{linha}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             )}

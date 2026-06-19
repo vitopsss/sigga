@@ -8,24 +8,37 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 
 const inputClassName =
-  "mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15";
+  "mt-2 w-full rounded-2xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 outline-none backdrop-blur-sm transition-all duration-300 hover:border-emerald-400 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:shadow-lg focus:shadow-emerald-500/10 placeholder:text-zinc-400";
 
-const labelClassName = "block";
+const labelClassName = "block group";
 
 function Field({ label, name, type = "text", step, required, placeholder, register, className = "" }: any) {
   return (
     <label className={`${labelClassName} ${className}`}>
-      <span className="text-sm font-medium text-zinc-700">{label}</span>
+      <span className="text-sm font-medium text-zinc-700 transition-colors group-hover:text-emerald-700">{label}</span>
       <input type={type} step={step} required={required} placeholder={placeholder} {...register(name)} className={inputClassName} />
+    </label>
+  );
+}
+
+function CheckboxField({ label, name, value, register, className = "" }: any) {
+  return (
+    <label className={`group flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 transition-all duration-200 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-sm ${className}`}>
+      <input type="checkbox" value={value} {...register(name)} className="h-5 w-5 rounded border-zinc-300 text-emerald-600 transition-all focus:ring-4 focus:ring-emerald-500/20" />
+      <span className="text-sm font-medium text-zinc-700 transition-colors group-hover:text-emerald-900">{label}</span>
     </label>
   );
 }
 
 function Section({ title, description, children }: any) {
   return (
-    <section>
+    <section className="group relative overflow-hidden rounded-[2.5rem] border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-zinc-300 hover:shadow-md sm:p-8">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400/0 via-emerald-400/50 to-emerald-400/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-zinc-900">{title}</h2>
+        <h2 className="flex items-center gap-3 text-xl font-bold text-zinc-900">
+          <div className="h-2 w-2 rounded-full bg-emerald-500 transition-all duration-300 group-hover:scale-150 group-hover:bg-emerald-400" />
+          {title}
+        </h2>
         {description && <p className="mt-2 text-sm text-zinc-500">{description}</p>}
       </div>
       {children}
@@ -62,6 +75,9 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
       longitude: "",
       patrimonios: [],
       atividadesProdutivas: [],
+      atividadesColetivas: [],
+      recursosDisponiveis: [],
+      politicasPublicasFederais: [],
       projeto: "",
       tecnico: "",
       dataCadastro: "",
@@ -82,6 +98,21 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
   const { fields: atividades, append: appendAtividade, remove: removeAtividade } = useFieldArray({
     control,
     name: "atividadesProdutivas"
+  });
+
+  const { fields: atividadesColetivas, append: appendAtividadeColetiva, remove: removeAtividadeColetiva } = useFieldArray({
+    control,
+    name: "atividadesColetivas"
+  });
+
+  const { fields: recursosDisponiveis, append: appendRecurso, remove: removeRecurso } = useFieldArray({
+    control,
+    name: "recursosDisponiveis"
+  });
+
+  const { fields: politicasPublicasFederais, append: appendPolitica, remove: removePolitica } = useFieldArray({
+    control,
+    name: "politicasPublicasFederais"
   });
 
   const handleFormSubmit = (data: any) => {
@@ -234,15 +265,67 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
         </div>
       </Section>
 
+      <Section title="Participação em atividades coletivas" description="Sociais, políticas, culturais, produtivas e econômicas.">
+        <div className="space-y-4">
+          {atividadesColetivas.map((item, index) => (
+            <div key={item.id} className="flex gap-4 items-end">
+              <Field label="Atividade Coletiva" name={`atividadesColetivas.${index}.atividade`} register={register} className="flex-1" />
+              <Field label="Área (Ex: Social, produtiva...)" name={`atividadesColetivas.${index}.area`} register={register} className="flex-1" />
+              <Button type="button" variant="destructive" onClick={() => removeAtividadeColetiva(index)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={() => appendAtividadeColetiva({ atividade: "", area: "" })}>
+            <Plus className="mr-2 h-4 w-4" /> Adicionar Atividade
+          </Button>
+        </div>
+      </Section>
+
+      <Section title="Recursos Disponíveis" description="Para produção, beneficiamento e comercialização.">
+        <div className="space-y-4">
+          {recursosDisponiveis.map((item, index) => (
+            <div key={item.id} className="flex gap-4 items-end">
+              <Field label="Recurso disponível" name={`recursosDisponiveis.${index}.recurso`} register={register} className="flex-1" />
+              <Field label="Tipo (Produção, beneficiamento...)" name={`recursosDisponiveis.${index}.tipo`} register={register} className="flex-1" />
+              <Button type="button" variant="destructive" onClick={() => removeRecurso(index)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={() => appendRecurso({ recurso: "", tipo: "" })}>
+            <Plus className="mr-2 h-4 w-4" /> Adicionar Recurso
+          </Button>
+        </div>
+      </Section>
+
+      <Section title="Políticas Públicas" description="Participação em políticas federais.">
+        <div className="space-y-4">
+          {politicasPublicasFederais.map((item, index) => (
+            <div key={item.id} className="flex gap-4 items-end">
+              <Field label="Integrante" name={`politicasPublicasFederais.${index}.integrante`} register={register} className="flex-1" />
+              <Field label="Política Pública Federal" name={`politicasPublicasFederais.${index}.politica`} register={register} className="flex-1" />
+              <Field label="Último ano de adesão" name={`politicasPublicasFederais.${index}.ano`} register={register} className="w-48" />
+              <Button type="button" variant="destructive" onClick={() => removePolitica(index)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={() => appendPolitica({ integrante: "", politica: "", ano: "" })}>
+            <Plus className="mr-2 h-4 w-4" /> Adicionar Política
+          </Button>
+        </div>
+      </Section>
+
       {/* 4. Merge Diagnóstico */}
       <Section title="Meios de Comunicação">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("possuiRadio")} /> Rádio</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("possuiTelevisao")} /> Televisão</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("possuiCelular")} /> Celular</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("possuiInternet")} /> Internet</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("usaRedesSociais")} /> Redes Sociais</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("possuiOutroMeioComunicacao")} /> Outro</label>
+          <CheckboxField label="Rádio" name="possuiRadio" register={register} />
+          <CheckboxField label="Televisão" name="possuiTelevisao" register={register} />
+          <CheckboxField label="Celular" name="possuiCelular" register={register} />
+          <CheckboxField label="Internet" name="possuiInternet" register={register} />
+          <CheckboxField label="Redes Sociais" name="usaRedesSociais" register={register} />
+          <CheckboxField label="Outro" name="possuiOutroMeioComunicacao" register={register} />
         </div>
         <div className="mt-4">
           <Field label="Outros meios (separe por vírgula para mais de um, ex: Carta, Rádio amador)" name="outroMeioComunicacao" register={register} />
@@ -251,12 +334,12 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
 
       <Section title="Saneamento">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("aguaParaConsumo")} /> Água para Consumo</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("aguaConsumoTratada")} /> Água Tratada</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("aguaParaProducao")} /> Água para Produção</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("captacaoAguaChuva")} /> Captação de Chuva</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("esgotoTratado")} /> Esgoto Tratado</label>
-          <label className="flex items-center gap-2"><input type="checkbox" {...register("fontesProtegidas")} /> Fontes Protegidas</label>
+          <CheckboxField label="Água para Consumo" name="aguaParaConsumo" register={register} />
+          <CheckboxField label="Água Tratada" name="aguaConsumoTratada" register={register} />
+          <CheckboxField label="Água para Produção" name="aguaParaProducao" register={register} />
+          <CheckboxField label="Captação de Chuva" name="captacaoAguaChuva" register={register} />
+          <CheckboxField label="Esgoto Tratado" name="esgotoTratado" register={register} />
+          <CheckboxField label="Fontes Protegidas" name="fontesProtegidas" register={register} />
         </div>
       </Section>
 
@@ -272,10 +355,11 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
                 "Transporte para a produção", "Faz venda direta", "Acesso a crédito", "Faz rotação de cultivos",
                 "Faz consorciação", "Banco de sementes crioulas"
               ].map(opt => (
-                <label key={opt} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" value={opt} {...register("acoesPotenciaisProdutivo")} /> {opt}
-                </label>
+                <CheckboxField key={opt} label={opt} value={opt} name="acoesPotenciaisProdutivo" register={register} />
               ))}
+              <div className="sm:col-span-2 md:col-span-3 mt-2">
+                <Field label="Outras ações (Produtivo)" name="outrasAcoesPotenciaisProdutivo" register={register} placeholder="Especifique..." />
+              </div>
             </div>
           </div>
           <div>
@@ -287,10 +371,11 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
                 "Documentação da propriedade (CCIR, CAR e CAF)", "Documentação familiar (CPF, RG, Título de eleitor e CadÚnico)",
                 "Estímulo para atividades de cultura, lazer, esporte e inclusão digital"
               ].map(opt => (
-                <label key={opt} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" value={opt} {...register("acoesPotenciaisSocial")} /> {opt}
-                </label>
+                <CheckboxField key={opt} label={opt} value={opt} name="acoesPotenciaisSocial" register={register} />
               ))}
+              <div className="sm:col-span-2 md:col-span-3 mt-2">
+                <Field label="Outras ações (Social)" name="outrasAcoesPotenciaisSocial" register={register} placeholder="Especifique..." />
+              </div>
             </div>
           </div>
           <div>
@@ -301,13 +386,13 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
                 "Integração entre atividades produtivas", "Produções consorciadas, integradas e sistemas agroflorestais",
                 "Proteção de nascentes", "Poço artesiano"
               ].map(opt => (
-                <label key={opt} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" value={opt} {...register("acoesPotenciaisAmbiental")} /> {opt}
-                </label>
+                <CheckboxField key={opt} label={opt} value={opt} name="acoesPotenciaisAmbiental" register={register} />
               ))}
+              <div className="sm:col-span-2 md:col-span-3 mt-2">
+                <Field label="Outras ações (Ambiental)" name="outrasAcoesPotenciaisAmbiental" register={register} placeholder="Especifique..." />
+              </div>
             </div>
           </div>
-          <Field label="Outras Ações Potenciais (separe por vírgulas)" name="outrasAcoesPotenciais" register={register} />
           
           <div className="mt-6 border-t pt-6">
             <span className="block text-sm font-medium text-zinc-700 mb-2">Limitações (Produtivo)</span>
@@ -318,10 +403,11 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
                 "Transporte para a produção", "Faz venda direta", "Acesso a crédito", "Faz rotação de cultivos",
                 "Faz consorciação", "Banco de sementes crioulas"
               ].map(opt => (
-                <label key={opt} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" value={opt} {...register("limitacoesProdutivo")} /> {opt}
-                </label>
+                <CheckboxField key={opt} label={opt} value={opt} name="limitacoesProdutivo" register={register} />
               ))}
+              <div className="sm:col-span-2 md:col-span-3 mt-2">
+                <Field label="Outras limitações (Produtivo)" name="outrasLimitacoesProdutivo" register={register} placeholder="Especifique..." />
+              </div>
             </div>
           </div>
           <div>
@@ -333,10 +419,11 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
                 "Documentação da propriedade (CCIR, CAR e CAF)", "Documentação familiar (CPF, RG, Título de eleitor e CadÚnico)",
                 "Estímulo para atividades de cultura, lazer, esporte e inclusão digital"
               ].map(opt => (
-                <label key={opt} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" value={opt} {...register("limitacoesSocial")} /> {opt}
-                </label>
+                <CheckboxField key={opt} label={opt} value={opt} name="limitacoesSocial" register={register} />
               ))}
+              <div className="sm:col-span-2 md:col-span-3 mt-2">
+                <Field label="Outras limitações (Social)" name="outrasLimitacoesSocial" register={register} placeholder="Especifique..." />
+              </div>
             </div>
           </div>
           <div>
@@ -347,13 +434,13 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
                 "Integração entre atividades produtivas", "Produções consorciadas, integradas e sistemas agroflorestais",
                 "Proteção de nascentes", "Poço artesiano"
               ].map(opt => (
-                <label key={opt} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" value={opt} {...register("limitacoesAmbiental")} /> {opt}
-                </label>
+                <CheckboxField key={opt} label={opt} value={opt} name="limitacoesAmbiental" register={register} />
               ))}
+              <div className="sm:col-span-2 md:col-span-3 mt-2">
+                <Field label="Outras limitações (Ambiental)" name="outrasLimitacoesAmbiental" register={register} placeholder="Especifique..." />
+              </div>
             </div>
           </div>
-          <Field label="Outras Limitações (separe por vírgulas)" name="outrasLimitacoes" register={register} />
         </div>
       </Section>
 

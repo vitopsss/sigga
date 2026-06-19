@@ -1,5 +1,17 @@
 # Mudancas registradas por IAs
 
+## 2026-06-19 - Unificação de Cadastro/Diagnóstico, Tela de Indicadores e Melhorias de UI
+
+Resumo:
+- Unificada a tela de Cadastro Inicial e Diagnóstico da UFPA em um único fluxo (`UfpaForm`).
+- Separada e criada a tela de Indicadores da UFPA exclusiva para o preenchimento de Dados Sociais, Ambientais e Econômicos em `app/(sigga)/ater-sociobio/familias/[id]/indicadores`.
+- Implementada a lógica de "Outros" em todos os eixos de Limitações e Ações Potenciais (textos livres concatenados nas strings arrays originais).
+- Implementada lógica condicional do `watch` nas Políticas Públicas do eixo Econômico (ex: linha PRONAF só aparece se marcou SIM, e foi refatorado para uma grade de checkboxes mapeada para um JSON interno).
+- Padronizadas as listas dinâmicas para Patrimônio e Atividades Produtivas (dividido em colunas de quantidade, unidade e descrição) mantendo a estrutura JSON do Schema do Prisma.
+- Adicionadas listas dinâmicas faltantes em `UfpaForm`: Atividades Coletivas, Recursos Disponíveis e Políticas Públicas Federais (que existiam no Prisma mas não possuíam interface).
+- Corrigido "Erro ao salvar" nos indicadores de Família: (1) Conversão de objetos `Decimal` do Prisma para `Number` nativo para resolver crash do Next.js Client Components. (2) Omitida a captura de erro `NEXT_REDIRECT` no catch, que acusava falso-positivo.
+- Adicionados os novos campos nas exportações para o relatório do Excel na Dashboard (`excel-export.ts`).
+
 ## 2026-06-16 - Normalizacao centralizada de searchParams repetidos
 
 Resumo:

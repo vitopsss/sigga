@@ -30,6 +30,11 @@ export default async function IndicadoresFamiliaPage({
     ...indicadores,
   };
 
+  // Convert Decimal to Number for Client Component
+  if (defaultValues.valorBrutoProducaoUltimos12Meses && typeof defaultValues.valorBrutoProducaoUltimos12Meses === "object") {
+    defaultValues.valorBrutoProducaoUltimos12Meses = Number(defaultValues.valorBrutoProducaoUltimos12Meses);
+  }
+
   async function handleSubmit(data: any) {
     "use server";
     const result = await salvarIndicadoresUfpa(id, data);
@@ -42,8 +47,8 @@ export default async function IndicadoresFamiliaPage({
   return (
     <div className="min-h-screen bg-zinc-50/50">
       <Header
-        title="Diagnóstico da UFPA"
-        description={`Preenchimento do diagnóstico para ${familia.nomeFamilia}`}
+        title="Indicadores da UFPA"
+        description={`Preenchimento dos indicadores para ${familia.nomeFamilia}`}
         actions={
           <Link href={`/ater-sociobio/familias/${id}`} className="text-sm font-bold text-zinc-500 hover:text-zinc-700">
             Voltar para detalhes
