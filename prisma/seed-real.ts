@@ -12,7 +12,7 @@ async function main() {
   }
 
   const dbUrl = process.env.DATABASE_URL || "";
-  if (dbUrl.includes("supabase.com")) {
+  if (dbUrl.includes("supabase.com") || dbUrl.includes("supabase.co")) {
     console.error("ERRO CRÍTICO: Execução bloqueada. A DATABASE_URL atual aponta para o Supabase (Produção/Nuvem). Nunca rode este seed destrutivo contra bases de produção.");
     process.exit(1);
   }

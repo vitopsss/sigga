@@ -22,7 +22,7 @@ Durante a validação de build `tsc`, os seguintes erros severos foram identific
 - ✅ **PRONAF Checkboxes:** Renderizados separadamente e mesclados em objeto via Payload.
 
 ## 4. Riscos Encontrados (Varredura de Segurança e DB)
-- 🔴 **Perigo Máximo no Seed:** O script `prisma/seed-real.ts` contém comandos `deleteMany()` sem nenhuma trava ou `if (process.env.NODE_ENV !== "production")`. Como o `.env` local aponta para a URL remota, rodar esse seed acidentalmente **apagará permanentemente todo o banco de produção**. Recomenda-se adicionar uma trava de bloqueio de segurança urgente nesse arquivo.
+- 🔴 **Perigo Máximo no Seed:** O script `prisma/seed-real.ts` continha comandos `deleteMany()` sem trava. **Risco identificado e mitigado no commit `b7e1feb`**. Foi adicionada uma trava de bloqueio exigindo `ALLOW_REAL_SEED_RESET=CONFIRMO_APAGAR_DADOS` e um bloqueio forçado se a URL contiver `supabase.com` ou `supabase.co`.
 - 🟡 **Competição de Conexões (Nano):** Como o Vercel (`build`) e o servidor de desenvolvimento usam a mesma `DATABASE_URL` conectando com `pgbouncer=true&connection_limit=1`, desenvolvedores locais podem acabar esgotando o limite de 15 conexões sem perceber, derrubando os usuários da plataforma em produção.
 
 ## 5. Próximos Passos (Apresentação com Orlanda)
