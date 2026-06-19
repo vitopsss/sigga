@@ -1,26 +1,38 @@
-# Handoff / Resumo de Atividades para o Codex CLI
+# Handoff para Codex / Cursor (19/06/2026)
 
-## Contexto Atual (16/06/2026)
-Este documento resume as investigações e correções realizadas no projeto SIGGA v5 (foco no módulo SIGGATER) para que você (Codex) fique na mesma página e possa dar continuidade à análise ou implementação do Módulo 3 (Atendimentos).
+Este documento resume o estado atual do sistema, as alterações mais recentes e o contexto de desenvolvimento do SIGGATER, para que a próxima IA consiga assumir o projeto sem perder tempo de contexto.
 
-## Problemas Resolvidos
-Durante os testes na Vercel (`app-homologacao`), encontramos e corrigimos dois bugs de navegação e sessão:
+## Estado Atual da Aplicação
+O SIGGATER (Sistema de Gestão de ATER Sociobio) está rodando com **Next.js 15 (Turbopack)**, **Prisma** e **Supabase (PostgreSQL)**, sendo hospedado na Vercel. 
+Atualmente, estamos focados no Cadastro e Diagnóstico de UFPAs (Unidades Familiares de Produção Agrícola), onde recentemente fundimos abas em prol de uma usabilidade melhor solicitada pelos clientes (Orlanda/Anater).
 
-### 1. Crash no Botão "Voltar" (Next.js 15 searchParams)
-- **Sintoma:** Ao navegar nas listagens (ex: Famílias, Organizações) e clicar no botão "Voltar", a tela apresentava `Erro do sistema` / `A tela falhou durante o carregamento`.
-- **Causa:** O componente interceptava o histórico de URL (`from=...`). Em determinados cenários de navegação, múltiplos parâmetros `from` eram injetados na URL. O Next.js 15 interpreta múltiplos parâmetros iguais como um `Array` em vez de `string`. Quando a página tentava dar `.trim()` em `searchParams.from`, lançava um *TypeError*, ativando o `error.tsx`.
-- **Solução:** Todos os parâmetros destruturados nos arquivos `page.tsx` das rotas `familias`, `organizacoes`, `atendimentos` e `tecnicos` foram atualizados para verificar `Array.isArray()` e forçar o valor como *string* isolada antes de aplicar sanitizações como o `.trim()`.
+## Alterações Recentes (Junho 2026)
 
-### 2. Erro e Falha no Logout
-- **Sintoma:** O botão "Sair" na Sidebar não estava destruindo a sessão. Ao tentar modificar a rota para um Server Component (Página), a tela passou a estourar outro `Erro do sistema`.
-- **Causa 1:** O botão "Sair" usava o componente `<Link>` do Next.js. O Soft Navigation interceptava a requisição para a Route Handler (`/logout`), que estava gerando cache estático por ser um GET sem APIs dinâmicas marcadas.
-- **Causa 2:** Ao alterar `/logout` para um Server Component Page, esbarramos na limitação arquitetural do App Router onde **não é permitido usar `cookies().delete()` na fase de renderização de páginas**.
-- **Solução:** 
-  1. No arquivo `sidebar.tsx`, o botão de logout foi revertido para usar uma tag âncora padrão `<a href="/logout">` forçando um full page reload.
-  2. O arquivo `/logout/route.ts` foi recriado como um Route Handler com `export const dynamic = "force-dynamic"`.
-  3. Foi adicionada a lógica explícita de exclusão do cookie passando `secure: true` e `path: "/"`, essenciais para cookies com prefixo `__Host-` no ambiente de produção.
+### 1. Unificação e Reestruturação de Formulários (UFPAs e Indicadores)
+- **O que foi feito:** O formulário principal (`UfpaForm`) agora abraça o "Cadastro Inicial" e os campos gerais de "Diagnóstico" na mesma tela (dados da família, LGPD, identificação).
+- **Indicadores:** Foi criada uma aba à parte exclusiva (`/familias/[id]/indicadores`) dedicada à tabulação de Dados Sociais, Ambientais e Econômicos (as regras de preenchimento do formulário longo).
+
+### 2. Tratamento de Objetos Complexos (Decimal e NEXT_REDIRECT)
+- **Crash de Serialização (Prisma `Decimal`):** O Next.js Client Component estava crashando ao receber tipos `Decimal` originários do Prisma. 
+  - **Solução:** Na action `salvarIndicadoresUfpa`, garantimos que números como `valorBrutoProducaoUltimos12Meses` são parseados. E antes de renderizar as Views, fazemos o cast de Decimal para Number nativo.
+- **Falso Positivo de Erro (Next.js):** Ao usar `redirect()` dentro da server action engatada no `onSubmit`, o React disparava o bloco `catch (e)`. 
+  - **Solução:** Adicionamos a checagem `if (isRedirectError(e)) { throw e; }` para que redirecionamentos ocorram sem disparar alertas vermelhos na tela.
+
+### 3. Listas Dinâmicas vs. Campos Fixos ("Travados")
+- Para listas como Atividades Coletivas, Recursos Disponíveis e Políticas Públicas Federais: as opções seguem uma modelagem dinâmica (arrays) gerenciada com `useFieldArray`.
+- **Especial "Patrimônios" e "Áreas":** O cliente enviou um documento exigindo itens fixos (Ex: Bovinos, Ovinos, Máquinas Agrícolas, Pastagens).
+  - **Solução no UI:** O formulário agora injeta por default um array com 23 itens imutáveis (com o label "read-only"). 
+  - O Prisma continua salvando em seu Schema de `Json` original (`{ descricao, quantidade, unidade }[]`), permitindo que a estrutura não precise de migração de banco, mas o frontend trava a experiência para o técnico na ponta preencher exatamente a cartilha.
+  - Para as Linhas do PRONAF: Transformado de input livre em checkboxes, que no submit são encodados num objeto JSON (`Record<string, boolean>`).
+
+### 4. SearchParams Duplicados
+- O Next.js 15 gera arrays de parâmetros quando há chaves repetidas na URL (ex: `?from=abc&from=xyz`). Isso quebrava funções `.trim()`. 
+- **Solução:** Criamos o utilitário `lib/search-params.ts` que normaliza o input (pega sempre o primeiro valor ou `null`). Todas as páginas já foram refatoradas para usá-lo.
+
+## Banco de Dados (Supabase - Plano Nano)
+- **ATENÇÃO:** O Supabase do projeto está no plano Nano que tem limite rígido de conexões concorrentes.
+- Já experimentamos erros de pool (`EMAXCONNSESSION`) quando rodam muitas instâncias ou quando não rodamos o `npx prisma generate` corretamente no deploy. A Vercel já foi parametrizada (`postinstall`) para rodar os comandos do Prisma em cache. **Evite dev contra a base de produção.**
 
 ## Próximos Passos
-- Validar se os bugs em produção (Vercel) sumiram definitivamente.
-- Prosseguir com a criação/ajuste do **Módulo 3 (Atendimentos/Visitas Técnicas)**, conforme Roteiro de Homologação.
-- Garantir que as senhas ou tokens (como VERCEL_TOKEN) criados continuem isolados no `.env` e longe do controle de versão.
+O usuário fará a demonstração destas telas (através do PDF já gerado na pasta `docs/acariquara/reunioes`) para os clientes (Orlanda). O deploy já está subido na main.
+Qualquer dúvida da arquitetura global, leia a documentação `docs/ia/guia_de_arquitetura.md` antes de alterar schemas.
