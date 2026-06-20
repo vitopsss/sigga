@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 
 import { InstallAppButton } from "@/components/system/install-app-button";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-zinc-50 font-sans antialiased">
         {children}
         <InstallAppButton />
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   );

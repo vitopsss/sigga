@@ -5,6 +5,7 @@ import { OrganizacaoColetivaIndicadoresForm } from "@/components/ater/organizaca
 import { TecnicosSelector } from "@/components/ater/tecnicos-selector";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Header } from "@/components/dashboard/header";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { atualizarOrganizacaoColetiva } from "@/lib/actions/organizacoes-coletivas";
 import { ATER_SETUP_ERROR, isAterMissingTableError } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_MUNICIPIOS } from "@/lib/constants/ater-sociobio";
@@ -251,12 +252,9 @@ export default async function EditarOrganizacaoColetivaPage({
                 <Link href={`/ater-sociobio/organizacoes/${id}`} className="text-sm font-medium text-slate-500 hover:text-slate-700">
                   Cancelar
                 </Link>
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
-                >
+                <SubmitButton>
                   Salvar Organização Social
-                </button>
+                </SubmitButton>
               </div>
             </form>
           </section>

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 const inputClassName =
   "mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-900 outline-none backdrop-blur-sm transition-all duration-300 hover:border-emerald-400 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:shadow-lg focus:shadow-emerald-500/10 placeholder:text-slate-400";
@@ -189,14 +190,20 @@ export function IndicadoresForm({ defaultValues, familiaId, onSubmit }: any) {
     delete parsedData.linhasPronafArray;
 
     startTransition(async () => {
+      const promise = onSubmit(parsedData);
+      toast.promise(promise, {
+        loading: "Salvando indicadores...",
+        success: "Indicadores salvos com sucesso!",
+        error: "Ocorreu um erro ao salvar os indicadores."
+      });
+
       try {
-        await onSubmit(parsedData);
+        await promise;
       } catch (e: any) {
         if (e && (e.message === 'NEXT_REDIRECT' || e.digest === 'NEXT_REDIRECT')) {
           throw e; // Let Next.js handle the redirect
         }
         console.error(e);
-        alert("Erro ao salvar indicadores.");
       }
     });
   };

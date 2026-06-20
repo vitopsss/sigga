@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { OrganizacaoColetivaIndicadoresForm } from "@/components/ater/organizacao-coletiva-indicadores-form";
 import { TecnicosSelector } from "@/components/ater/tecnicos-selector";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { criarOrganizacaoColetiva } from "@/lib/actions/organizacoes-coletivas";
 import { ATER_SOCIOBIO_MUNICIPIOS } from "@/lib/constants/ater-sociobio";
 import { AterSociobioService } from "@/lib/services/ater-sociobio.service";
@@ -158,12 +159,9 @@ export default async function NovaOrganizacaoColetivaPage() {
               <p className="max-w-2xl text-sm leading-6 text-slate-500">
                 Os rótulos desta tela seguem o documento de Cadastro da Organização Social - Sociobiodiversidade.
               </p>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
-              >
+              <SubmitButton>
                 Salvar Organização Social
-              </button>
+              </SubmitButton>
             </div>
           </form>
         </section>

@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 const inputClassName =
@@ -144,11 +145,17 @@ export function UfpaForm({ defaultValues, organizacoes, onSubmit }: any) {
 
   const handleFormSubmit = (data: any) => {
     startTransition(async () => {
+      const promise = onSubmit(data);
+      toast.promise(promise, {
+        loading: "Salvando unidade familiar...",
+        success: "Família salva com sucesso!",
+        error: "Ocorreu um erro ao salvar os dados da família."
+      });
+      
       try {
-        await onSubmit(data);
+        await promise;
       } catch (e) {
         console.error(e);
-        alert("Erro ao salvar.");
       }
     });
   };
