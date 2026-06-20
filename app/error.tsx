@@ -13,7 +13,11 @@ function isDatabaseErrorMessage(message: string) {
     normalized.includes("prismaclientinitializationerror") ||
     normalized.includes("failed to connect") ||
     normalized.includes("connection refused") ||
-    normalized.includes("timeout")
+    normalized.includes("timeout") ||
+    normalized.includes("too many clients") ||
+    normalized.includes("emaxconnsession") ||
+    normalized.includes("connection limit") ||
+    normalized.includes("pool timeout")
   );
 }
 
@@ -37,11 +41,11 @@ export default function Error({
           {databaseError ? "Banco indisponível" : "Erro do sistema"}
         </span>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950">
-          {databaseError ? "Não foi possível carregar os dados agora" : "Ocorreu um erro inesperado"}
+          {databaseError ? "Servidor ocupado no momento" : "Ocorreu um erro inesperado"}
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-600">
           {databaseError
-            ? "A aplicação continua no ar, mas a conexão com o banco falhou temporariamente. Tente novamente em instantes."
+            ? "Muitas pessoas estão acessando o sistema simultaneamente. Por favor, aguarde alguns segundos e tente de novo."
             : "A tela falhou durante o carregamento. Tente novamente ou volte para a página inicial."}
         </p>
 
