@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, ClipboardList } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Button, Card } from "@/components/ui";
+import { Empty, EmptyIcon, EmptyTitle, EmptyDescription, EmptyActions } from "@/components/ui/empty";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import {
   ATER_SOCIOBIO_STATUS_RELATORIO,
@@ -171,11 +172,28 @@ export default async function AtendimentosPage({
           </Card>
 
           {!atendimentosPagina.length ? (
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <p className="text-slate-600">
-                {atendimentos.length ? "Nenhum atendimento encontrado para os filtros atuais." : "Nenhum atendimento registrado ainda."}
-              </p>
-            </div>
+            <Empty className="rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+              <EmptyIcon>
+                <ClipboardList className="h-8 w-8" />
+              </EmptyIcon>
+              <EmptyTitle>
+                {atendimentos.length ? "Nenhum atendimento encontrado" : "Nenhum atendimento registrado"}
+              </EmptyTitle>
+              <EmptyDescription>
+                {atendimentos.length
+                  ? "Tente limpar os filtros de busca para encontrar o atendimento desejado."
+                  : "Nenhuma visita técnica foi registrada ainda no sistema."}
+              </EmptyDescription>
+              {!atendimentos.length && (
+                <EmptyActions>
+                  <Link href="/ater-sociobio/atendimentos/nova">
+                    <Button>
+                      Registrar Visita
+                    </Button>
+                  </Link>
+                </EmptyActions>
+              )}
+            </Empty>
           ) : (
             <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
               <table className="w-full text-sm">

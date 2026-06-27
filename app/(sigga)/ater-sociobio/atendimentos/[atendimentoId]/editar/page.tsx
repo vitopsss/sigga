@@ -6,6 +6,7 @@ import {
   type AtendimentoEixoDocumento11,
 } from "@/components/ater/atendimento-documento-11-fields";
 import { AterSetupWarning } from "@/components/ater/setup-warning";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { atualizarAtendimentoFamilia } from "@/lib/actions/atendimentos-familia";
 import { ATER_SETUP_ERROR } from "@/lib/ater-runtime";
 import {
@@ -258,12 +259,12 @@ export default async function EditarAtendimentoPage({
               <p className="max-w-2xl text-sm leading-6 text-slate-500">
                 Depois de salvar, o histórico e o detalhe do atendimento refletem os dados atualizados.
               </p>
-              <button
-                type="submit"
+              <SubmitButton
+                pendingText="Salvando alterações..."
                 className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
               >
                 Salvar alterações
-              </button>
+              </SubmitButton>
             </div>
           </form>
           <datalist id="projeto-titulo-options">

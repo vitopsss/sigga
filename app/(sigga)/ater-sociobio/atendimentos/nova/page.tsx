@@ -15,6 +15,7 @@ import { AterSociobioService, type FamiliaListItem, type TecnicoAtivo } from "@/
 import { firstSearchParam, type SearchParamValue } from "@/lib/search-params";
 import { Header } from "@/components/dashboard/header";
 import { Button } from "@/components/ui";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -206,12 +207,12 @@ export default async function NovoAtendimentoPage({
                   Cancelar e sair
                 </Link>
 
-                <button
-                  type="submit"
-                  className="inline-flex h-14 items-center justify-center rounded-2xl bg-emerald-600 px-10 text-base font-bold text-white shadow-xl shadow-emerald-600/20 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                <SubmitButton
+                  pendingText="Salvando Visita..."
+                  className="h-14 rounded-2xl bg-emerald-600 px-10 text-base font-bold text-white shadow-xl shadow-emerald-600/20 hover:bg-emerald-700"
                 >
                   Salvar Visita Técnica
-                </button>
+                </SubmitButton>
               </div>
             </form>
           )}

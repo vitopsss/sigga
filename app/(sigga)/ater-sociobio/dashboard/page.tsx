@@ -4,6 +4,7 @@ import { ArrowRight, Building2, ClipboardList, Users } from "lucide-react";
 
 import { AterSetupWarning } from "@/components/ater/setup-warning";
 import { Header } from "@/components/dashboard/header";
+import { MunicipiosChart } from "@/components/dashboard/municipios-chart";
 import { Button, Card } from "@/components/ui";
 import { isAterMissingTableError } from "@/lib/ater-runtime";
 import { ATER_SOCIOBIO_TERRITORY_NAME } from "@/lib/constants/ater-sociobio";
@@ -134,6 +135,22 @@ export default async function SiggaterDashboardPage({
                   </Link>
                 );
               })}
+            </div>
+          )}
+
+          {!setupMissing && dashboardData.familias.length > 0 && (
+            <div className="mt-8">
+              <MunicipiosChart
+                data={Object.entries(
+                  dashboardData.familias.reduce((acc, f) => {
+                    const mun = f.municipio || "Não informado";
+                    acc[mun] = (acc[mun] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>)
+                )
+                  .map(([name, count]) => ({ name, count }))
+                  .sort((a, b) => b.count - a.count)}
+              />
             </div>
           )}
         </div>
